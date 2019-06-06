@@ -1,7 +1,7 @@
 module QTBase
 
-import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!
-import LinearAlgebra.BLAS:her!
+import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!, axpy!
+import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
 
@@ -15,8 +15,14 @@ export matrix_decompose, check_positivity, check_unitary
 
 export inst_population, gibbs_state, eigen_eval, eigen_state_continuation!, low_level_hamiltonian, minimum_gap
 
+export LinearOperator, update!, comm!, AdiabaticFrameHamiltonian
+export set_tf!, construct_pausing_hamiltonian
+export UnitlessAdiabaticFrameHamiltonian, UnitAdiabaticFrameHamiltonian, UnitlessAdiabaticFramePausingHamiltonian, UnitAdiabaticFramePausingHamiltonian
+
 include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
+include("linear_operator.jl")
+include("hamiltonian.jl")
 
 end  # module QTBase
