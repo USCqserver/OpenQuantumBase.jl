@@ -36,4 +36,8 @@ w, v = eigen_eval(hfun, [0.5], levels=2)
 @test isapprox(w, spw, atol=1e-4)
 @test isapprox(spv[:,1,1], v[:,1,1], atol=1e-4) || isapprox(spv[:,1,1], -v[:,1,1], atol=1e-4)
 @test isapprox(spv[:,2,1], v[:,2,1], atol=1e-4) || isapprox(spv[:,2,1], -v[:,2,1], atol=1e-4)
+# === unitary test ===
+u_res = exp(-1.0im*5*0.5*σx)
+@test check_unitary(u_res)
+@test !check_unitary([0 1; 0 0])
 end
