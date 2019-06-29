@@ -1,9 +1,10 @@
 module QTBase
 
-import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!, axpy!
+import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!, axpy!, diag
 import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
+import DiffEqBase:DEDataVector, ODEProblem
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
 
@@ -15,14 +16,23 @@ export matrix_decompose, check_positivity, check_unitary
 
 export inst_population, gibbs_state, eigen_eval, eigen_state_continuation!, low_level_hamiltonian, minimum_gap
 
-export LinearOperator, update!, comm!, AdiabaticFrameHamiltonian
-export set_tf!, construct_pausing_hamiltonian
-export UnitlessAdiabaticFrameHamiltonian, UnitAdiabaticFrameHamiltonian, UnitlessAdiabaticFramePausingHamiltonian, UnitAdiabaticFramePausingHamiltonian
+export hamiltonian_factory, AbstractHamiltonian, Hamiltonian, HamiltonianSparse, scale!, AdiabaticFrameHamiltonian
+
+export AdiabaticFramePiecewiseControl
+
+abstract type AbstractAnnealing end
+abstract type AnnealingControl end
+abstract type LinearOperator{T<:Number} end
+abstract type AbstractHamiltonian{T<:Complex} end
+StateVector{T} = AbstractArray{T, 1} where T<:Complex
+DensityMatrix{T} = AbstractArray{T, 2} where T<:Complex
+
 
 include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
-include("linear_operator.jl")
 include("hamiltonian.jl")
+include("annealing_util.jl")
+
 
 end  # module QTBase
