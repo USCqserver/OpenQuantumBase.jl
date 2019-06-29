@@ -1,10 +1,10 @@
 module QTBase
 
-import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!, axpy!, diag
+import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!, axpy!, diag, lmul!
 import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
-import DiffEqBase:DEDataVector, ODEProblem
+import DiffEqBase:DEDataVector, ODEProblem, ODEFunction
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
 
@@ -31,7 +31,7 @@ DensityMatrix{T} = AbstractArray{T, 2} where T<:Complex
 include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
-include("hamiltonian.jl")
+include("hamiltonian/hamiltonian.jl")
 include("annealing_util.jl")
 
 
