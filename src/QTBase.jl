@@ -4,7 +4,7 @@ import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen
 import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
-import DiffEqBase:DEDataVector, ODEProblem, ODEFunction
+import DiffEqBase:DEDataVector, ODEProblem, ODEFunction,  DEDataMatrix, DiscreteCallback, u_modified!, full_cache
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
 
@@ -18,7 +18,9 @@ export inst_population, gibbs_state, eigen_eval, eigen_state_continuation!, low_
 
 export hamiltonian_factory, AbstractHamiltonian, Hamiltonian, HamiltonianSparse, scale!, AdiabaticFrameHamiltonian
 
-export AdiabaticFramePiecewiseControl
+export AdiabaticFramePiecewiseControl, annealing_factory, ControlDensityMatrix
+
+export update_tf!
 
 abstract type AbstractAnnealing end
 abstract type AnnealingControl end
@@ -32,7 +34,7 @@ include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
 include("hamiltonian/hamiltonian.jl")
-include("annealing_util.jl")
+include("annealing/annealing.jl")
 
 
 end  # module QTBase

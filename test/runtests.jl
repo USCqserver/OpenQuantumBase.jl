@@ -65,15 +65,15 @@ end
 # end
 
 
-@testset "Adiabatic Hamiltonian" begin
+@testset "Adiabatic Frame Hamiltonian" begin
 
 dθ= (s)->π/2
 gap = (s)-> (cos(2*π*s) + 1)/2
 H = hamiltonian_factory([gap], [-σz], [dθ], [-σx])
 u = [1.0+0.0im, 1]/sqrt(2)
 ρ = u*u'
-control = AdiabaticFramePiecewiseControl(10, [(x)->x, (x)->0.0], [1, 0.0])
-control_ρ = QTBase.DataDensityMatrix(ρ, 1)
+data_ρ = ControlDensityMatrix(ρ, 1)
+control = AdiabaticFramePiecewiseControl(10, 1.0, [0.5], [(x)->x, (x)->0.0], [1, 0.0])
 
 @test H(10, 0.5) ≈ -π*σx/2
 @test H(5, 0.0) ≈ -π*σx/2 - 5σz
@@ -83,13 +83,18 @@ hres = -π*σx/2 - 10σz
 @test H(du, ρ, 10, 0.0) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
 @test QTBase.ω_matrix(H) ≈ [0 2; -2 0]
 
-du = [1.0+0.0im 0; 0 0]
-@test H(du, ρ, control, 0.0) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
+#du = [1.0+0.0im 0; 0 0]
+#@test H(du, ρ, control, 0.0) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
 
-QTBase.next_state(control)
 du = [1.0+0.0im 0; 0 0]
+data_du = ControlDensityMatrix(du, 1)
+@test H(data_du, data_ρ, control, 0.0) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
+
+data_ρ.stage += 1
+du = [1.0+0.0im 0; 0 0]
+data_du = ControlDensityMatrix(du, 1)
 hres = -10σz
-@test H(du, ρ, control, 0.5) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
+@test H(data_du, data_ρ, control, 0.5) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
 
 scale!(H, 10, "adiabatic")
 @test H(1.0, 0.0) ≈ -π*σx/2 - 10σz
@@ -126,4 +131,15 @@ scale!(H, 2)
 scale!(H_sparse, 2)
 @test H_sparse(0.5) ≈ spσx + spσz
 
+end
+
+@testset "Adiabatic Frame Pausing Annealing" begin
+dθ= (s)->π/2
+gap = (s)-> 1.0
+H = hamiltonian_factory([gap], [-σz], [dθ], [-σx])
+u0 = [1.0+0.0im, 0]
+normal_anneal = annealing_factory(H, u0)
+piecewise_anneal = annealing_factory(H, u0, 0.5, 1.0)
+
+@test piecewise_anneal.ode_problem.p.stops == [0.5, 1.5]
 end
