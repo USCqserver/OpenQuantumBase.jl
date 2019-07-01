@@ -3,6 +3,12 @@ struct Annealing <: AbstractAnnealing
     kwargs
 end
 
+function solve(annealing::Annealing, method, tf::Number; kwargs...)
+    update_tf!(annealing, tf)
+    k = merge(kwargs, annealing.kwargs)
+    solve(annealing.ode_problem, method; k...)
+end
+
 function update_tf!(annealing::AbstractAnnealing, tf)
     annealing.ode_problem.p.tf = tf
 end

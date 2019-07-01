@@ -4,7 +4,7 @@ import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen
 import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
-import DiffEqBase:DEDataVector, ODEProblem, ODEFunction,  DEDataMatrix, DiscreteCallback, u_modified!, full_cache
+import DiffEqBase:DEDataVector, ODEProblem, ODEFunction,  DEDataMatrix, DiscreteCallback, u_modified!, full_cache, solve
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
 

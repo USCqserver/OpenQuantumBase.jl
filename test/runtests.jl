@@ -83,9 +83,6 @@ hres = -π*σx/2 - 10σz
 @test H(du, ρ, 10, 0.0) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
 @test QTBase.ω_matrix(H) ≈ [0 2; -2 0]
 
-#du = [1.0+0.0im 0; 0 0]
-#@test H(du, ρ, control, 0.0) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
-
 du = [1.0+0.0im 0; 0 0]
 data_du = ControlDensityMatrix(du, 1)
 @test H(data_du, data_ρ, control, 0.0) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
