@@ -16,3 +16,8 @@ function (A::AffineOperator)(du, t)
         axpy!(f(t), m, du)
     end
 end
+
+function real(A::AffineOperator)
+    real_m = real.(A.m)
+    AffineOperator(A.f, A.m)
+end

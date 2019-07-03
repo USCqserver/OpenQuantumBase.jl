@@ -35,3 +35,14 @@ end
 function scale!(h::Union{Hamiltonian, HamiltonianSparse}, a::Real)
     h.op.m .*= a
 end
+
+function eigen_decomp(h::Hamiltonian, t; level=2)
+    H = h(t)
+    w, v = eigen!(Hermitian(H))
+    w[1:level], v[:, 1:level]
+end
+
+function eigen_decomp(h::HamiltonianSparse, t; level=2, kwargs...)
+    H = h(t)
+    w, v = eigs(H; nev=level, which=:SR, kwargs...)
+end

@@ -16,9 +16,9 @@ export matrix_decompose, check_positivity, check_unitary
 
 export inst_population, gibbs_state, eigen_eval, eigen_state_continuation!, low_level_hamiltonian, minimum_gap
 
-export hamiltonian_factory, AbstractHamiltonian, Hamiltonian, HamiltonianSparse, scale!, AdiabaticFrameHamiltonian
+export hamiltonian_factory, AbstractHamiltonian, Hamiltonian, HamiltonianSparse, scale!, AdiabaticFrameHamiltonian, eigen_decomp
 
-export AdiabaticFramePiecewiseControl, annealing_factory, ControlDensityMatrix
+export AdiabaticFramePiecewiseControl, annealing_factory
 
 export update_tf!
 
@@ -26,9 +26,6 @@ abstract type AbstractAnnealing end
 abstract type AnnealingControl end
 abstract type LinearOperator{T<:Number} end
 abstract type AbstractHamiltonian{T<:Complex} end
-StateVector{T} = AbstractArray{T, 1} where T<:Complex
-DensityMatrix{T} = AbstractArray{T, 2} where T<:Complex
-
 
 include("unit_util.jl")
 include("math_util.jl")
