@@ -1,4 +1,7 @@
-function hamiltonian_factory(funcs, ops)
+function hamiltonian_factory(funcs, ops; is_real=false)
+    if is_real == true
+        ops = real.(ops)
+    end
     operator = AffineOperator(funcs, ops)
     if issparse(ops[1])
         cache = spzeros(eltype(ops[1]), size(ops[1])...)

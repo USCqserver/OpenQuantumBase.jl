@@ -1,6 +1,6 @@
-struct Hamiltonian{T} <: AbstractHamiltonian{T}
+struct Hamiltonian{T<:Complex} <: AbstractHamiltonian{T}
     op::LinearOperator{T}
-    u_cache::Array{T, 2}
+    u_cache::Matrix{T}
 end
 
 struct HamiltonianSparse{T} <: AbstractHamiltonian{T}

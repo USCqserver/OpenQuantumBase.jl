@@ -25,7 +25,7 @@ export update_tf!
 abstract type AbstractAnnealing end
 abstract type AnnealingControl end
 abstract type LinearOperator{T<:Number} end
-abstract type AbstractHamiltonian{T<:Complex} end
+abstract type AbstractHamiltonian{T<:Number} end
 
 include("unit_util.jl")
 include("math_util.jl")
