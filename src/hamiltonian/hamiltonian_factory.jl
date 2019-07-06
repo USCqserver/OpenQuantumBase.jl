@@ -2,12 +2,13 @@ function hamiltonian_factory(funcs, ops; is_real=false)
     if is_real == true
         ops = real.(ops)
     end
-    operator = AffineOperator(funcs, ops)
     if issparse(ops[1])
         cache = spzeros(eltype(ops[1]), size(ops[1])...)
+        operator = AffineOperatorSparse(funcs, ops)
         HamiltonianSparse(operator, cache)
     else
         cache = zeros(eltype(ops[1]), size(ops[1]))
+        operator = AffineOperator(funcs, ops)
         Hamiltonian(operator, cache)
     end
 end

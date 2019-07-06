@@ -4,7 +4,7 @@ struct Hamiltonian{T<:Complex} <: AbstractHamiltonian{T}
 end
 
 struct HamiltonianSparse{T} <: AbstractHamiltonian{T}
-    op::LinearOperator{T}
+    op::LinearOperatorSparse{T}
     u_cache::SparseMatrixCSC{T, Int64}
 end
 
