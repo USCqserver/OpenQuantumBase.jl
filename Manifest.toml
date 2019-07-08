@@ -16,10 +16,10 @@ version = "0.1.1"
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BinaryProvider]]
-deps = ["Libdl", "SHA"]
-git-tree-sha1 = "c7361ce8a2129f20b0e05a89f7070820cfed6648"
+deps = ["Libdl", "Logging", "SHA"]
+git-tree-sha1 = "8153fd64131cd00a79544bb23788877741f627bb"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.4"
+version = "0.5.5"
 
 [[CSTParser]]
 deps = ["Tokenize"]
@@ -49,9 +49,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqBase]]
 deps = ["Compat", "Distributed", "DocStringExtensions", "FunctionWrappers", "IterativeSolvers", "IteratorInterfaceExtensions", "LinearAlgebra", "MuladdMacro", "Parameters", "RecipesBase", "RecursiveArrayTools", "RecursiveFactorization", "Requires", "Roots", "SparseArrays", "StaticArrays", "Statistics", "SuiteSparse", "TableTraits", "TreeViews"]
-git-tree-sha1 = "ca30d4e41c6591183812ebd29498e32b0dd3a327"
+git-tree-sha1 = "d48559a6fc4229881859e61e5de62c115ee2ed3d"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
-version = "5.11.1"
+version = "5.15.0"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -135,6 +135,12 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[QuadGK]]
+deps = ["DataStructures", "LinearAlgebra"]
+git-tree-sha1 = "438630b843c210b375b2a246329200c113acc61b"
+uuid = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
+version = "2.1.0"
 
 [[REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets"]
