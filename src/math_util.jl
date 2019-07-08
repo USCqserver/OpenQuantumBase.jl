@@ -43,7 +43,7 @@ julia> σx⊗σz
 ⊗ = kron
 
 """
-    matrix_decompose(mat::Array{T,2}, basis::Array{Array{T,2},1})
+    matrix_decompose(mat::Matrix{T}, basis::Array{Matrix{T},1})
 
 Decompse matrix `mat` onto matrix basis `basis`
 
@@ -56,7 +56,7 @@ julia> matrix_decompose(1.0*σx+2.0*σy+3.0*σz, [σx,σy,σz])
  3.0 + 0.0im
 ```
 """
-function matrix_decompose(mat::Array{T,2}, basis::Array{Array{T,2},1}) where T<:Number
+function matrix_decompose(mat::Matrix{T}, basis::Array{Matrix{T},1}) where T<:Number
     dim = size(basis[1])[1]
     [tr(mat*b)/dim for b in basis]
 end
@@ -66,7 +66,7 @@ end
 
 Check if matrix `m` is positive. Internally it compares the minimum eigen value of `m` to 0.
 """
-function check_positivity(m::Array{T,2}) where T<:Number
+function check_positivity(m::Matrix{T}) where T<:Number
     if !ishermitian(m)
         @warn "Input fails the numerical test for Hermitian matrix. Use the upper triangle to construct a new Hermitian matrix."
         d = Hermitian(m)
@@ -238,7 +238,7 @@ julia> check_unitary(exp(-1.0im*5*0.5*σx))
 true
 ```
 """
-function check_unitary(𝐔::Array{T,2}; rtol=1e-6, atol=1e-8) where T<:Number
+function check_unitary(𝐔::Matrix{T}; rtol=1e-6, atol=1e-8) where T<:Number
     a1 = isapprox(𝐔*𝐔', Matrix{eltype(𝐔)}(I,size(𝐔)),rtol=rtol,atol=atol)
     a2 = isapprox(𝐔'*𝐔, Matrix{eltype(𝐔)}(I,size(𝐔)),rtol=rtol,atol=atol)
     a1 && a2

@@ -5,7 +5,7 @@ end
 
 struct HamiltonianSparse{T} <: AbstractHamiltonian{T}
     op::LinearOperatorSparse{T}
-    u_cache::SparseMatrixCSC{T, Int64}
+    u_cache::SparseMatrixCSC{T, Int}
 end
 
 function (h::Hamiltonian)(t::Real)

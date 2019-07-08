@@ -9,7 +9,7 @@ struct AffineOperatorSparse{T<:Number} <: LinearOperatorSparse{T}
     " List of time dependent functions "
     f
     " List of constant matrices "
-    m::Vector{SparseMatrixCSC{T, Int64}}
+    m::Vector{SparseMatrixCSC{T, Int}}
 end
 
 function (A::AffineOperator)(du, p, t)
