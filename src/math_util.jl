@@ -78,30 +78,6 @@ end
 
 
 """
-    eigen_state_continuation!(eigen_states, reference=nothing)
-
-Give an `eigen_states` matrix with dimension (dim, dim, time), adjust the sign of each eigenstate such that the inner product between the neighboring eigenstates are positive.
-"""
-function eigen_state_continuation!(eigen_states, reference=nothing)
-    dim = size(eigen_states)
-    if reference != nothing
-        for i in range(1, length=dim[2])
-            if real(eigen_states[:, i, 1]' * reference[:, i]) < 0
-                eigen_states[:, i, 1] = -eigen_states[:, i, 1]
-            end
-        end
-    end
-    for i in range(2, stop=size[3])
-        for j in range(1, length=dim[2])
-            if real(eigen_states[:, j, i]' * eigen_states[:, j, i-1]) < 0
-                eigen_states[:, j, i] = -eigen_states[:, j, i]
-            end
-        end
-    end
-end
-
-
-"""
     eigen_eval(hfun, t; levels=2, tol=1e-4)
 
 Calculate the eigen values and eigen states of Hamiltonian `hfun` at each points of `t`. The output keeps the lowest `levels` eigenstates and their corresponding eigenvalues. `tol` specifies the error tolerance for sparse matrices decomposition.

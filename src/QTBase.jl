@@ -6,6 +6,7 @@ import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
 import DiffEqBase:DEDataVector, ODEProblem, ODEFunction,  DEDataMatrix, DiscreteCallback, u_modified!, full_cache, solve
 import QuadGK:quadgk
+import Interpolations:interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
 
@@ -25,6 +26,8 @@ export AdiabaticFramePiecewiseControl, annealing_factory
 
 export update_tf!
 
+export Complex_Interp, construct_interpolations
+
 abstract type AbstractAnnealing end
 abstract type AnnealingControl end
 abstract type LinearOperator{T<:Number} end
@@ -35,6 +38,7 @@ include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
 
+include("interpolation/interpolation.jl")
 include("integration/integration.jl")
 include("hamiltonian/hamiltonian.jl")
 include("annealing/annealing.jl")
