@@ -70,3 +70,19 @@ function calculate_unitary(H, tf; kwargs...)
     # currently stiff algorithm does not support complex type
     sol = solve(prob, alg_hints=[:nonstiff]; kwargs...)
 end
+
+function solve_schrodinger(H, u0, tf; kwargs...)
+    function f(du, u, p, t)
+        mul!(du, H(t), u)
+        lmul!(-1.0im*p, du)
+    end
+
+    function f_jac(J, u, p, t)
+        hmat = H(t)
+        mul!(J, -1.0im*p, hmat)
+    end
+
+    ff =ODEFunction(f; jac=f_jac)
+    prob = ODEProblem(ff, u0, (0.0, 1.0), tf)
+    sol = solve(prob, alg_hints=[:nonstiff]; kwargs...)
+end
