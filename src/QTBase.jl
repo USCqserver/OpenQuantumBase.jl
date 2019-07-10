@@ -20,7 +20,7 @@ export cpvagk
 
 export inst_population, gibbs_state, eigen_eval, eigen_state_continuation!, low_level_hamiltonian, minimum_gap
 
-export hamiltonian_factory, AbstractHamiltonian, Hamiltonian, HamiltonianSparse, scale!, AdiabaticFrameHamiltonian, eigen_decomp
+export hamiltonian_factory, AbstractHamiltonian, Hamiltonian, HamiltonianSparse, scale!, AdiabaticFrameHamiltonian, eigen_decomp, calculate_unitary
 
 export AdiabaticFramePiecewiseControl, annealing_factory
 
