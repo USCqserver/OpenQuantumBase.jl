@@ -61,11 +61,12 @@ function calculate_unitary(H, tf; kwargs...)
 
     function f_jac(J, u, p, t)
         hmat = H(t)
-        mul!(J, -1.0im*p, u)
+        mul!(J, -1.0im*p, hmat)
     end
 
     ff = ODEFunction(f; jac=f_jac)
     prob = ODEProblem(ff, u0, (0.0,1.0), tf)
 
-    sol = solve(prob; kwargs...)
+    # currently stiff algorithm does not support complex type
+    sol = solve(prob, alg_hints=[:nonstiff]; kwargs...)
 end

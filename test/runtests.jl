@@ -8,5 +8,5 @@ using SafeTestsets
 @time @safetestset "Adiabatic Frame Hamiltonian" begin include("adiabatic_frame_hamiltonian.jl") end
 @time @safetestset "Interpolations" begin include("interpolations.jl") end
 # this test will take a long time and is currently broken
-#@time @safetestset "Differential Equations" begin include("diff_eq.jl") end
+@time @safetestset "Differential Equations" begin include("diff_eq.jl") end
 end
