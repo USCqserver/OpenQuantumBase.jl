@@ -31,13 +31,13 @@ function q_translate(h::String; sp=false)
 end
 
 """
-    ising_terms(ops, q_ind, weight, num_qubit; sp=false)
+    single_clause(ops, q_ind, weight, num_qubit; sp=false)
 
-Construct an ising term of the multi-qubits Hamiltonian. `ops` is a list of Pauli operator names which appears in the ising term. `q_ind` is the list of indices corresponding to the Pauli matrices in `ops`. `weight` is the constant factor of this ising term. `num_qubit` is the total number of qubits. A sparse matrix can be construct by setting `sp` to `true`. The following example construct an ising term of `` Z_1 I Z_3/2 ``.
+Construct a single clause of the multi-qubits Hamiltonian. `ops` is a list of Pauli operator names which appears in this clause. `q_ind` is the list of indices corresponding to the Pauli matrices in `ops`. `weight` is the constant factor of this clause. `num_qubit` is the total number of qubits. A sparse matrix can be construct by setting `sp` to `true`. The following example construct a clause of `` Z_1 I Z_3/2 ``.
 
 # Examples
 ```julia-repl
-julia> ising_terms(["z", "z"], [1, 3], 0.5, 3)
+julia> single_clause(["z", "z"], [1, 3], 0.5, 3)
 8×8 Array{Complex{Float64},2}:
  0.5+0.0im   0.0+0.0im  0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im
  0.0+0.0im  -0.5+0.0im  0.0+0.0im  -0.0+0.0im   0.0+0.0im  -0.0+0.0im   0.0+0.0im  -0.0+0.0im
@@ -49,7 +49,7 @@ julia> ising_terms(["z", "z"], [1, 3], 0.5, 3)
  0.0+0.0im  -0.0+0.0im  0.0+0.0im  -0.0+0.0im  -0.0+0.0im   0.0-0.0im  -0.0+0.0im   0.5-0.0im
 ```
 """
-function ising_terms(ops, q_ind, weight, num_qubit; sp=false)
+function single_clause(ops, q_ind, weight, num_qubit; sp=false)
     if sp == false
         σ_tag = "σ"
         i_tag = σi
@@ -129,23 +129,23 @@ end
 function GHZ_entanglement_witness(num_qubit)
     s = collective_operator("z", num_qubit)
     for k in 2:num_qubit
-        s += ising_terms(["z","z"], [k-1,k], 1.0, num_qubit)
+        s += single_clause(["z","z"], [k-1,k], 1.0, num_qubit)
     end
     (num_qubit-1)I - s
 end
 
 function local_field_term(h, idx, num_qubit; sp=false)
-    res = ising_terms(["z"], [idx[1]], h[1], num_qubit, sp=sp)
+    res = single_clause(["z"], [idx[1]], h[1], num_qubit, sp=sp)
     for i in 2:length(idx)
-        res += ising_terms(["z"], [idx[i]], h[i], num_qubit, sp=sp)
+        res += single_clause(["z"], [idx[i]], h[i], num_qubit, sp=sp)
     end
     res
 end
 
 function two_local_term(j, idx, num_qubit; sp=false)
-    res = ising_terms(["z", "z"], idx[1], j[1], num_qubit, sp=sp)
+    res = single_clause(["z", "z"], idx[1], j[1], num_qubit, sp=sp)
     for i in 2:length(idx)
-        res += ising_terms(["z", "z"], idx[i], j[i], num_qubit, sp=sp)
+        res += single_clause(["z", "z"], idx[i], j[i], num_qubit, sp=sp)
     end
     res
 end

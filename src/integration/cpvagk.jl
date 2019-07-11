@@ -1,3 +1,8 @@
+"""
+    cpvagk(f, t, a, b, tol=256*eps())
+
+Calculate the Cauchy principle value integration of the form ``𝒫∫_a^b f(x)/(x-t) dx``. The algorithm is adapted from [P. Keller, 02.01.2015](https://www.sciencedirect.com/science/article/pii/S0377042715004422)
+"""
 function cpvagk(f, t, a, b, tol=256*eps())
     #   Adapted from P. Keller, 02.01.2015
 
