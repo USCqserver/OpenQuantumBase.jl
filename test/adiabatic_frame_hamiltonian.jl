@@ -26,7 +26,7 @@ data_du = QTBase.ControlDensityMatrix(du, 1)
 hres = -10σz
 @test H(data_du, data_ρ, control, 0.5) ≈ -1.0im*(hres*ρ-ρ*hres) + [1.0+0.0im 0; 0 0]
 
-scale!(H, 10, "adiabatic")
+QTBase.scale!(H, 10, "adiabatic")
 @test H(1.0, 0.0) ≈ -π*σx/2 - 10σz
-scale!(H, 10, "geometric")
+QTBase.scale!(H, 10, "geometric")
 @test H(1.0, 0.0) ≈ -5π*σx - 10σz

@@ -27,10 +27,15 @@ w, v = eigen_decomp(H, 0.0)
 @test w ≈ [-1, 1]
 @test v ≈ [-1 1; 1 1]/sqrt(2)
 
-scale!(H, 2)
+QTBase.scale!(H, 2)
 @test H(0.5) ≈ σx + σz
-scale!(H_sparse, 2)
+QTBase.scale!(H_sparse, 2)
 @test H_sparse(0.5) ≈ spσx + spσz
+
+H_new = p_copy(H)
+@test H_new.u_cache != H.u_cache
+H_new = p_copy(H_sparse)
+@test H_new.u_cache != H_sparse.u_cache
 
 H_sparse = hamiltonian_factory([A, B], [spσx⊗spσi + spσi⊗spσx, 0.1spσz⊗spσi-spσz⊗spσz], is_real=true)
 w, v = eigen_decomp(H_sparse, 1.0)
