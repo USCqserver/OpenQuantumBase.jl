@@ -6,36 +6,70 @@ import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen
 import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
-import DiffEqBase:DEDataVector, ODEProblem, ODEFunction,  DEDataMatrix, DiscreteCallback, u_modified!, full_cache, solve
+import DiffEqBase:DEDataVector, DEDataMatrix, DEDataArray, ODEProblem, ODEFunction, DiscreteCallback, u_modified!, full_cache, solve
 import QuadGK:quadgk
 import Interpolations:interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate
+
 
 """
 $(TYPEDEF)
 
-Base for types defining Hamiltonians.
+Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object should implement two interfaces: `H(t)` and `H(du, u, p, t)`.
 """
-abstract type AbstractHamiltonian{T<:Number} end
+abstract type AbstractHamiltonian{T <: Number} end
+
+
+"""
+$(TYPEDEF)
+
+Base for types defining Hamiltonians using dense matrices.
+"""
+abstract type AbstractDenseHamiltonian{T <: Number} <: AbstractHamiltonian{T} end
+
+
+"""
+$(TYPEDEF)
+
+Base for types defining Hamiltonians using sparse matrices.
+"""
+abstract type AbstractSparseHamiltonian{T <: Number} <: AbstractHamiltonian{T} end
+
 
 """
 $(TYPEDEF)
 
 Base for types defining quantum annealing process.
 """
-abstract type AbstractAnnealing end
-abstract type AnnealingControl end
-abstract type LinearOperator{T<:Number} end
-abstract type LinearOperatorSparse{T<:Number} end
-abstract type AbstractHamiltonian{T<:Number} end
+abstract type AbstractAnnealing{hType <: AbstractHamiltonian,uType <: Union{Vector,Matrix}} end
+
+
+"""
+$(TYPEDEF)
+
+Base for types defining various control protocols in quantum annealing process.
+"""
+abstract type AbstractAnnealingControl end
+abstract type AbstractPauseControl <: AbstractAnnealingControl end
+
+mutable struct StateMachineDensityMatrix{T} <: DEDataMatrix{T}
+    x::Array{T,2}
+    state::Int
+end
 
 include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
+include("interpolation.jl")
 
-include("interpolation/interpolation.jl")
-include("integration/integration.jl")
-include("hamiltonian/hamiltonian.jl")
-include("annealing/annealing.jl")
+include("integration/cpvagk.jl")
+
+include("hamiltonian/affine_operator.jl")
+include("hamiltonian/dense_hamiltonian.jl")
+include("hamiltonian/sparse_hamiltonian.jl")
+include("hamiltonian/adiabatic_frame_hamiltonian.jl")
+
+include("annealing/annealing_type.jl")
+include("annealing/annealing_params.jl")
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
 
@@ -49,7 +83,7 @@ export cpvagk
 
 export inst_population, gibbs_state, eigen_eval, eigen_state_continuation!, low_level_hamiltonian, minimum_gap
 
-export hamiltonian_factory, AbstractHamiltonian, Hamiltonian, HamiltonianSparse, AdiabaticFrameHamiltonian, eigen_decomp, calculate_unitary, solve_schrodinger, p_copy
+export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, eigen_decomp, calculate_unitary, p_copy
 
 export AdiabaticFramePiecewiseControl, annealing_factory
 

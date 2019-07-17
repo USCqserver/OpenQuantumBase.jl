@@ -55,9 +55,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqBase]]
 deps = ["Compat", "Distributed", "DocStringExtensions", "FunctionWrappers", "IterativeSolvers", "IteratorInterfaceExtensions", "LinearAlgebra", "MuladdMacro", "Parameters", "RecipesBase", "RecursiveArrayTools", "RecursiveFactorization", "Requires", "Roots", "SparseArrays", "StaticArrays", "Statistics", "SuiteSparse", "TableTraits", "TreeViews"]
-git-tree-sha1 = "d96946472bbfb41ba04d26e6a6e9fb0d5d9f69cf"
+git-tree-sha1 = "e581e2c10c6ad5e26829b03d38874c508792801d"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
-version = "5.16.3"
+version = "5.16.4"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -185,10 +185,10 @@ uuid = "731186ca-8d62-57ce-b412-fbd966d074cd"
 version = "0.20.0"
 
 [[RecursiveFactorization]]
-deps = ["LinearAlgebra", "Random", "Test"]
-git-tree-sha1 = "54410ebd72cbb84d7b7678eb3da643f8e71181fc"
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "6761a5d1f9646affb2a369ff932841fff77934a3"
 uuid = "f2c3362d-daeb-58d1-803e-2bc74f2840b4"
-version = "0.0.1"
+version = "0.1.0"
 
 [[Requires]]
 deps = ["Test"]
@@ -244,9 +244,9 @@ deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[Tokenize]]
-git-tree-sha1 = "0de343efc07da00cd449d5b04e959ebaeeb3305d"
+git-tree-sha1 = "c8a8b00ae44a94950814ff77850470711a360225"
 uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
-version = "0.5.4"
+version = "0.5.5"
 
 [[TreeViews]]
 deps = ["Test"]

@@ -1,16 +1,3 @@
-mutable struct ControlDensityMatrix{T} <: DEDataMatrix{T}
-    x::Array{T,2}
-    stage::Int
-end
-
-mutable struct AdiabaticFramePiecewiseControl <: AnnealingControl
-    tf::Float64
-    sf::Float64
-    stops
-    annealing_parameter
-    geometric_scaling
-end
-
 function pausing_annealing_parameter(sp, sd)
     sf = 1 + sd
     stops = [sp, sp+sd]

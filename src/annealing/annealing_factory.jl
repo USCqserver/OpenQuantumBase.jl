@@ -1,3 +1,26 @@
+function annealing_factory(H::AbstractHamiltonian, u0, tf; kwargs...)
+    u_dim = ndims(u0)
+    if haskey(kwargs, :output_type)
+        output_type = kwargs[:output_type]
+    else
+        output_type = nothing
+    end
+
+    if isnothing(output_type)
+
+    else
+    end
+
+    if output_type == "unitary"
+        u0 = Matrix{ComplexF64}(I, size(H(0.0)))
+    elseif output_type == "state_vector"
+        u0 =
+    elseif output_type == "density_matrix"
+
+    end
+
+end
+
 function annealing_factory(H::AdiabaticFrameHamiltonian, u0)
     if ndims(u0) == 1
         ρ0 = u0*u0'
