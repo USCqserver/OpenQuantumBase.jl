@@ -13,13 +13,6 @@ function AdiabaticFrameHamiltonian(hfuncs, hops, gfuncs, gops)
     zeros(eltype(hops[1]), size(hops[1], 1)))
 end
 
-mutable struct AdiabaticFramePauseControl <: AbstractPauseControl
-    tf::Float64
-    tstops
-    annealing_parameter
-    geometric_scaling
-end
-
 function (h::AdiabaticFrameHamiltonian)(tf::Real, t::Real)
     fill!(h.u_cache, 0.0)
     h.adiabatic(h.u_cache, tf, t)

@@ -8,4 +8,10 @@ abstract type AbstractAnnealingParams end
 mutable struct AnnealingParams <: AbstractAnnealingParams
     H::AbstractHamiltonian
     tf::Float64
+    opensys
+    control
+end
+
+function AnnealingParams(H, tf; opensys=nothing, control=nothing)
+    AnnealingParams(H, tf, opensys, control)
 end

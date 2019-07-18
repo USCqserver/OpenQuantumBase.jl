@@ -49,12 +49,21 @@ $(TYPEDEF)
 Base for types defining various control protocols in quantum annealing process.
 """
 abstract type AbstractAnnealingControl end
+
+"""
+$(TYPEDEF)
+"""
 abstract type AbstractPauseControl <: AbstractAnnealingControl end
 
-mutable struct StateMachineDensityMatrix{T} <: DEDataMatrix{T}
-    x::Array{T,2}
-    state::Int
-end
+"""
+$(TYPEDEF)
+"""
+abstract type AbstractOpenSys end
+
+"""
+$(TYPEDEF)
+"""
+abstract type OpenSysSets <: AbstractOpenSys end
 
 include("unit_util.jl")
 include("math_util.jl")
@@ -63,13 +72,18 @@ include("interpolation.jl")
 
 include("integration/cpvagk.jl")
 
+include("controls.jl")
 include("hamiltonian/affine_operator.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
+include("hamiltonian/piecewise_hamiltonian.jl")
 
 include("annealing/annealing_type.jl")
 include("annealing/annealing_params.jl")
+
+include("opensys/redfield.jl")
+
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
 
@@ -79,17 +93,20 @@ export q_translate, construct_hamming_weight_op, single_clause, standard_driver,
 
 export matrix_decompose, check_positivity, check_unitary
 
-export cpvagk
-
-export inst_population, gibbs_state, eigen_eval, eigen_state_continuation!, low_level_hamiltonian, minimum_gap
-
-export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, eigen_decomp, calculate_unitary, p_copy
-
-export AdiabaticFramePiecewiseControl, annealing_factory
-
-export update_tf!
-
 export Complex_Interp, construct_interpolations
 
+export cpvagk
+
+export inst_population, gibbs_state, eigen_eval, low_level_hamiltonian, minimum_gap
+
+export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, PiecewiseHamiltonian
+
+export eigen_decomp, p_copy
+
+export Annealing, solve_unitary, solve_schrodinger, solve_von_neumann
+
+export AdiabaticFramePiecewiseControl
+
+export AbstractOpenSys, OpenSysSets, Redfield
 
 end  # module QTBase
