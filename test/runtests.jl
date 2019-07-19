@@ -8,6 +8,7 @@ using SafeTestsets
 @time @safetestset "Dense Hamiltonian" begin include("dense_hamiltonian.jl") end
 @time @safetestset "Sparse Hamiltonian" begin include("sparse_hamiltonian.jl") end
 @time @safetestset "Adiabatic Frame Hamiltonian" begin include("adiabatic_frame_hamiltonian.jl") end
+@time @safetestset "Adiabatic Master Equation" begin include("adiabatic_me_update.jl") end
 # this test will take a long time and is currently broken
 #@time @safetestset "Differential Equations" begin include("diff_eq.jl") end
 end

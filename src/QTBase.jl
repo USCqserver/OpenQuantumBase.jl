@@ -6,7 +6,7 @@ import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen
 import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
-import DiffEqBase:DEDataVector, DEDataMatrix, DEDataArray, ODEProblem, ODEFunction, DiscreteCallback, u_modified!, full_cache, solve
+#import DiffEqBase:DEDataVector, DEDataMatrix, DEDataArray, ODEProblem, ODEFunction, DiscreteCallback, u_modified!, full_cache, solve
 import QuadGK:quadgk
 import Interpolations:interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate
 
@@ -50,10 +50,6 @@ Base for types defining various control protocols in quantum annealing process.
 """
 abstract type AbstractAnnealingControl end
 
-"""
-$(TYPEDEF)
-"""
-abstract type AbstractPauseControl <: AbstractAnnealingControl end
 
 """
 $(TYPEDEF)
@@ -72,7 +68,7 @@ include("interpolation.jl")
 
 include("integration/cpvagk.jl")
 
-include("controls.jl")
+#include("controls.jl")
 include("hamiltonian/affine_operator.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
@@ -105,9 +101,9 @@ export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, Abstra
 
 export eigen_decomp, p_copy
 
-export Annealing, AnnealingParams#, solve_unitary, solve_schrodinger, solve_von_neumann
+export Annealing, AnnealingParams
 
-export AdiabaticFramePiecewiseControl
+#export AdiabaticFramePiecewiseControl
 
 export AbstractOpenSys, OpenSysSets, Redfield, Davies
 
