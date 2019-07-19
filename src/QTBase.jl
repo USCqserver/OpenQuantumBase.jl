@@ -103,7 +103,7 @@ export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, Abstra
 
 export eigen_decomp, p_copy
 
-export Annealing#, solve_unitary, solve_schrodinger, solve_von_neumann
+export Annealing, AnnealingParams#, solve_unitary, solve_schrodinger, solve_von_neumann
 
 export AdiabaticFramePiecewiseControl
 
