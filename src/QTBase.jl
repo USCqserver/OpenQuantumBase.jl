@@ -79,10 +79,10 @@ include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
 include("hamiltonian/piecewise_hamiltonian.jl")
 
+include("opensys/redfield.jl")
+
 include("annealing/annealing_type.jl")
 include("annealing/annealing_params.jl")
-
-include("opensys/redfield.jl")
 
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
@@ -107,6 +107,6 @@ export Annealing, solve_unitary, solve_schrodinger, solve_von_neumann
 
 export AdiabaticFramePiecewiseControl
 
-export AbstractOpenSys, OpenSysSets, Redfield
+export AbstractOpenSys, OpenSysSets, Redfield, create_redfield, solve_redfield
 
 end  # module QTBase
