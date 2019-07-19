@@ -1,10 +1,10 @@
-struct DaviesGenerator
+struct Davies <: AbstractOpenSys
     ops
     γ
     S
 end
 
-function (D::DaviesGenerator)(du, u, p, t)
+function (D::Davies)(du, u, p, t)
     w, v = eigen_decomp(p.H)
     ρ = v' * u * v
     H = Diagonal(w)
@@ -38,5 +38,3 @@ function adiabatic_me_update!(du, u, A, γ, S)
     H_ls = Diagonal(sum(S .* A2, dims=1)[1,:])
     axpy!(-1.0im, H_ls*u-u*H_ls, du)
 end
-
-function create_davies() end

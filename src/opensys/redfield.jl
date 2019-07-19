@@ -1,10 +1,10 @@
-struct RedfieldOperator
+struct Redfield <: AbstractOpenSys
     ops
     unitary
     cfun
 end
 
-function (R::RedfieldOperator)(du, u, p, t)
+function (R::Redfield)(du, u, p, t)
     tf² = p.tf^2
     for op in R.ops
         Λ, err = Λ_calculation(t, op, R.cfun, R.unitary; rtol=1e-6, atol=1e-8)
@@ -21,5 +21,3 @@ function Λ_calculation(t, op::Matrix{T}, cfun, unitary; rtol=1e-8, atol=1e-8) w
     end
     res = quadgk(integrand, 0, t, rtol=rtol, atol=atol)
 end
-
-function create_redfield() end

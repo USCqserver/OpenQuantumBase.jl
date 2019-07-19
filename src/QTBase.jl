@@ -103,12 +103,12 @@ export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, Abstra
 
 export eigen_decomp, p_copy
 
-export Annealing, solve_unitary, solve_schrodinger, solve_von_neumann
+export Annealing#, solve_unitary, solve_schrodinger, solve_von_neumann
 
 export AdiabaticFramePiecewiseControl
 
-export AbstractOpenSys, OpenSysSets, RedfieldOperator, DaviesGenerator, solve_redfield
+export AbstractOpenSys, OpenSysSets, Redfield, Davies
 
-export create_redfield, create_davies
+#export create_redfield, create_davies
 
 end  # module QTBase
