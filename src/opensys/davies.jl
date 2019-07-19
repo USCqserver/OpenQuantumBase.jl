@@ -14,7 +14,7 @@ function (D::Davies)(du, u, p, t)
     γm = p.tf*D.γ.(ω_ba)
     sm = p.tf*D.S.(ω_ba)
     for op in D.ops
-        A = v' * D.ops * v
+        A = v' * op * v
         adiabatic_me_update!(dρ, ρ, A, γm, sm)
     end
     mul!(du, v, dρ*v')
