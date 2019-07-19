@@ -6,8 +6,8 @@ end
 
 function (R::Redfield)(du, u, p, t)
     tf² = p.tf^2
-    for op in R.ops
-        Λ, err = Λ_calculation(t, op, R.cfun, R.unitary; rtol=1e-6, atol=1e-8)
+    for S in R.ops
+        Λ, err = Λ_calculation(t, S, R.cfun, R.unitary; rtol=1e-6, atol=1e-8)
         𝐊₂ = S*Λ*u - Λ*u*S
         𝐊₂ = 𝐊₂ + 𝐊₂'
         axpy!(-tf², 𝐊₂, du)

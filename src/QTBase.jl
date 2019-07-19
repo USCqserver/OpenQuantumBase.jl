@@ -2,7 +2,7 @@ module QTBase
 
 using DocStringExtensions
 
-import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!, axpy!, diag, lmul!
+import LinearAlgebra:kron, mul!, axpy!, I, ishermitian, Hermitian, eigmin, eigen, tr, eigen!, axpy!, diag, lmul!, Diagonal
 import LinearAlgebra.BLAS:her!, gemm!
 import SparseArrays:sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack:eigs
@@ -80,6 +80,8 @@ include("hamiltonian/adiabatic_frame_hamiltonian.jl")
 include("hamiltonian/piecewise_hamiltonian.jl")
 
 include("opensys/redfield.jl")
+include("opensys/davies.jl")
+
 
 include("annealing/annealing_type.jl")
 include("annealing/annealing_params.jl")
@@ -108,7 +110,5 @@ export Annealing, AnnealingParams#, solve_unitary, solve_schrodinger, solve_von_
 export AdiabaticFramePiecewiseControl
 
 export AbstractOpenSys, OpenSysSets, Redfield, Davies
-
-#export create_redfield, create_davies
 
 end  # module QTBase
