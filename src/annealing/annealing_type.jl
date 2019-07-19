@@ -1,13 +1,27 @@
+"""
+$(TYPEDEF)
+Defines a quantum annealing process.
+# Fields
+$(FIELDS)
+"""
 struct Annealing{hType, uType} <: AbstractAnnealing{hType, uType}
+    """Hamiltonian for the annealing."""
     H::hType
+    """Initial state for the annealing."""
     u0::uType
+    """A list of system bath coupling operators(system part)."""
     coupling
+    """A list of system bath coupling operators(bath part)."""
     bath
+    """Additional control protocols for the annealing."""
     control
+    """Extra times that the timestepping algorithm must step to."""
+    tstops
 end
 
-function Annealing(H, u0; coupling=nothing, bath=nothing, control=nothing)
-    Annealing(H, u0, coupling, bath, control)
+
+function Annealing(H, u0; coupling=nothing, bath=nothing, control=nothing, tstops=[])
+    Annealing(H, u0, coupling, bath, control, tstops)
 end
 
 function solve_unitary(A::Annealing, tf::Real; alg=nothing, kwargs...)
@@ -16,7 +30,7 @@ function solve_unitary(A::Annealing, tf::Real; alg=nothing, kwargs...)
     ff = ODEFunction(mul_ode; jac = mul_jac)
     prob = ODEProblem(ff, u0, (0.0, 1.0), p)
     # currently stiff algorithm does not support complex type
-    solve(prob; alg_hints = [:nonstiff], kwargs...)
+    solve(prob; alg_hints = [:nonstiff], tstops=A.tstops, kwargs...)
 end
 
 function solve_schrodinger(A::Annealing, tf::Real; alg=nothing, kwargs...)
@@ -27,7 +41,7 @@ function solve_schrodinger(A::Annealing, tf::Real; alg=nothing, kwargs...)
     p = AnnealingParams(A.H, float(tf))
     ff = ODEFunction(mul_ode; jac = mul_jac)
     prob = ODEProblem(ff, u0, (0.0, 1.0), p)
-    solve(prob; alg_hints = [:nonstiff], kwargs...)
+    solve(prob; alg_hints = [:nonstiff], tstops=A.tstops, kwargs...)
 end
 
 function solve_von_neumann(A::Annealing, tf::Real; alg=nothing, kwargs...)
@@ -38,7 +52,7 @@ function solve_von_neumann(A::Annealing, tf::Real; alg=nothing, kwargs...)
     end
     p = AnnealingParams(A.H, float(tf))
     prob = ODEProblem(von_neumann_ode, u0, (0.0, 1.0), p)
-    solve(prob; alg_hints = [:nonstiff], kwargs...)
+    solve(prob; alg_hints = [:nonstiff], tstops=A.tstops, kwargs...)
 end
 
 function mul_ode(du, u, p, t)
