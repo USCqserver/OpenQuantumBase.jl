@@ -21,3 +21,5 @@ function Λ_calculation(t, op::Matrix{T}, cfun, unitary; rtol=1e-8, atol=1e-8) w
     end
     res = quadgk(integrand, 0, t, rtol=rtol, atol=atol)
 end
+
+function create_redfield() end

@@ -1,5 +1,3 @@
-function create_redfield() end
-
 """
 $(TYPEDEF)
 Defines a quantum annealing process.

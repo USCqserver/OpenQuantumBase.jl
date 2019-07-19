@@ -107,6 +107,8 @@ export Annealing, solve_unitary, solve_schrodinger, solve_von_neumann
 
 export AdiabaticFramePiecewiseControl
 
-export AbstractOpenSys, OpenSysSets, Redfield, create_redfield, solve_redfield
+export AbstractOpenSys, OpenSysSets, RedfieldOperator, DaviesGenerator, solve_redfield
+
+export create_redfield, create_davies
 
 end  # module QTBase

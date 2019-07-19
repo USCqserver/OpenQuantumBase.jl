@@ -38,3 +38,7 @@ function eigen_decomp(h::AbstractDenseHamiltonian, t; level = 2)
     w, v = eigen!(Hermitian(H))
     w[1:level], v[:, 1:level]
 end
+
+function eigen_decomp(h::AbstractDenseHamiltonian)
+    eigen!(Hermitian(h.u_cache))
+end
