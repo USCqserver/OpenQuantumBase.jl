@@ -63,7 +63,7 @@ function solve_redfield(A::Annealing, tf::Real, unitary; kwargs...)
     else
         u0 = A.u0
     end
-    opensys = create_redfield(A.coupling, unitary, A.bath)
+    opensys = create_redfield(A.coupling, unitary, tf, A.bath)
     p = AnnealingParams(A.H, float(tf); opensys=opensys)
     prob = ODEProblem(von_neumann_open_ode, u0, A.sspan, p)
     solve(prob; alg_hints = [:nonstiff], tstops=A.tstops, kwargs...)
