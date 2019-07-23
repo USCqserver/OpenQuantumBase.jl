@@ -1,14 +1,34 @@
+"""
+$(TYPEDEF)
+
+Defines a time dependent Hamiltonian object with Dense Matrices. All the values in the input is assumed to have the unit of `GHz`. An additional ``2π`` factor will be multiplied to each matrices when constructing the object.
+
+# Fields
+
+$(FIELDS)
+"""
 struct DenseHamiltonian{T <: Complex} <: AbstractDenseHamiltonian{T}
+    """Linear Operator Implementation"""
     op::LinearOperator{T}
+    """Internal cache"""
     u_cache::Matrix{T}
+    """Size"""
+    size
 end
 
 function DenseHamiltonian(funcs, mats)
     cache = zeros(eltype(mats[1]), size(mats[1]))
-    operator = AffineOperator(funcs, mats)
-    DenseHamiltonian(operator, cache)
+    # the matrices are scaling by 2π
+    operator = AffineOperator(funcs, 2π*mats)
+    DenseHamiltonian(operator, cache, size(mats[1]))
 end
 
+
+"""
+    function (h::DenseHamiltonian)(t::Real)
+
+Calling the Hamiltonian returns the value ``2πH(t)``.
+"""
 function (h::DenseHamiltonian)(t::Real)
     fill!(h.u_cache, 0.0)
     h.op(h.u_cache, t)
@@ -30,8 +50,9 @@ end
 
 
 function p_copy(h::DenseHamiltonian)
-    DenseHamiltonian(h.op, zeros(eltype(h.u_cache), size(h.u_cache)))
+    DenseHamiltonian(h.op, zeros(eltype(h.u_cache), size(h.u_cache)), h.size)
 end
+
 
 function eigen_decomp(h::AbstractDenseHamiltonian, t; level = 2)
     H = h(t)

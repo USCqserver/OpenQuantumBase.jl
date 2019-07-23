@@ -74,6 +74,8 @@ include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
 include("hamiltonian/piecewise_hamiltonian.jl")
+include("hamiltonian/displays.jl")
+
 
 include("opensys/redfield.jl")
 include("opensys/davies.jl")

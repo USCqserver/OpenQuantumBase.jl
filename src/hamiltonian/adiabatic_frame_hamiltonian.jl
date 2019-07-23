@@ -3,14 +3,16 @@ struct AdiabaticFrameHamiltonian{T} <: AbstractDenseHamiltonian{T}
     adiabatic::LinearOperator{T}
     u_cache::Array{T, 2}
     ω_cache::Array{T, 1}
+    size
 end
 
 function AdiabaticFrameHamiltonian(hfuncs, hops, gfuncs, gops)
-    geometric_op = AffineOperator(gfuncs, gops)
-    adiabatic_op = AffineOperator(hfuncs, hops)
+    geometric_op = AffineOperator(gfuncs, 2π*gops)
+    adiabatic_op = AffineOperator(hfuncs, 2π*hops)
     AdiabaticFrameHamiltonian(geometric_op, adiabatic_op,
     zeros(eltype(hops[1]), size(hops[1])),
-    zeros(eltype(hops[1]), size(hops[1], 1)))
+    zeros(eltype(hops[1]), size(hops[1], 1)),
+    size(hops[1]))
 end
 
 function (h::AdiabaticFrameHamiltonian)(tf::Real, t::Real)
