@@ -11,30 +11,30 @@ function (D::Davies)(du, u, p, t)
     dρ = -1.0im * p.tf * (H * ρ - ρ * H)
     ω_ba = repeat(w, 1, length(w))
     ω_ba = transpose(ω_ba) - ω_ba
-    γm = p.tf*D.γ.(ω_ba)
-    sm = p.tf*D.S.(ω_ba)
+    γm = p.tf * D.γ.(ω_ba)
+    sm = p.tf * D.S.(ω_ba)
     for op in D.ops
         A = v' * op * v
         adiabatic_me_update!(dρ, ρ, A, γm, sm)
     end
-    mul!(du, v, dρ*v')
+    mul!(du, v, dρ * v')
 end
 
 function adiabatic_me_update!(du, u, A, γ, S)
     A2 = abs2.(A)
     γA = γ .* A2
-    Γ = sum(γA, dims=1)
+    Γ = sum(γA, dims = 1)
     dim = size(du)[1]
     for a in 1:dim
-        for b in 1:a-1
+        for b in 1:a - 1
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
             du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
-        for b in a+1:dim
+        for b in a + 1:dim
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
             du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
     end
-    H_ls = Diagonal(sum(S .* A2, dims=1)[1,:])
-    axpy!(-1.0im, H_ls*u-u*H_ls, du)
+    H_ls = Diagonal(sum(S .* A2, dims = 1)[1,:])
+    axpy!(-1.0im, H_ls * u - u * H_ls, du)
 end

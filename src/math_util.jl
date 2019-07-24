@@ -78,11 +78,11 @@ end
 
 
 """
-    eigen_eval(hfun, t; levels=2, tol=1e-4)
+    eigen_sys(hfun, t; levels=2, tol=1e-4)
 
-Calculate the eigen values and eigen states of Hamiltonian `hfun` at each points of `t`. The output keeps the lowest `levels` eigenstates and their corresponding eigenvalues. `tol` specifies the error tolerance for sparse matrices decomposition.
+Calculate the eigen values and eigen states of Hamiltonian `hfun` at each points of vector `t`. The output keeps the lowest `levels` eigenstates and their corresponding eigenvalues. `tol` specifies the error tolerance for sparse matrices decomposition. Output (vals, vecs) whose dimensions are (levels, tdim) and (hdim, levels, tdim) respectively.
 """
-function eigen_eval(hfun, t::AbstractArray{Float64,1}; levels::Int=2, tol=1e-4)
+function eigen_sys(hfun, t::AbstractArray{Float64,1}; levels::Int=2, tol=1e-4)
     t_dim = length(t)
     H = hfun(t[1])
     res_val = Array{eltype(H), 2}(undef, (levels, t_dim))
@@ -190,18 +190,6 @@ function low_level_hamiltonian(h, levels)
     end
 end
 
-"""
-    minimum_gap(h)
-
-Calculate the minimum gap of Hamiltonian `h` using Optim.jl package.
-"""
-function minimum_gap(h)
-    function gap(s)
-        eig_sys = eigen(Hermitian(h(s)))
-        eig_sys.values[2]-eig_sys.values[1]
-    end
-    optimize(gap, 0.0, 1.0)
-end
 
 """
     check_unitary(𝐔; rtol=1e-6, atol=1e-8)
