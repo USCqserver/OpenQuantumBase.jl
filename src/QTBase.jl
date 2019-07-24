@@ -98,7 +98,7 @@ export Complex_Interp, construct_interpolations
 
 export cpvagk
 
-export inst_population, gibbs_state, eigen_sys, low_level_hamiltonian
+export inst_population, gibbs_state, eigen_sys, low_level_hamiltonian, minimum_gap
 
 export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, PiecewiseHamiltonian
 

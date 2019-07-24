@@ -5,4 +5,6 @@ Base.summary(H::AbstractHamiltonian) = string(TYPE_COLOR, nameof(typeof(H)),
 
 function Base.show(io::IO, A::AbstractHamiltonian)
     println(io, summary(A))
+    print(io, "with size: ")
+    show(io, A.size)
 end
