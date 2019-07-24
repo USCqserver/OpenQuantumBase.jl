@@ -12,15 +12,13 @@ struct DenseHamiltonian{T <: Complex} <: AbstractDenseHamiltonian{T}
     op::LinearOperator{T}
     """Internal cache"""
     u_cache::Matrix{T}
-    """Size"""
-    size
 end
 
 function DenseHamiltonian(funcs, mats)
     cache = zeros(eltype(mats[1]), size(mats[1]))
     # the matrices are scaling by 2π
     operator = AffineOperator(funcs, 2π*mats)
-    DenseHamiltonian(operator, cache, size(mats[1]))
+    DenseHamiltonian(operator, cache)
 end
 
 
@@ -50,7 +48,7 @@ end
 
 
 function p_copy(h::DenseHamiltonian)
-    DenseHamiltonian(h.op, zeros(eltype(h.u_cache), size(h.u_cache)), h.size)
+    DenseHamiltonian(h.op, zeros(eltype(h.u_cache), size(h.u_cache)))
 end
 
 
