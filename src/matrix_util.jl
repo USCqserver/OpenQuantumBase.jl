@@ -149,3 +149,30 @@ function two_local_term(j, idx, num_qubit; sp=false)
     end
     res
 end
+
+
+function q_translate_state(h::String; normal=false)
+    if occursin("(", h) || occursin(")", h)
+        h_str = replace(h, r"\(([01]+)\)" => (x)->begin
+            res = ""
+            for i in range(2, length=length(x)-3)
+                res = res * "PauliVec[3]" * "[" * string(parse(Int, x[i]) + 1) * "]" * "⊗"
+            end
+            res = res * "PauliVec[3]" * "[" * string(parse(Int, x[end-1]) + 1) * "]"
+        end)
+    else
+        h_str = replace(h, r"[01]+" => (x)->begin
+            res = ""
+            for i in range(1, length=length(x)-1)
+                res = res * "PauliVec[3]" * "[" * string(parse(Int, x[i]) + 1) * "]" * "⊗"
+            end
+            res = res * "PauliVec[3]" * "[" * string(parse(Int, x[end]) + 1) * "]"
+        end)
+    end
+    res = eval(Meta.parse(h_str))
+    if normal == true
+        normalize(res)
+    else
+        res
+    end
+end
