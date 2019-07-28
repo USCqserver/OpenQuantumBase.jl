@@ -97,7 +97,7 @@ end
 """
     standard_driver(num_qubit; sp=false)
 
-Construct the standard driver Hamiltonian for a system of `num_qubit` qubits. For example, a two qubits standard driver matrix is `` IX + XI ``. Generate sparse matrix when sp is set to true.
+Construct the standard driver Hamiltonian for a system of `num_qubit` qubits. For example, a two qubits standard driver matrix is `` IX + XI ``. Generate sparse matrix when `sp` is set to true.
 """
 function standard_driver(num_qubit; sp=false)
     res = ""
@@ -110,7 +110,7 @@ end
 """
     construct_hamming_weight_op(num_qubit::Int64, op::String; sp=false)
 
-Construct the Hamming weight operator for system of size `num_qubit`. The type of the Hamming weight operator is specified by op: "x", "y" or "z". Generate sparse matrix when sp is set to true.
+Construct the Hamming weight operator for system of size `num_qubit`. The type of the Hamming weight operator is specified by op: "x", "y" or "z". Generate sparse matrix when `sp` is set to true.
 
 # Examples
 ```julia-repl
@@ -134,6 +134,17 @@ function GHZ_entanglement_witness(num_qubit)
     (num_qubit-1)I - s
 end
 
+"""
+    local_field_term(h, idx, num_qubit; sp=false)
+
+Construct local Hamiltonian of the form ``∑hᵢσᵢᶻ``. `idx` is the index of all local field terms and `h` is a list of the corresponding weights. `num_qubit` is the total number of qubits. Generate sparse matrix when `sp` is set to true.
+
+# Examples
+```julia-repl
+julia> local_field_term([1.0, 0.5], [1, 2], 2) == σz⊗σi+0.5σi⊗σz
+true
+```
+"""
 function local_field_term(h, idx, num_qubit; sp=false)
     res = single_clause(["z"], [idx[1]], h[1], num_qubit, sp=sp)
     for i in 2:length(idx)
@@ -142,6 +153,18 @@ function local_field_term(h, idx, num_qubit; sp=false)
     res
 end
 
+
+"""
+    two_local_term(j, idx, num_qubit; sp=false)
+
+Construct local Hamiltonian of the form ``∑Jᵢⱼσᵢᶻσⱼᶻ``. `idx` is the index of all two local terms and `j` is a list of the corresponding weights. `num_qubit` is the total number of qubits. Generate sparse matrix when `sp` is set to true.
+
+# Examples
+```julia-repl
+julia> two_local_term([1.0, 0.5], [[1,2], [1,3]], 3) == σz⊗σz⊗σi + 0.5σz⊗σi⊗σz
+true
+```
+"""
 function two_local_term(j, idx, num_qubit; sp=false)
     res = single_clause(["z", "z"], idx[1], j[1], num_qubit, sp=sp)
     for i in 2:length(idx)
@@ -151,7 +174,41 @@ function two_local_term(j, idx, num_qubit; sp=false)
 end
 
 
+"""
+    q_translate_state(h::String; normal=false)
+
+Convert a string representation of quantum state to a vector. The keyword argument `normal` indicates whether to normalize the output vector. (Currently only '0' and '1' are supported)
+
+# Examples
+Single term:
+```julia-repl
+julia> q_translate_state("001")
+8-element Array{Complex{Float64},1}:
+ 0.0 + 0.0im
+ 1.0 + 0.0im
+ 0.0 + 0.0im
+ 0.0 + 0.0im
+ 0.0 + 0.0im
+ 0.0 + 0.0im
+ 0.0 + 0.0im
+ 0.0 + 0.0im
+```
+Multiple terms:
+```julia-repl
+julia> q_translate_state("(101)+(001)", normal=true)
+8-element Array{Complex{Float64},1}:
+                0.0 + 0.0im
+ 0.7071067811865475 + 0.0im
+                0.0 + 0.0im
+                0.0 + 0.0im
+                0.0 + 0.0im
+ 0.7071067811865475 + 0.0im
+                0.0 + 0.0im
+                0.0 + 0.0im
+```
+"""
 function q_translate_state(h::String; normal=false)
+    # TODO: add "+", "-" into the symbol list
     if occursin("(", h) || occursin(")", h)
         h_str = replace(h, r"\(([01]+)\)" => (x)->begin
             res = ""

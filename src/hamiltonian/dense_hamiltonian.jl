@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 
-Defines a time dependent Hamiltonian object with Dense Matrices. All the values in the input is assumed to have the unit of `GHz`. An additional ``2π`` factor will be multiplied to each matrices when constructing the object.
+Defines a time dependent Hamiltonian object with dense Matrices. All the values in the input is assumed to have the unit of `GHz`. An additional ``2π`` factor will be multiplied to each matrices when constructing the object.
 
 # Fields
 
@@ -16,6 +16,12 @@ struct DenseHamiltonian{T <: Complex} <: AbstractDenseHamiltonian{T}
     size
 end
 
+
+"""
+    function DenseHamiltonian(funcs, mats)
+
+Constructor of DenseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices.
+"""
 function DenseHamiltonian(funcs, mats)
     cache = zeros(eltype(mats[1]), size(mats[1]))
     # the matrices are scaling by 2π
@@ -54,12 +60,17 @@ function p_copy(h::DenseHamiltonian)
 end
 
 
+"""
+    function eigen_decomp(h::AbstractDenseHamiltonian, t; level = 2) -> (w, v)
+
+Calculate the eigen value decomposition of the Hamiltonian `h` at time `t`. Keyword argument `level` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `w[:, k]`.) `w` will be in unit of `GHz`.
+"""
 function eigen_decomp(h::AbstractDenseHamiltonian, t; level = 2)
     H = h(t)
     w, v = eigen!(Hermitian(H))
-    w[1:level], v[:, 1:level]
+    w[1:level]/2/π, v[:, 1:level]
 end
 
-function eigen_decomp(h::AbstractDenseHamiltonian)
+@inline function ode_eigen_decomp(h::AbstractDenseHamiltonian)
     eigen!(Hermitian(h.u_cache))
 end

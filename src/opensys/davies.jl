@@ -4,8 +4,15 @@ struct Davies <: AbstractOpenSys
     S
 end
 
+struct TruncateDavies <: AbstractOpenSys
+    ops
+    γ
+    S
+    lvl
+end
+
 function (D::Davies)(du, u, p, t)
-    w, v = eigen_decomp(p.H)
+    w, v = ode_eigen_decomp(p.H)
     ρ = v' * u * v
     H = Diagonal(w)
     dρ = -1.0im * p.tf * (H * ρ - ρ * H)
@@ -19,6 +26,24 @@ function (D::Davies)(du, u, p, t)
     end
     mul!(du, v, dρ * v')
 end
+
+
+function (D::TruncateDavies)(du, u, p, t)
+    w, v = ode_eigen_decomp(p.H, D.lvl)
+    ρ = v' * u * v
+    H = Diagonal(w)
+    dρ = -1.0im * p.tf * (H * ρ - ρ * H)
+    ω_ba = repeat(w, 1, length(w))
+    ω_ba = transpose(ω_ba) - ω_ba
+    γm = p.tf * D.γ.(ω_ba)
+    sm = p.tf * D.S.(ω_ba)
+    for op in D.ops
+        A = v' * op * v
+        adiabatic_me_update!(dρ, ρ, A, γm, sm)
+    end
+    mul!(du, v, dρ * v')
+end
+
 
 function adiabatic_me_update!(du, u, A, γ, S)
     A2 = abs2.(A)

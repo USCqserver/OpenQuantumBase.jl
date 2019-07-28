@@ -21,6 +21,6 @@ H_new = p_copy(H_sparse)
 H_sparse = SparseHamiltonian([A, B], real.([spσx ⊗ spσi + spσi ⊗ spσx, 0.1spσz ⊗ spσi - spσz ⊗ spσz]))
 w, v = eigen_decomp(H_sparse, 1.0)
 
-@test w ≈ [-1.1, -0.9] * 2 * π
+@test w ≈ [-1.1, -0.9]
 @test abs(v[end, 1]) ≈ 1
 @test abs(v[1, 2]) ≈ 1
