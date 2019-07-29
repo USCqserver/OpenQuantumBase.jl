@@ -74,7 +74,7 @@ include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
 include("hamiltonian/piecewise_hamiltonian.jl")
-include("hamiltonian/displays.jl")
+include("hamiltonian/util.jl")
 
 
 include("opensys/redfield.jl")
@@ -100,7 +100,7 @@ export cpvagk
 
 export inst_population, gibbs_state, eigen_sys, low_level_hamiltonian
 
-export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, PiecewiseHamiltonian
+export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, PiecewiseHamiltonian, evaluate
 
 export eigen_decomp, p_copy
 

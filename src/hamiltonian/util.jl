@@ -8,3 +8,12 @@ function Base.show(io::IO, A::AbstractHamiltonian)
     print(io, "with size: ")
     show(io, A.size)
 end
+
+"""
+    evaluate(H::AbstractHamiltonian, t)
+
+Evaluate the time dependent Hamiltonian at time t with the unit of `GHz`
+"""
+function evaluate(H::AbstractHamiltonian, t)
+    H.(t)/2/π
+end

@@ -7,8 +7,10 @@ u = [1.0 + 0.0im, 1] / sqrt(2)
 
 H = DenseHamiltonian([A, B], [σx, σz])
 
-@test H(0) ≈ 2π * σx
-@test H(0.5) ≈ π * (σx + σz)
+@test H(0) == 2π * σx
+@test evaluate(H, 0) == σx
+@test H(0.5) == π * (σx + σz)
+@test evaluate(H, 0.5) == (σx + σz)/2
 
 du = [1.0 + 0.0im 0; 0 0]
 H(du, ρ, 1.0, 0.5)
