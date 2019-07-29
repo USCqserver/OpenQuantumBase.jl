@@ -39,7 +39,7 @@ $(TYPEDEF)
 
 Base for types defining quantum annealing process.
 """
-abstract type AbstractAnnealing{hType <: AbstractHamiltonian,uType <: Union{Vector,Matrix}} end
+abstract type AbstractAnnealing{hType <: AbstractHamiltonian, uType <: Union{Vector,Matrix}} end
 
 
 """
@@ -54,6 +54,7 @@ abstract type AbstractAnnealingControl end
 $(TYPEDEF)
 """
 abstract type AbstractOpenSys end
+
 
 """
 $(TYPEDEF)
@@ -105,8 +106,6 @@ export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, Abstra
 export eigen_decomp, p_copy
 
 export Annealing, AnnealingParams
-
-#export AdiabaticFramePiecewiseControl
 
 export AbstractOpenSys, OpenSysSets, Redfield, Davies
 
