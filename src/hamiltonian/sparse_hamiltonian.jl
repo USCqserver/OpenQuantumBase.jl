@@ -62,6 +62,6 @@ function eigen_decomp(h::AbstractSparseHamiltonian, t; level = 2, kwargs...)
     w/2/π, v
 end
 
-@inline function ode_eigen_decomp(h::AbstractSparseHamiltonian)
+function ode_eigen_decomp(h::AbstractSparseHamiltonian)
     eigs(h.u_cache; nev = h.size[1]-1, which = :SR)
 end
