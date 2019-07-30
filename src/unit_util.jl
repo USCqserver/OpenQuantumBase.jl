@@ -8,16 +8,10 @@ _k = 1.38064852
 """
     temperature_2_beta(T; unit=:ħ)
 
-Convert physical temperature `T` in mK to inverse temperature `β` in `unit`.
+Convert physical temperature `T` in mK to thermodynamic `β` in the unit of inverse angular frequency.
 """
-function temperature_2_beta(T; unit=:ħ)
-    if unit == :ħ
-        return 5*_h/_k/pi/T
-    elseif unit == :h
-        return 10*_h/_k/T
-    else
-        error("Function only support units of h or ħ")
-    end
+function temperature_2_beta(T)
+    5*_h/_k/pi/T
 end
 
 """
@@ -32,7 +26,7 @@ end
 """
     beta_2_temperature(β)
 
-Convert inverse temperature `β` in ħ to physical temperature `T` in GHz.
+Convert thermodynamic `β` in the unit of inverse angular frequency to physical temperature `T` in GHz.
 """
 function beta_2_temperature(β)
     5*_h/_k/pi/β

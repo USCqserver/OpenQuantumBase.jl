@@ -21,6 +21,8 @@ w, v = eigen_decomp(H, 0.5)
 w, v = eigen_decomp(H, 0.0)
 @test w ≈ [-1, 1]
 @test v ≈ [-1 1; 1 1] / sqrt(2)
+w, v = QTBase.ode_eigen_decomp(H, 0.5)
+@test w ≈ [-1, 1] * sqrt(2) * π
 
 H_new = p_copy(H)
 @test H_new.u_cache == zeros(eltype(H_new.u_cache), size(H_new.u_cache))

@@ -12,7 +12,7 @@ struct TruncateDavies <: AbstractOpenSys
 end
 
 function (D::Davies)(du, u, p, t)
-    w, v = ode_eigen_decomp(p.H)
+    w, v = ode_eigen_decomp(p.H, t)
     ρ = v' * u * v
     H = Diagonal(w)
     dρ = -1.0im * p.tf * (H * ρ - ρ * H)
@@ -29,7 +29,7 @@ end
 
 
 function (D::TruncateDavies)(du, u, p, t)
-    w, v = ode_eigen_decomp(p.H, D.lvl)
+    w, v = ode_eigen_decomp(p.H, t, D.lvl)
     ρ = v' * u * v
     H = Diagonal(w)
     dρ = -1.0im * p.tf * (H * ρ - ρ * H)
