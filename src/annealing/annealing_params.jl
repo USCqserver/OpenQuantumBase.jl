@@ -7,7 +7,7 @@ abstract type AbstractAnnealingParams end
 
 mutable struct AnnealingParams <: AbstractAnnealingParams
     H::AbstractHamiltonian
-    tf::Float64
+    tf
     opensys
     control
 end

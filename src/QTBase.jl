@@ -66,15 +66,17 @@ include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
 include("interpolation.jl")
+include("coupling.jl")
+
 
 include("integration/cpvagk.jl")
 
-#include("controls.jl")
-include("hamiltonian/affine_operator.jl")
+
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
-include("hamiltonian/piecewise_hamiltonian.jl")
+#include("hamiltonian/piecewise_hamiltonian.jl")
+#include("hamiltonian/vectorized_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
 
@@ -85,6 +87,7 @@ include("opensys/davies.jl")
 include("annealing/annealing_type.jl")
 include("annealing/annealing_params.jl")
 include("annealing/displays.jl")
+
 
 
 export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
@@ -101,12 +104,16 @@ export cpvagk
 
 export inst_population, gibbs_state, eigen_sys, low_level_hamiltonian
 
-export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, PiecewiseHamiltonian, evaluate
+export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, evaluate, to_dense, to_sparse, is_sparse
+
+export ConstantCouplings
 
 export eigen_decomp, p_copy
 
 export Annealing, AnnealingParams
 
-export AbstractOpenSys, OpenSysSets, Redfield, Davies
+export AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, DaviesDiffEqOperator
+
+export UnitTime
 
 end  # module QTBase

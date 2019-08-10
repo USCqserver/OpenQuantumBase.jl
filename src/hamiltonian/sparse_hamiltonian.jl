@@ -8,8 +8,10 @@ Defines a time dependent Hamiltonian object with sparse Matrices. All the values
 $(FIELDS)
 """
 struct SparseHamiltonian{T} <: AbstractSparseHamiltonian{T}
-    """Linear Operator Implementation"""
-    op::LinearOperatorSparse{T}
+    " List of time dependent functions "
+    f
+    " List of constant matrices "
+    m::Vector{SparseMatrixCSC{T,Int}}
     """Internal cache"""
     u_cache::SparseMatrixCSC{T,Int}
     """Size"""
@@ -23,9 +25,12 @@ end
 Constructor of SparseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices.
 """
 function SparseHamiltonian(funcs, mats)
-    cache = spzeros(eltype(mats[1]), size(mats[1])...)
-    operator = AffineOperatorSparse(funcs, 2π * mats)
-    SparseHamiltonian(operator, cache, size(mats[1]))
+    if !all((x)->size(x) == size(mats[1]), mats)
+        throw(ArgumentError("Matrices in the list do not have the same size."))
+    end
+    cache = sum(mats)
+    fill!(cache, 0.0+0.0im)
+    SparseHamiltonian(funcs, 2π*mats, cache, size(mats[1]))
 end
 
 """
@@ -35,19 +40,28 @@ Calling the Hamiltonian returns the value ``2πH(t)``.
 """
 function (h::SparseHamiltonian)(t::Real)
     fill!(h.u_cache, 0.0)
-    h.op(h.u_cache, t)
+    for (f, m) in zip(h.f, h.m)
+        h.u_cache .+= f(t) * m
+    end
     h.u_cache
 end
 
 
+function (h::SparseHamiltonian)(tf::Real, t::Real)
+    hmat = h(t)
+    lmul!(tf, hmat)
+end
+
+
 function (h::SparseHamiltonian)(du, u, p::Real, t::Real)
+    fill!(du, 0.0+0.0im)
     H = h(t)
     du .+= -1.0im * p * (H * u - u * H)
 end
 
 
 function p_copy(h::SparseHamiltonian)
-    SparseHamiltonian(h.op, spzeros(eltype(h.u_cache), size(h.u_cache)...), h.size)
+    SparseHamiltonian(h.f, h.m, spzeros(eltype(h.u_cache), size(h.u_cache)...), h.size)
 end
 
 
@@ -62,8 +76,7 @@ function eigen_decomp(h::AbstractSparseHamiltonian, t; level = 2, kwargs...)
     lmul!(1/2/π, w), v
 end
 
-function ode_eigen_decomp(h::AbstractSparseHamiltonian, t::Real)
-    H = h(t)
-    w, v = eigs(H; nev = h.size[1]-1, which = :SR)
+function ode_eigen_decomp(h::AbstractSparseHamiltonian, lvl::Integer)
+    w, v = eigs(h.u_cache; nev = lvl, which = :SR)
     w, v
 end

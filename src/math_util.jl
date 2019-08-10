@@ -207,3 +207,9 @@ function check_unitary(𝐔::Matrix{T}; rtol=1e-6, atol=1e-8) where T<:Number
     a2 = isapprox(𝐔'*𝐔, Matrix{eltype(𝐔)}(I,size(𝐔)),rtol=rtol,atol=atol)
     a1 && a2
 end
+
+
+@inline function comm_update!(dρ, H, ρ, p)
+    gemm!('N', 'N', -1.0im*p, H, ρ, 1.0+0.0im, dρ)
+    gemm!('N', 'N', 1.0im*p, ρ, H, 1.0+0.0im, dρ)
+end
