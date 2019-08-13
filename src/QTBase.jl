@@ -110,7 +110,7 @@ export ConstantCouplings
 
 export eigen_decomp, p_copy
 
-export Annealing, AnnealingParams, set_tf, AbstractAnnealingControl
+export Annealing, AnnealingParams, AbstractAnnealingParams, set_tf, AbstractAnnealingControl
 
 export AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, DaviesDiffEqOperator
 
