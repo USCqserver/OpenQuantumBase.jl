@@ -1,4 +1,5 @@
 function adjust_sspan(control, sspan) end
+function adjust_tstops(control, tstops) end
 
 """
 $(TYPEDEF)
@@ -35,6 +36,7 @@ function Annealing(
 )
     if control!=nothing
         sspan = adjust_sspan(control, sspan)
+        tstops = adjust_tstops(control, tstops)
     end
     Annealing(H, u0, sspan, coupling, bath, control, tstops)
 end
