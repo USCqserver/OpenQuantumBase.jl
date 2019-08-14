@@ -74,22 +74,17 @@ function (h::DenseHamiltonian)(du, u::Matrix{T}, tf::UnitTime, t::Real) where T<
 end
 
 
-function (h::DenseHamiltonian)(du, u::Vector{T}, p::Real, t::Real) where T<:Complex
-    fill!(du, 0.0+0.0im)
+function (h::DenseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T<:Complex
     H = h(t)
-    mul!(du, -1.0im * p * H, u)
+    mul!(du, H, u)
+    lmul!(-1.0im * tf, du)
 end
 
 
-function (h::DenseHamiltonian)(du, u::Vector{T}, p::UnitTime, t::Real) where T<:Complex
-    fill!(du, 0.0+0.0im)
-    H = h(t/p)
-    mul!(du, -1.0im * H, u)
-end
-
-
-function p_copy(h::DenseHamiltonian)
-    DenseHamiltonian(h.f, h.m, similar(h.u_cache), h.size)
+function (h::DenseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T<:Complex
+    H = h(t/tf)
+    mul!(du, H, u)
+    lmul!(-1.0im, du)
 end
 
 
@@ -107,4 +102,9 @@ end
 function ode_eigen_decomp(h::AbstractDenseHamiltonian, lvl::Integer)
     w, v = eigen!(Hermitian(h.u_cache), 1:lvl)
     w, v
+end
+
+
+function p_copy(h::DenseHamiltonian)
+    DenseHamiltonian(h.f, h.m, similar(h.u_cache), h.size)
 end

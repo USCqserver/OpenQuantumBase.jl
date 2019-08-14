@@ -85,14 +85,14 @@ end
 
 
 function (h::AdiabaticFrameHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T
-    ω = h.diagonal(t/tf)
+    ω = h.diagonal(t / tf)
     du .= -2.0im * π * ω * u
-    G = h.geometric(t/tf)
+    G = h.geometric(t / tf)
     du .+= -2.0im * π / tf * G * u
 end
 
 
-function (h::AdiabaticFrameHamiltonian)(du, u, tf::Real, t::Real)
+function (h::AdiabaticFrameHamiltonian)(du, u::Matrix{T}, tf::Real, t::Real) where T <: Number
     ω = h.diagonal(t)
     du .= -2.0im * π * tf * (ω * u - u * ω)
     G = h.geometric(t)
