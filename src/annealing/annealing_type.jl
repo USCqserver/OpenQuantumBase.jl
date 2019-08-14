@@ -1,3 +1,5 @@
+function adjust_sspan(control, sspan) end
+
 """
 $(TYPEDEF)
 Defines a quantum annealing process.
@@ -22,6 +24,17 @@ struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
 end
 
 
-function Annealing(H, u0; sspan = (0.0, 1.0), coupling = nothing, bath = nothing, control = nothing, tstops = [])
+function Annealing(
+    H,
+    u0;
+    sspan = (0.0, 1.0),
+    coupling = nothing,
+    bath = nothing,
+    control = nothing,
+    tstops = []
+)
+    if control!=nothing
+        sspan = adjust_sspan(control, sspan)
+    end
     Annealing(H, u0, sspan, coupling, bath, control, tstops)
 end
