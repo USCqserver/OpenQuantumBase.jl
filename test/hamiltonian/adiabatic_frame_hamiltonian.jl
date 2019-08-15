@@ -15,8 +15,11 @@ H = AdiabaticFrameHamiltonian([(x)->-gap(x), (x)->gap(x)], [dθ])
 u = PauliVec[2][1]
 ρ = u * u'
 
-@test H(10, 0.5) ≈ π^2 * σx / 10
-@test H(5, 0.0) ≈ π^2 * σx / 5 - 2π * σz
+@test H(UnitTime(10), 5.0) ≈ π^2 * σx / 10
+@test H(UnitTime(5), 0.0) ≈ π^2 * σx / 5 - 2π * σz
+
+@test H(10, 0.5) ≈ π^2 * σx
+@test H(5, 0.0) ≈ π^2 * σx - 10π * σz
 
 # in_place update for vector
 du = [1.0 + 0.0im, 0]
