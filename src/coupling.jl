@@ -36,11 +36,36 @@ function Base.show(io::IO, C::ConstantCouplings)
     show(io, C.str_rep)
 end
 
-struct TimeDependentCouplings
+
+struct TimeDependentCoupling
     funcs
     mats
+    TimeDependentCoupling(funcs, mats) = new(funcs, 2π*mats)
 end
 
-function (c::TimeDependentCouplings)(t)
-    [f(t) * m for (f, m) in zip(c.funcs, c.mats)]
+
+function (c::TimeDependentCoupling)(t)
+    sum((x)->x[1](t)*x[2], zip(c.funcs, c.mats))
 end
+
+
+struct TimeDependentCouplings
+    coupling::Tuple
+end
+
+
+function TimeDependentCouplings(args...)
+    TimeDependentCouplings(args)
+end
+
+
+function (c::TimeDependentCouplings)(t)
+    [x(t) for x in c.coupling]
+end
+
+
+Base.iterate(c::TimeDependentCouplings, state=1) = Base.iterate(c.coupling, state)
+
+Base.length(c::TimeDependentCouplings) = length(c.coupling)
+
+Base.eltype(c::TimeDependentCouplings) = typeof(c.coupling[1])

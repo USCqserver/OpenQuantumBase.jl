@@ -24,6 +24,28 @@ function AnnealingParams(H, tf::T; opensys=nothing, control=nothing) where T<:Nu
     AnnealingParams(H, float(tf), opensys, control)
 end
 
-function AnnealingParams(H, tf; opensys=nothing, control=nothing)
+function AnnealingParams(H, tf::UnitTime; opensys=nothing, control=nothing)
     AnnealingParams(H, tf, opensys, control)
+end
+
+
+struct LightAnnealingParams{T<:Union{AbstractFloat, UnitTime}} <: AbstractAnnealingParams
+    tf::T
+    control
+end
+
+function LightAnnealingParams(tf::T; control=nothing) where T<:Number
+    LightAnnealingParams(float(tf), control)
+end
+
+function LightAnnealingParams(tf::UnitTime; control=nothing)
+    LightAnnealingParams(tf, control)
+end
+
+function set_tf(P::LightAnnealingParams{T}, tf::Real) where T<:AbstractFloat
+    LightAnnealingParams(float(tf), P.control)
+end
+
+function set_tf(P::LightAnnealingParams{T}, tf::Real) where T<:UnitTime
+    LightAnnealingParams(UnitTime(tf), P.control)
 end
