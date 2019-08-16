@@ -51,7 +51,7 @@ end
 
 struct AdiabaticFrameHamiltonian{T} <: AbstractDenseHamiltonian{T}
     geometric::GeometricOperator
-    diagonal::DiagonalOperator{T}
+    diagonal::DiagonalOperator
     size
 end
 
@@ -60,7 +60,8 @@ function AdiabaticFrameHamiltonian(ωfuns, geofuns)
     diag_op = DiagonalOperator(ωfuns)
     geo_op = GeometricOperator(geofuns)
     op_size = (length(ωfuns), length(ωfuns))
-    AdiabaticFrameHamiltonian(geo_op, diag_op, op_size)
+    T = complex(typeof(geo_op).parameters[1])
+    AdiabaticFrameHamiltonian{T}(geo_op, diag_op, op_size)
 end
 
 
@@ -84,7 +85,7 @@ end
 
 
 function (h::AdiabaticFrameHamiltonian)(
-    du,
+    du::Vector{T},
     u::Vector{T},
     tf::Real,
     t::Real
@@ -97,11 +98,11 @@ end
 
 
 function (h::AdiabaticFrameHamiltonian)(
-    du,
+    du::Vector{T},
     u::Vector{T},
     tf::UnitTime,
     t::Real
-) where T
+) where T <: Number
     ω = h.diagonal(t / tf)
     du .= -2.0im * π * ω * u
     G = h.geometric(t / tf)
@@ -110,7 +111,7 @@ end
 
 
 function (h::AdiabaticFrameHamiltonian)(
-    du,
+    du::Matrix{T},
     u::Matrix{T},
     tf::Real,
     t::Real
@@ -119,6 +120,20 @@ function (h::AdiabaticFrameHamiltonian)(
     du .= -2.0im * π * tf * (ω * u - u * ω)
     G = h.geometric(t)
     du .+= -2.0im * π * (G * u - u * G)
+end
+
+
+function (h::AdiabaticFrameHamiltonian)(
+    du::Matrix{T},
+    u::Matrix{T},
+    tf::UnitTime,
+    t::Real
+) where T <: Number
+    s = t/tf
+    ω = h.diagonal(s)
+    du .= -2.0im * π * (ω * u - u * ω)
+    G = h.geometric(s)
+    du .+= -2.0im * π * (G * u - u * G) / tf
 end
 
 

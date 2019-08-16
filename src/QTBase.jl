@@ -75,7 +75,7 @@ include("integration/cpvagk.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
-include("hamiltonian/vectorized_hamiltonian.jl")
+#include("hamiltonian/vectorized_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
 
@@ -104,8 +104,6 @@ export cpvagk
 export inst_population, gibbs_state, eigen_sys, low_level_hamiltonian
 
 export AbstractHamiltonian, AbstractSparseHamiltonian, SparseHamiltonian, AbstractDenseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian, evaluate, to_dense, to_sparse, is_sparse
-
-export VectorizedHamiltonian
 
 export ConstantCouplings
 
