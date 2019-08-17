@@ -7,6 +7,12 @@ function (c::ConstantCouplings)(t)
     c.mats
 end
 
+Base.iterate(c::ConstantCouplings, state=1) = Base.iterate(c.mats, state)
+
+Base.length(c::ConstantCouplings) = length(c.mats)
+
+Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
+
 function ConstantCouplings(mats::Union{Vector{Matrix{T}}, Vector{SparseMatrixCSC{T,Int}}}; str_rep = nothing) where T<:Number
     if str_rep !=nothing
         for s in str_rep

@@ -142,7 +142,7 @@ export eigen_decomp, p_copy
 
 export Annealing, AnnealingParams, AbstractAnnealingParams, set_tf, AbstractAnnealingControl, LightAnnealingParams
 
-export AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperator
+export AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperator, AFRWADiffEqOperator
 
 export UnitTime
 

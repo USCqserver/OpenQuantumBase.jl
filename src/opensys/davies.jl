@@ -83,7 +83,7 @@ end
 
 function (D::AMEDiffEqOperator{true,Nothing})(du, u, p, t)
     D.H(du, u, p.tf, t)
-    ω_ba = ω_matrix(D.H)
+    ω_ba = ω_matrix(D.H, D.lvl)
     D.Davies(du, u, ω_ba, p.tf, t)
 end
 
@@ -128,3 +128,34 @@ end
 @inline function diag_cache_update!(cache, H, ρ, tf::UnitTime)
     cache .= -1.0im * (H * ρ - ρ * H)
 end
+
+
+struct AFRWADiffEqOperator{control_type}
+    H
+    Davies
+    lvl::Int
+end
+
+
+function AFRWADiffEqOperator(H, davies; lvl = nothing, control = nothing)
+    if lvl == nothing
+        lvl = H.size[1]
+    end
+    AFRWADiffEqOperator{typeof(control)}(H, davies, lvl)
+end
+
+
+function (D::AFRWADiffEqOperator{Nothing})(du, u, p, t)
+    w, v = ω_matrix_RWA(D.H, p.tf, t, D.lvl)
+    ρ = v' * u * v
+    H = Diagonal(w)
+    cache = diag_update(H, ρ, p.tf)
+    ω_ba = repeat(w, 1, length(w))
+    ω_ba = transpose(ω_ba) - ω_ba
+    D.Davies(cache, ρ, ω_ba, v, p.tf, t)
+    mul!(du, v, cache * v')
+end
+
+@inline diag_update(H, ρ, tf::Real) = -1.0im * tf * (H * ρ - ρ * H)
+
+@inline diag_update(H, ρ, tf::UnitTime) = -1.0im * (H * ρ - ρ * H)

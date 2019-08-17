@@ -137,7 +137,14 @@ function (h::AdiabaticFrameHamiltonian)(
 end
 
 
-function ω_matrix(H::AdiabaticFrameHamiltonian)
-    ω = 2π * H.diagonal.u_cache
+function ω_matrix(H::AdiabaticFrameHamiltonian, lvl)
+    ω = 2π * H.diagonal.u_cache[1:lvl]
     ω' .- ω
+end
+
+function ω_matrix_RWA(H::AdiabaticFrameHamiltonian, tf, t, lvl)
+    ω = 2π * H.diagonal(t)
+    off = 2π * H.geometric(t) / tf
+    ω + off
+    eigen!(Hermitian(ω+off), 1:lvl)
 end
