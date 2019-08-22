@@ -8,8 +8,11 @@ Defines Davies generator
 $(FIELDS)
 """
 struct DaviesGenerator <: AbstractOpenSys
+    """System bath coupling operators"""
     coupling
+    """Spectrum density"""
     γ
+    """Lambshift spectrum density"""
     S
 end
 
@@ -109,11 +112,13 @@ function adiabatic_me_update!(du, u, A, γ, S)
     for a in 1:dim
         for b in 1:a-1
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
+            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                        γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
         for b in a+1:dim
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
+            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                        γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
     end
     H_ls = Diagonal(sum(S .* A2, dims = 1)[1, :])
