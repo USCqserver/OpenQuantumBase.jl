@@ -60,5 +60,5 @@ QTBase.adiabatic_me_update!(du, u, A_ij, gm, sm)
 
 
 du = zeros(ComplexF64, (4,4))
-davies_gen(du, rho, w_ab, v, 1.0, 1.0)
+davies_gen(du, u, w_ab, v, 1.0, 1.0)
 @test isapprox(v * du * v', drho, atol=1e-6, rtol=1e-6)

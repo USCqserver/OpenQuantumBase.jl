@@ -29,4 +29,7 @@ using SafeTestsets
     @time @safetestset "Annealing Parameters" begin
         include("annealing_param.jl")
     end
+    @time @safetestset "Projections" begin
+        include("projection.jl")
+    end
 end

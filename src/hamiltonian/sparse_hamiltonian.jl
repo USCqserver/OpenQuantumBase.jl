@@ -7,7 +7,7 @@ Defines a time dependent Hamiltonian object with sparse Matrices. All the values
 
 $(FIELDS)
 """
-struct SparseHamiltonian{T} <: AbstractSparseHamiltonian{T}
+struct SparseHamiltonian{T <: Number} <: AbstractSparseHamiltonian{T}
     " List of time dependent functions "
     f
     " List of constant matrices "

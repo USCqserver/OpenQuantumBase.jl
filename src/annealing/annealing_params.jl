@@ -8,7 +8,7 @@ abstract type AbstractAnnealingParams end
 
 """
 $(TYPEDEF)
-Defines a complete set of parameters.
+Defines a complete set of parameters, which includes Hamiltonian, total annealing time, open system and control objects.
 # Fields
 $(FIELDS)
 """
@@ -46,11 +46,20 @@ function AnnealingParams(H, tf::UnitTime; opensys = nothing, control = nothing)
     AnnealingParams(H, tf, opensys, control)
 end
 
+
+"""
+$(TYPEDEF)
+Defines a light version of [parameters](http://docs.juliadiffeq.org/latest/tutorials/ode_example.html) for annealing ODEs.
+# Fields
+$(FIELDS)
+"""
 struct LightAnnealingParams{T<:Union{
     AbstractFloat,
     UnitTime
 }} <: AbstractAnnealingParams
+    """Total annealing time"""
     tf::T
+    """Annealing control object"""
     control
 end
 

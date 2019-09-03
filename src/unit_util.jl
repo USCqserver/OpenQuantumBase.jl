@@ -6,9 +6,9 @@ _h = 6.62607004
 _k = 1.38064852
 
 """
-    temperature_2_beta(T; unit=:ħ)
+    temperature_2_beta(T)
 
-Convert physical temperature `T` in mK to thermodynamic `β` in the unit of inverse angular frequency.
+Convert physical temperature `T` in mK to thermodynamic `β` in the unit of inverse angular frequency, that is to say ``β = ħ/kT``.
 """
 function temperature_2_beta(T)
     5*_h/_k/pi/T

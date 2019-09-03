@@ -89,7 +89,6 @@ include("integration/cpvagk.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
-#include("hamiltonian/vectorized_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
 
@@ -100,6 +99,8 @@ include("opensys/davies.jl")
 include("annealing/annealing_type.jl")
 include("annealing/annealing_params.jl")
 include("annealing/displays.jl")
+
+include("projection.jl")
 
 
 
@@ -145,5 +146,7 @@ export Annealing, AnnealingParams, AbstractAnnealingParams, set_tf, AbstractAnne
 export AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperator, AFRWADiffEqOperator
 
 export UnitTime
+
+export ProjectedSystem, project_to_lowlevel, get_dθ
 
 end  # module QTBase

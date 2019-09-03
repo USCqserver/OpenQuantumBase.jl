@@ -3,51 +3,12 @@ struct DiagonalOperator{T<:Real}
     u_cache::Vector{T}
 end
 
-function DiagonalOperator(funcs...)
-    num_type = typeof(funcs[1](0.0))
-    DiagonalOperator{num_type}(funcs, zeros(num_type, length(funcs)))
-end
-
-function DiagonalOperator(funcs::Vector{T}) where T
-    DiagonalOperator(funcs...)
-end
-
-function (D::DiagonalOperator)(t)
-    for i in eachindex(D.ω_vec)
-        D.u_cache[i] = D.ω_vec[i](t)
-    end
-    Diagonal(D.u_cache)
-end
 
 struct GeometricOperator{T<:Number}
     funcs::Tuple
     u_cache::Matrix{T}
 end
 
-function GeometricOperator(funcs...)
-    dim = (sqrt(1 + 8 * length(funcs)) - 1) / 2
-    if !isinteger(dim)
-        throw(ArgumentError("Invalid input length."))
-    else
-        dim = Int(dim)
-    end
-    num_type = typeof(funcs[1](0.0))
-    GeometricOperator{num_type}(funcs, zeros(num_type, dim + 1, dim + 1))
-end
-
-function GeometricOperator(funcs::Vector{T}) where T
-    GeometricOperator(funcs...)
-end
-
-function (G::GeometricOperator)(t)
-    len = size(G.u_cache, 1)
-    for j = 1:len
-        for i = (j+1):len
-            G.u_cache[i, j] = G.funcs[i-1+(j-1)*len](t)
-        end
-    end
-    Hermitian(G.u_cache, :L)
-end
 
 struct AdiabaticFrameHamiltonian{T} <: AbstractDenseHamiltonian{T}
     geometric::GeometricOperator
@@ -129,7 +90,7 @@ function (h::AdiabaticFrameHamiltonian)(
     tf::UnitTime,
     t::Real
 ) where T <: Number
-    s = t/tf
+    s = t / tf
     ω = h.diagonal(s)
     du .= -2.0im * π * (ω * u - u * ω)
     G = h.geometric(s)
@@ -142,9 +103,57 @@ function ω_matrix(H::AdiabaticFrameHamiltonian, lvl)
     ω' .- ω
 end
 
+
 function ω_matrix_RWA(H::AdiabaticFrameHamiltonian, tf, t, lvl)
     ω = 2π * H.diagonal(t)
     off = 2π * H.geometric(t) / tf
     ω + off
-    eigen!(Hermitian(ω+off), 1:lvl)
+    eigen!(Hermitian(ω + off), 1:lvl)
+end
+
+
+function DiagonalOperator(funcs...)
+    num_type = typeof(funcs[1](0.0))
+    DiagonalOperator{num_type}(funcs, zeros(num_type, length(funcs)))
+end
+
+
+function DiagonalOperator(funcs::Vector{T}) where T
+    DiagonalOperator(funcs...)
+end
+
+
+function (D::DiagonalOperator)(t)
+    for i in eachindex(D.ω_vec)
+        D.u_cache[i] = D.ω_vec[i](t)
+    end
+    Diagonal(D.u_cache)
+end
+
+
+function GeometricOperator(funcs...)
+    dim = (sqrt(1 + 8 * length(funcs)) - 1) / 2
+    if !isinteger(dim)
+        throw(ArgumentError("Invalid input length."))
+    else
+        dim = Int(dim)
+    end
+    num_type = typeof(funcs[1](0.0))
+    GeometricOperator{num_type}(funcs, zeros(num_type, dim + 1, dim + 1))
+end
+
+
+function GeometricOperator(funcs::Vector{T}) where T
+    GeometricOperator(funcs...)
+end
+
+
+function (G::GeometricOperator)(t)
+    len = size(G.u_cache, 1)
+    for j = 1:len
+        for i = (j+1):len
+            G.u_cache[i, j] = G.funcs[i-1+(j-1)*len](t)
+        end
+    end
+    Hermitian(G.u_cache, :L)
 end
