@@ -137,7 +137,7 @@ export AbstractHamiltonian,
        to_sparse,
        is_sparse
 
-export ConstantCouplings, TimeDependentCoupling, TimeDependentCouplings
+export ConstantCouplings, TimeDependentCoupling, TimeDependentCouplings, collective_coupling
 
 export eigen_decomp, p_copy
 
