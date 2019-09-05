@@ -147,6 +147,6 @@ export AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperato
 
 export UnitTime
 
-export ProjectedSystem, project_to_lowlevel, get_dθ
+export ProjectedSystem, project_to_lowlevel, get_dθ, concatenate, ProjectedCoupling, construct_projected_coupling
 
 end  # module QTBase

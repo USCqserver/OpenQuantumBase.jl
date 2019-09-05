@@ -8,7 +8,7 @@ const NO_COLOR = CSI"0"
 
 
 function is_sparse(H::AbstractHamiltonian)
-    typeof(H)<:AbstractSparseHamiltonian
+    typeof(H) <: AbstractSparseHamiltonian
 end
 
 
@@ -41,4 +41,14 @@ end
 
 function Base.:/(b, a::UnitTime)
     b / a.t
+end
+
+
+function linear_idx(i, j, lvl)
+    (2lvl - j + 2) * (j - 1) ÷ 2 + i - j + 1
+end
+
+
+function linear_idx_off(i, j, lvl)
+    (2lvl - j) * (j - 1) ÷ 2 + i - j
 end

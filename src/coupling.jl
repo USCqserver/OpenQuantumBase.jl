@@ -100,3 +100,24 @@ function collective_coupling(op, num_qubit; sp=false)
     end
     ConstantCouplings(res, sp=sp)
 end
+
+
+"""
+$(TYPEDEF)
+
+Defines the system bath coupling used by NIBA solver.
+
+# Fields
+
+$(FIELDS)
+"""
+struct NIBACoupling
+    """``(σ_m - σ_n)^2``"""
+    a
+    """``|σ_{mn}|^2``"""
+    b
+    """``σ_{mn}(σ_m-σ_n)``"""
+    c
+    """``σ_{mn}(σ_m+σ_n)``"""
+    d
+end
