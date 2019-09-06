@@ -21,7 +21,7 @@ import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack: eigs
 import QuadGK: quadgk
-import Interpolations: interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate
+import Interpolations: interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate, Linear, Gridded
 
 
 """
