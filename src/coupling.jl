@@ -15,7 +15,7 @@ Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
 
 function ConstantCouplings(
     mats::Union{Vector{Matrix{T}},Vector{SparseMatrixCSC{T,Int}}};
-    str_rep = nothing
+    str_rep = nothing, unit = :h
 ) where T <: Number
     if str_rep != nothing
         for s in str_rep
@@ -24,11 +24,11 @@ function ConstantCouplings(
             end
         end
     end
-    ConstantCouplings(2π * mats, str_rep)
+    ConstantCouplings(unit_scale(unit) * mats, str_rep)
 end
 
-function ConstantCouplings(c::Vector{T}; sp = false) where T <: AbstractString
-    mats = 2π * q_translate.(c, sp = sp)
+function ConstantCouplings(c::Vector{T}; sp = false, unit=:h) where T <: AbstractString
+    mats = unit_scale(unit) * q_translate.(c, sp = sp)
     ConstantCouplings(mats, c)
 end
 
@@ -92,13 +92,13 @@ Base.eltype(c::TimeDependentCouplings) = typeof(c.coupling[1])
 
 Create `ConstantCouplings` object with operator `op` on each qubits. `op` can be the string representation of one of the Pauli matrices. `num_qubit` is the total number of qubits. `sp` set whether to use sparse matrices.
 """
-function collective_coupling(op, num_qubit; sp=false)
+function collective_coupling(op, num_qubit; sp = false)
     res = Vector{String}()
-    for i in 1:num_qubit
-        temp = "I"^(i-1) * uppercase(op) * "I"^(num_qubit-i)
+    for i = 1:num_qubit
+        temp = "I"^(i - 1) * uppercase(op) * "I"^(num_qubit - i)
         push!(res, temp)
     end
-    ConstantCouplings(res, sp=sp)
+    ConstantCouplings(res, sp = sp)
 end
 
 
