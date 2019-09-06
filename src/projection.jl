@@ -46,6 +46,12 @@ struct ProjectedCoupling
 end
 
 
+struct ProjectedTG
+    T
+    G
+end
+
+
 function ProjectedSystem(s, size, lvl)
     len = length(s)
     ev = Vector{Vector{Float64}}()
@@ -131,7 +137,7 @@ end
 
 Get the geometric terms between i, j energy levels from `ProjectedSystem`.
 """
-function get_dθ(sys, i = 1, j = 2)
+function get_dθ(sys::ProjectedSystem, i = 1, j = 2)
     if j > i
         idx = (2 * sys.lvl - i) * (i - 1) ÷ 2 + (j - i)
         return [-x[idx] for x in sys.dθ]
@@ -162,7 +168,7 @@ end
 
 function construct_projected_coupling(sys)
     t_dim = length(sys.s)
-    s_dim = sys.lvl*(sys.lvl-1) ÷ 2
+    s_dim = sys.lvl * (sys.lvl - 1) ÷ 2
     a = Matrix{Float64}(undef, t_dim, s_dim)
     b = Matrix{Float64}(undef, t_dim, s_dim)
     c = Matrix{Float64}(undef, t_dim, s_dim)
@@ -182,5 +188,27 @@ function construct_projected_coupling(sys)
             end
         end
     end
-    ProjectedCoupling(s, a, b, c, d)
+    ProjectedCoupling(sys.s, a, b, c, d)
+end
+
+
+macro unitary_landau_zener(θ)
+    return quote
+        local val = $(esc(θ))
+        [cos(val) -sin(val); sin(val) cos(val)]
+    end
+end
+
+
+function landau_zener_rotate_angle(sys::ProjectedSystem, rotation_point)
+    non_rotation_idx = 1:(rotation_point-1)
+    rotation_idx = rotation_point:length(sys.s)
+    dθ_itp = construct_interpolations(
+        sys.s[rotation_idx],
+        -get_dθ(sys, 2, 1)[rotation_idx],
+        extrapolation = "line"
+    )
+    θᴸ_2 = [quadgk(dθ_itp, sys.s[rotation_point], s)[1] for s in sys.s[rotation_idx]]
+    θᴸ_1 = zeros(rotation_point - 1)
+    θᴸ = vcat(θᴸ_1, θᴸ_2)
 end
