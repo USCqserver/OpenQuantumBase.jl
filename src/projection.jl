@@ -276,7 +276,7 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
         end
     end
     for idx in rotation_idx
-        U = unitary_landau_zener(θ[idx])
+        U = @unitary_landau_zener(θ[idx])
         H = Diagonal(sys.ev[idx])
         H = U' * H * U
         ω[idx, :] = diag(H)
@@ -287,7 +287,7 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
         dt = Vector{Float64}()
         for j = 1:sys.lvl
             for i = (j+1):(sys.lvl-j+1)
-                op = U' * sys.op[idx] * U
+                op = [U' * x * U for x in sys.op[idx]]
                 s_idx = linear_idx_off(i, j, sys.lvl)
                 a[idx, s_idx] = sum((x) -> (x[i, i] - x[j, j])^2, op)
                 b[idx, s_idx] = sum((x) -> abs2(x[i, j]), op)
