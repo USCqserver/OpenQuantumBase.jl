@@ -24,12 +24,12 @@ end
 
 Constructor of DenseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices.
 """
-function DenseHamiltonian(funcs, mats)
+function DenseHamiltonian(funcs, mats; unit = :h)
     if !all((x)->size(x) == size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
     cache = zeros(eltype(mats[1]), size(mats[1]))
-    DenseHamiltonian(funcs, 2π*mats, cache, size(mats[1]))
+    DenseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
 end
 
 

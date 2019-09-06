@@ -90,15 +90,15 @@ Base.eltype(c::TimeDependentCouplings) = typeof(c.coupling[1])
 """
     function collective_coupling(op, num_qubit; sp=false)
 
-Create `ConstantCouplings` object with operator `op` on each qubits. `op` can be the string representation of one of the Pauli matrices. `num_qubit` is the total number of qubits. `sp` set whether to use sparse matrices.
+Create `ConstantCouplings` object with operator `op` on each qubits. `op` can be the string representation of one of the Pauli matrices. `num_qubit` is the total number of qubits. `sp` set whether to use sparse matrices. `unit` set the unit one -- ``h`` or ``ħ``.
 """
-function collective_coupling(op, num_qubit; sp = false)
+function collective_coupling(op, num_qubit; sp = false, unit=:h)
     res = Vector{String}()
     for i = 1:num_qubit
         temp = "I"^(i - 1) * uppercase(op) * "I"^(num_qubit - i)
         push!(res, temp)
     end
-    ConstantCouplings(res, sp = sp)
+    ConstantCouplings(res; sp = sp, unit=unit)
 end
 
 
