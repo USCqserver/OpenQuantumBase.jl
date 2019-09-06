@@ -46,8 +46,23 @@ struct ProjectedCoupling
 end
 
 
+"""
+$(TYPEDEF)
+
+Object for a projected system Hamiltonian parameterized by NIBA parameters. This object holds the numerical values at gridded points.
+
+# Fields
+
+$(FIELDS)
+"""
 struct ProjectedTG
+    """Time grid (unitless) for projection"""
+    s
+    """Frequencies of given basis states"""
+    ω
+    """Adiabatic part"""
     T
+    """Geometric phase"""
     G
 end
 
@@ -192,6 +207,20 @@ function construct_projected_coupling(sys)
 end
 
 
+function construct_projected_TG(sys)
+    t_dim = length(sys.s)
+    s_dim = sys.lvl * (sys.lvl - 1) ÷ 2
+    T = zeros(t_dim, s_dim)
+    G = Matrix{Float64}(undef, t_dim, s_dim)
+    ω = Matrix{Float64}(undef, t_dim, sys.lvl)
+    for (idx, dθ) in enumerate(sys.dθ)
+        G[idx, :] = dθ
+        ω[idx, :] = sys.ev[idx]
+    end
+    ProjectedTG(sys.s, ω, T, G)
+end
+
+
 macro unitary_landau_zener(θ)
     return quote
         local val = $(esc(θ))
@@ -211,4 +240,62 @@ function landau_zener_rotate_angle(sys::ProjectedSystem, rotation_point)
     θᴸ_2 = [quadgk(dθ_itp, sys.s[rotation_point], s)[1] for s in sys.s[rotation_idx]]
     θᴸ_1 = zeros(rotation_point - 1)
     θᴸ = vcat(θᴸ_1, θᴸ_2)
+end
+
+
+function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
+    θ = landau_zener_rotate_angle(sys, rotation_point)
+    non_rotation_idx = 1:(rotation_point-1)
+    rotation_idx = rotation_point:length(sys.s)
+    t_dim = length(sys.s)
+    s_dim = sys.lvl * (sys.lvl - 1) ÷ 2
+    ω = Matrix{Float64}(undef, t_dim, sys.lvl)
+    T = Matrix{Float64}(undef, t_dim, s_dim)
+    G = Matrix{Float64}(undef, t_dim, s_dim)
+    a = Matrix{Float64}(undef, t_dim, s_dim)
+    b = Matrix{Float64}(undef, t_dim, s_dim)
+    c = Matrix{Float64}(undef, t_dim, s_dim)
+    d = Matrix{Float64}(undef, t_dim, s_dim)
+    for idx in non_rotation_idx
+        ω[idx, :] = sys.ev[idx]
+        T[idx, :] = zeros(s_dim)
+        G[idx, :] = sys.dθ[idx]
+        at = Vector{Float64}()
+        bt = Vector{Float64}()
+        ct = Vector{Float64}()
+        dt = Vector{Float64}()
+        for j = 1:sys.lvl
+            for i = (j+1):(sys.lvl-j+1)
+                op = sys.op[idx]
+                s_idx = linear_idx_off(i, j, sys.lvl)
+                a[idx, s_idx] = sum((x) -> (x[i, i] - x[j, j])^2, op)
+                b[idx, s_idx] = sum((x) -> abs2(x[i, j]), op)
+                c[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
+                d[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
+            end
+        end
+    end
+    for idx in rotation_idx
+        U = unitary_landau_zener(θ[idx])
+        H = Diagonal(sys.ev[idx])
+        H = U' * H * U
+        ω[idx, :] = diag(H)
+        G[idx, :] = zeros(s_dim)
+        at = Vector{Float64}()
+        bt = Vector{Float64}()
+        ct = Vector{Float64}()
+        dt = Vector{Float64}()
+        for j = 1:sys.lvl
+            for i = (j+1):(sys.lvl-j+1)
+                op = U' * sys.op[idx] * U
+                s_idx = linear_idx_off(i, j, sys.lvl)
+                a[idx, s_idx] = sum((x) -> (x[i, i] - x[j, j])^2, op)
+                b[idx, s_idx] = sum((x) -> abs2(x[i, j]), op)
+                c[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
+                d[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
+                T[idx, s_idx] = H[i, j]
+            end
+        end
+    end
+    ProjectedTG(sys.s, ω, T, G), ProjectedCoupling(sys.s, a, b, c, d)
 end
