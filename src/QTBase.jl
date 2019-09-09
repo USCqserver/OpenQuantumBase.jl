@@ -100,7 +100,8 @@ include("annealing/annealing_type.jl")
 include("annealing/annealing_params.jl")
 include("annealing/displays.jl")
 
-include("projection.jl")
+include("projection/util.jl")
+include("projection/projection.jl")
 
 
 

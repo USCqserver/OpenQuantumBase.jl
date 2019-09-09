@@ -76,6 +76,45 @@ function ProjectedSystem(s, size, lvl)
 end
 
 
+function ProjectedCoupling(s, lvl)
+    t_dim = length(s)
+    a = LinearIdxLowerTriangular(Float64, t_dim, lvl)
+    b = LinearIdxLowerTriangular(Float64, t_dim, lvl)
+    c = LinearIdxLowerTriangular(
+        Float64,
+        t_dim,
+        lvl;
+        idx_exchange_func = (x) -> -conj(x)
+    )
+    d = LinearIdxLowerTriangular(
+        Float64,
+        t_dim,
+        lvl;
+        idx_exchange_func = (x) -> conj(x)
+    )
+    ProjectedCoupling(s, a, b, c, d)
+end
+
+
+function ProjectedTG(s, lvl)
+    t_dim = length(s)
+    ω = Matrix{Float64}(undef, t_dim, lvl)
+    T = LinearIdxLowerTriangular(
+        Float64,
+        t_dim,
+        lvl;
+        idx_exchange_func = (x) -> x
+    )
+    G = LinearIdxLowerTriangular(
+        Float64,
+        t_dim,
+        lvl;
+        idx_exchange_func = (x) -> -x
+    )
+    ProjectedTG(s, ω, T, G)
+end
+
+
 """
     project_to_lowlevel(H::AbstractHamiltonian{T}, dH, coupling, s_axis; ref=zeros((0,2)), tol=1e-4, lvl=2)
 
@@ -182,42 +221,35 @@ end
 
 
 function construct_projected_coupling(sys)
-    t_dim = length(sys.s)
-    s_dim = sys.lvl * (sys.lvl - 1) ÷ 2
-    a = Matrix{Float64}(undef, t_dim, s_dim)
-    b = Matrix{Float64}(undef, t_dim, s_dim)
-    c = Matrix{Float64}(undef, t_dim, s_dim)
-    d = Matrix{Float64}(undef, t_dim, s_dim)
+    proj_c = ProjectedCoupling(sys.s, sys.lvl)
     for (t_idx, op) in enumerate(sys.op)
-        at = Vector{Float64}()
-        bt = Vector{Float64}()
-        ct = Vector{Float64}()
-        dt = Vector{Float64}()
         for j = 1:sys.lvl
             for i = (j+1):(sys.lvl-j+1)
-                s_idx = linear_idx_off(i, j, sys.lvl)
-                a[t_idx, s_idx] = sum((x) -> (x[i, i] - x[j, j])^2, op)
-                b[t_idx, s_idx] = sum((x) -> abs2(x[i, j]), op)
-                c[t_idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
-                d[t_idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
+                proj_c.a[t_idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
+                proj_c.b[t_idx, i, j] = sum((x) -> abs2(x[i, j]), op)
+                proj_c.c[t_idx, i, j] = sum(
+                    (x) -> x[i, j] * (x[i, i] - x[j, j]),
+                    op
+                )
+                proj_c.d[t_idx, i, j] = sum(
+                    (x) -> x[i, j] * (x[i, i] + x[j, j]),
+                    op
+                )
             end
         end
     end
-    ProjectedCoupling(sys.s, a, b, c, d)
+    proj_c
 end
 
 
 function construct_projected_TG(sys)
-    t_dim = length(sys.s)
-    s_dim = sys.lvl * (sys.lvl - 1) ÷ 2
-    T = zeros(t_dim, s_dim)
-    G = Matrix{Float64}(undef, t_dim, s_dim)
-    ω = Matrix{Float64}(undef, t_dim, sys.lvl)
+    proj_tg = ProjectedTG(sys.s, sys.lvl)
     for (idx, dθ) in enumerate(sys.dθ)
-        G[idx, :] = dθ
-        ω[idx, :] = sys.ev[idx]
+        proj_tg.G[idx, :] = dθ
+        proj_tg.ω[idx, :] = sys.ev[idx]
     end
-    ProjectedTG(sys.s, ω, T, G)
+    fill!(proj_tg.T.mat, 0.0)
+    proj_tg
 end
 
 
@@ -247,55 +279,68 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
     θ = landau_zener_rotate_angle(sys, rotation_point)
     non_rotation_idx = 1:(rotation_point-1)
     rotation_idx = rotation_point:length(sys.s)
-    t_dim = length(sys.s)
-    s_dim = sys.lvl * (sys.lvl - 1) ÷ 2
-    ω = Matrix{Float64}(undef, t_dim, sys.lvl)
-    T = Matrix{Float64}(undef, t_dim, s_dim)
-    G = Matrix{Float64}(undef, t_dim, s_dim)
-    a = Matrix{Float64}(undef, t_dim, s_dim)
-    b = Matrix{Float64}(undef, t_dim, s_dim)
-    c = Matrix{Float64}(undef, t_dim, s_dim)
-    d = Matrix{Float64}(undef, t_dim, s_dim)
+    proj_tg = ProjectedTG(sys.s, sys.lvl)
+    proj_c = ProjectedCoupling(sys.s, sys.lvl)
+
     for idx in non_rotation_idx
-        ω[idx, :] = sys.ev[idx]
-        T[idx, :] = zeros(s_dim)
-        G[idx, :] = sys.dθ[idx]
-        at = Vector{Float64}()
-        bt = Vector{Float64}()
-        ct = Vector{Float64}()
-        dt = Vector{Float64}()
+        proj_tg.ω[idx, :] = sys.ev[idx]
+        proj_tg.T[idx, :] .= 0.0
+        proj_tg.G[idx, :] = sys.dθ[idx]
+
         for j = 1:sys.lvl
             for i = (j+1):(sys.lvl-j+1)
                 op = sys.op[idx]
-                s_idx = linear_idx_off(i, j, sys.lvl)
-                a[idx, s_idx] = sum((x) -> (x[i, i] - x[j, j])^2, op)
-                b[idx, s_idx] = sum((x) -> abs2(x[i, j]), op)
-                c[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
-                d[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
+                proj_c.a[idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
+                proj_c.b[idx, i, j] = sum((x) -> abs2(x[i, j]), op)
+                proj_c.c[idx, i, j] = sum(
+                    (x) -> x[i, j] * (x[i, i] - x[j, j]),
+                    op
+                )
+                proj_c.d[idx, i, j] = sum(
+                    (x) -> x[i, j] * (x[i, i] + x[j, j]),
+                    op
+                )
             end
         end
     end
+
     for idx in rotation_idx
         U = @unitary_landau_zener(θ[idx])
         H = Diagonal(sys.ev[idx])
         H = U' * H * U
-        ω[idx, :] = diag(H)
-        G[idx, :] = zeros(s_dim)
-        at = Vector{Float64}()
-        bt = Vector{Float64}()
-        ct = Vector{Float64}()
-        dt = Vector{Float64}()
+        proj_tg.ω[idx, :] = diag(H)
+        proj_tg.G[idx, :] .= 0.0
         for j = 1:sys.lvl
             for i = (j+1):(sys.lvl-j+1)
                 op = [U' * x * U for x in sys.op[idx]]
-                s_idx = linear_idx_off(i, j, sys.lvl)
-                a[idx, s_idx] = sum((x) -> (x[i, i] - x[j, j])^2, op)
-                b[idx, s_idx] = sum((x) -> abs2(x[i, j]), op)
-                c[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
-                d[idx, s_idx] = sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
-                T[idx, s_idx] = H[i, j]
+                proj_c.a[idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
+                proj_c.b[idx, i, j] = sum((x) -> abs2(x[i, j]), op)
+                proj_c.c[idx, i, j] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
+                proj_c.d[idx, i, j] = sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
+                proj_tg.T[idx, i, j] = H[i, j]
             end
         end
     end
-    ProjectedTG(sys.s, ω, T, G), ProjectedCoupling(sys.s, a, b, c, d)
+    proj_tg, proj_c
+end
+
+
+Base.summary(TG::ProjectedTG) = string(TYPE_COLOR, nameof(typeof(TG)), NO_COLOR)
+
+
+function Base.show(io::IO, TG::ProjectedTG)
+    print(io, summary(TG))
+    print(io, " with size: ")
+    show(io, (size(TG.ω, 2), size(TG.ω, 2)))
+end
+
+
+Base.summary(C::ProjectedCoupling) =
+    string(TYPE_COLOR, nameof(typeof(C)), NO_COLOR)
+
+
+function Base.show(io::IO, C::ProjectedCoupling)
+    print(io, summary(C))
+    print(io, " with size: ")
+    show(io, (C.a.lvl, C.a.lvl))
 end

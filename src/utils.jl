@@ -44,16 +44,6 @@ function Base.:/(b, a::UnitTime)
 end
 
 
-function linear_idx(i, j, lvl)
-    (2lvl - j + 2) * (j - 1) ÷ 2 + i - j + 1
-end
-
-
-function linear_idx_off(i, j, lvl)
-    (2lvl - j) * (j - 1) ÷ 2 + i - j
-end
-
-
 function unit_scale(u)
     if u == :h
         return 2π
