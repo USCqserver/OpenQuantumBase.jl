@@ -286,10 +286,9 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
         proj_tg.ω[idx, :] = sys.ev[idx]
         proj_tg.T[idx, :] .= 0.0
         proj_tg.G[idx, :] = sys.dθ[idx]
-
+        op = sys.op[idx]
         for j = 1:sys.lvl
             for i = (j+1):(sys.lvl-j+1)
-                op = sys.op[idx]
                 proj_c.a[idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
                 proj_c.b[idx, i, j] = sum((x) -> abs2(x[i, j]), op)
                 proj_c.c[idx, i, j] = sum(
@@ -310,9 +309,9 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
         H = U' * H * U
         proj_tg.ω[idx, :] = diag(H)
         proj_tg.G[idx, :] .= 0.0
+        op = [U' * x * U for x in sys.op[idx]]
         for j = 1:sys.lvl
             for i = (j+1):(sys.lvl-j+1)
-                op = [U' * x * U for x in sys.op[idx]]
                 proj_c.a[idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
                 proj_c.b[idx, i, j] = sum((x) -> abs2(x[i, j]), op)
                 proj_c.c[idx, i, j] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
