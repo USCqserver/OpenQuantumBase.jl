@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 
-Defines a time dependent Hamiltonian object with dense Matrices. All the values in the input is assumed to have the unit of `GHz`. An additional ``2π`` factor will be multiplied to each matrices when constructing the object.
+Defines a time dependent Hamiltonian object with dense Matrices.
 
 # Fields
 
@@ -20,9 +20,9 @@ end
 
 
 """
-    function DenseHamiltonian(funcs, mats)
+    function DenseHamiltonian(funcs, mats; unit = :h)
 
-Constructor of DenseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices.
+Constructor of DenseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices. `unit` is the unit one -- `:h` or `:ħ`. The `mats` will be scaled by ``2π`` if unit is `:h`.
 """
 function DenseHamiltonian(funcs, mats; unit = :h)
     if !all((x)->size(x) == size(mats[1]), mats)

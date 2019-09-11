@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 
-Defines a time dependent Hamiltonian object with sparse Matrices. All the values in the input is assumed to have the unit of `GHz`. An additional ``2π`` factor will be multiplied to each matrices when constructing the object.
+Defines a time dependent Hamiltonian object with sparse Matrices.
 
 # Fields
 
@@ -20,17 +20,17 @@ end
 
 
 """
-    function SparseHamiltonian(funcs, mats)
+    function SparseHamiltonian(funcs, mats; unit=:h)
 
-Constructor of SparseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices.
+Constructor of SparseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices. `unit` is the unit one -- `:h` or `:ħ`. The `mats` will be scaled by ``2π`` is unit is `:h`.
 """
-function SparseHamiltonian(funcs, mats)
+function SparseHamiltonian(funcs, mats; unit=:h)
     if !all((x) -> size(x) == size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
     cache = sum(mats)
     fill!(cache, 0.0 + 0.0im)
-    SparseHamiltonian(funcs, 2π * mats, cache, size(mats[1]))
+    SparseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
 end
 
 """

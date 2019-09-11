@@ -16,12 +16,12 @@ function Base.show(io::IO, A::AbstractHamiltonian)
 end
 
 """
-    evaluate(H::AbstractHamiltonian, t)
+    evaluate(H::AbstractHamiltonian, s)
 
-Evaluate the time dependent Hamiltonian at time t with the unit of `GHz`
+Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`
 """
-function evaluate(H::AbstractHamiltonian, t)
-    H.(t) / 2 / π
+function evaluate(H::AbstractHamiltonian, s)
+    H.(s) / 2 / π
 end
 
 """
