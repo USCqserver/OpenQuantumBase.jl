@@ -91,7 +91,7 @@ end
 """
 $(TYPEDEF)
 
-Defines a single time dependent system bath coupling operator. It is defined as ``S(s)=∑f(s)×M``
+Defines a single time dependent system bath coupling operator. It is defined as ``S(s)=∑f(s)×M``.  Keyword argument `unit` set the unit one -- ``h`` or ``ħ``.
 
 # Fields
 
@@ -102,17 +102,21 @@ struct TimeDependentCoupling
     funcs
     """1-D array of constant matrics"""
     mats
-end
 
-
-"""
     function TimeDependentCoupling(funcs, mats; unit=:h)
-
-Constructor for `TimeDependentCoupling`. Keyword argument `unit` set the unit one -- ``h`` or ``ħ``.
-"""
-function TimeDependentCoupling(funcs, mats; unit=:h)
-    TimeDependentCoupling(funcs, unit_scale(unit)*mats)
+        new(funcs, unit_scale(unit)*mats)
+    end
 end
+
+
+#"""
+#    function TimeDependentCoupling(funcs, mats; unit=:h)
+#
+#Constructor for `TimeDependentCoupling`. Keyword argument `unit` set the unit one -- ``h`` or ``ħ``.
+#"""
+#function TimeDependentCoupling(funcs, mats; unit=:h)
+#    TimeDependentCoupling(funcs, unit_scale(unit)*mats)
+#end
 
 
 function (c::TimeDependentCoupling)(t)
