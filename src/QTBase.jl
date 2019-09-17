@@ -66,6 +66,14 @@ abstract type AbstractAnnealingControl end
 
 """
 $(TYPEDEF)
+
+Base for types defining system bath coupling operators in open quantum system models.
+"""
+abstract type AbstractCouplings end
+
+
+"""
+$(TYPEDEF)
 """
 abstract type AbstractOpenSys end
 
@@ -138,7 +146,7 @@ export AbstractHamiltonian,
        to_sparse,
        is_sparse
 
-export ConstantCouplings, TimeDependentCoupling, TimeDependentCouplings, collective_coupling
+export AbstractCouplings, ConstantCouplings, TimeDependentCoupling, TimeDependentCouplings, collective_coupling
 
 export eigen_decomp, p_copy
 

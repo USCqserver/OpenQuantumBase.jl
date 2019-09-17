@@ -7,7 +7,7 @@ Defines constant system bath coupling operators.
 
 $(FIELDS)
 """
-struct ConstantCouplings
+struct ConstantCouplings<:AbstractCouplings
     """1-D array for independent coupling operators"""
     mats
     """String representation for the coupling (for display purpose)"""
@@ -109,16 +109,6 @@ struct TimeDependentCoupling
 end
 
 
-#"""
-#    function TimeDependentCoupling(funcs, mats; unit=:h)
-#
-#Constructor for `TimeDependentCoupling`. Keyword argument `unit` set the unit one -- ``h`` or ``ħ``.
-#"""
-#function TimeDependentCoupling(funcs, mats; unit=:h)
-#    TimeDependentCoupling(funcs, unit_scale(unit)*mats)
-#end
-
-
 function (c::TimeDependentCoupling)(t)
     sum((x) -> x[1](t) * x[2], zip(c.funcs, c.mats))
 end
@@ -133,7 +123,7 @@ Defines an 1-D array of time dependent system bath coupling operators.
 
 $(FIELDS)
 """
-struct TimeDependentCouplings
+struct TimeDependentCouplings <: AbstractCouplings
     """A tuple of single `TimeDependentCoupling` operators"""
     coupling::Tuple
 end
