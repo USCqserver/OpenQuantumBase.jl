@@ -31,7 +31,12 @@ end
 
 
 function Base.setindex!(m::LinearIdxLowerTriangular, x, i, j)
-    m.mat[i, j] = x
+    setindex!(m.mat, x, i, j)
+end
+
+
+function Base.setindex!(m::LinearIdxLowerTriangular, x::T, i, j) where T<:Number
+    m.mat[i, j] .= x
 end
 
 

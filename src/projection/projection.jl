@@ -282,9 +282,9 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
     proj_tg = ProjectedTG(sys.s, sys.lvl)
     proj_c = ProjectedCoupling(sys.s, sys.lvl)
 
-    for idx in non_rotation_idx
+    for idx = non_rotation_idx
         proj_tg.ω[idx, :] = sys.ev[idx]
-        proj_tg.T[idx, :] .= 0.0
+        proj_tg.T[idx, :] = 0.0
         proj_tg.G[idx, :] = sys.dθ[idx]
         op = sys.op[idx]
         for j = 1:sys.lvl
@@ -303,12 +303,12 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
         end
     end
 
-    for idx in rotation_idx
+    for idx = rotation_idx
         U = @unitary_landau_zener(θ[idx])
         H = Diagonal(sys.ev[idx])
         H = U' * H * U
         proj_tg.ω[idx, :] = diag(H)
-        proj_tg.G[idx, :] .= 0.0
+        proj_tg.G[idx, :] = 0.0
         op = [U' * x * U for x in sys.op[idx]]
         for j = 1:sys.lvl
             for i = (j+1):(sys.lvl-j+1)
