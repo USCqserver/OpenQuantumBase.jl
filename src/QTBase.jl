@@ -74,6 +74,14 @@ abstract type AbstractCouplings end
 
 """
 $(TYPEDEF)
+
+Base for types defining bath object.
+"""
+abstract type AbstractBath end
+
+
+"""
+$(TYPEDEF)
 """
 abstract type AbstractOpenSys end
 
@@ -152,7 +160,7 @@ export eigen_decomp, p_copy
 
 export Annealing, AnnealingParams, AbstractAnnealingParams, set_tf, AbstractAnnealingControl, LightAnnealingParams
 
-export AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperator, AFRWADiffEqOperator
+export AbstractBath, AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperator, AFRWADiffEqOperator
 
 export UnitTime
 

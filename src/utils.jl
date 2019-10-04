@@ -14,7 +14,9 @@ end
 
 """
 $(TYPEDEF)
-A speical time object to tell the solver that physical time should be used instead of the unitless time.
+
+A internal object to inform the solver to use the physical time instead of the unitless time.
+
 # Fields
 $(FIELDS)
 """
@@ -44,6 +46,11 @@ function Base.:/(b, a::UnitTime)
 end
 
 
+"""
+    function unit_scale(u)
+
+Determine the value of ``1/ħ``. Return ``2π`` if `u` is `:h`; and return 1 if `u` is `:ħ`. 
+"""
 function unit_scale(u)
     if u == :h
         return 2π

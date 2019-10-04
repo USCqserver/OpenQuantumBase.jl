@@ -126,12 +126,20 @@ $(FIELDS)
 struct TimeDependentCouplings <: AbstractCouplings
     """A tuple of single `TimeDependentCoupling` operators"""
     coupling::Tuple
+
+    function TimeDependentCouplings(args...)
+        new(args)
+    end
 end
 
+#function TimeDependentCouplings(c::TimeDependentCoupling)
+#    TimeDependentCouplings((c,))
+#end
 
-function TimeDependentCouplings(args...)
-    TimeDependentCouplings(args)
-end
+
+#function TimeDependentCouplings(args...)
+#    TimeDependentCouplings(args)
+#end
 
 
 function (c::TimeDependentCouplings)(t)
