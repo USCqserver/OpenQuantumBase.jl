@@ -49,7 +49,7 @@ end
 """
     function unit_scale(u)
 
-Determine the value of ``1/ħ``. Return ``2π`` if `u` is `:h`; and return 1 if `u` is `:ħ`. 
+Determine the value of ``1/ħ``. Return ``2π`` if `u` is `:h`; and return 1 if `u` is `:ħ`.
 """
 function unit_scale(u)
     if u == :h

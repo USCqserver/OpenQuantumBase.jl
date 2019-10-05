@@ -21,7 +21,7 @@ import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack: eigs
 import QuadGK: quadgk
-import Interpolations: interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate, Linear, Gridded
+import Interpolations: interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate, Linear, Gridded, NoInterp
 
 
 """
@@ -118,6 +118,7 @@ include("annealing/displays.jl")
 
 include("projection/util.jl")
 include("projection/projection.jl")
+include("projection/gamma_matrix.jl")
 
 
 
@@ -164,6 +165,6 @@ export AbstractBath, AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AM
 
 export UnitTime
 
-export ProjectedSystem, ProjectedTG, project_to_lowlevel, get_dθ, concatenate, ProjectedCoupling, construct_projected_coupling, construct_projected_TG, landau_zener_rotate_angle, landau_zener_rotate
+export ProjectedSystem, ProjectedTG, project_to_lowlevel, get_dθ, concatenate, ProjectedCoupling, construct_projected_coupling, construct_projected_TG, landau_zener_rotate_angle, landau_zener_rotate, ΓMatrix
 
 end  # module QTBase

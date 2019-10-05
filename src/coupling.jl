@@ -132,15 +132,6 @@ struct TimeDependentCouplings <: AbstractCouplings
     end
 end
 
-#function TimeDependentCouplings(c::TimeDependentCoupling)
-#    TimeDependentCouplings((c,))
-#end
-
-
-#function TimeDependentCouplings(args...)
-#    TimeDependentCouplings(args)
-#end
-
 
 function (c::TimeDependentCouplings)(t)
     [x(t) for x in c.coupling]
