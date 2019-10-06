@@ -47,6 +47,13 @@ function (G::ΓMatrix)(t)
 end
 
 
+function (G::ΓMatrix)(du, u, tf, t)
+    Γ = G(t)
+    mul!(du, Γ, u)
+    lmul!(tf, du)
+end
+
+
 """
 $(TYPEDEF)
 
