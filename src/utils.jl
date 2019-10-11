@@ -60,3 +60,14 @@ function unit_scale(u)
         throw(ArgumentError("The unit can only be :h or :ħ."))
     end
 end
+
+
+@inline function allequal(x; rtol=1e-6, atol=1e-6)
+    length(x) < 2 && return true
+    e1 = x[1]
+    i = 2
+    @inbounds for i=2:length(x)
+        isapprox(x[i], e1, rtol=rtol, atol=atol) || return false
+    end
+    return true
+end

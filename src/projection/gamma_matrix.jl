@@ -28,6 +28,16 @@ function ΓMatrix(t_idx, data::Array{T,3}) where {T<:Real}
 end
 
 
+function ΓMatrix(t_idx::AbstractRange{S}, data::Array{T,3}) where {S<:Real,T<:Real}
+    i, j, k = size(data)
+    if i != j - 1
+        throw(ArgumentError("The first dimension shoud be level-1."))
+    end
+    itp = construct_interpolations(t_idx, data)
+    ΓMatrix(itp, j)
+end
+
+
 function (G::ΓMatrix)(t)
     lvl = G.lvl
     Γ = zeros(lvl, lvl)
