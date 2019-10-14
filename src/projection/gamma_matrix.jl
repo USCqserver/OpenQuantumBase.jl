@@ -20,9 +20,11 @@ function ΓMatrix(t_idx, data::Array{T,3}) where {T<:Real}
     if i != j - 1
         throw(ArgumentError("The first dimension shoud be level-1."))
     end
-    itp = construct_interpolations(t_idx, data)
     if i == 1
+        itp = construct_interpolations(t_idx, data[1,:,:])
         itp = Γ2D(itp)
+    else
+        itp = construct_interpolations(t_idx, data)
     end
     ΓMatrix(itp, j)
 end

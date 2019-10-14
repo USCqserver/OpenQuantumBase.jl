@@ -15,6 +15,11 @@ res_real = inter_real.(test_x)
 @test res_complex ≈ exp_complex
 @test res_real ≈ exp_real
 
+# Test for multi-demension array
+y_array = transpose(hcat(y1, y2))
+y_array_itp = construct_interpolations(x, y_array, order=1)
+@test exp_complex ≈ y_array_itp(1, test_x)
+
 # Test for extrapolation
 x = range(1.0,stop=10.0)
 y = 10 .- collect(x)
