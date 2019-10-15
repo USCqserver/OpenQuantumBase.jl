@@ -92,10 +92,11 @@ end
 
 
 function (D::AMEDiffEqOperator{false,Nothing})(du, u, p, t)
-    cache = D.H(t)
+    hmat = D.H(t)
     w, v = ode_eigen_decomp(D.H, D.lvl)
     ρ = v' * u * v
     H = Diagonal(w)
+    cache = view(hmat, 1:D.lvl, 1:D.lvl)
     diag_cache_update!(cache, H, ρ, p.tf)
     ω_ba = repeat(w, 1, length(w))
     ω_ba = transpose(ω_ba) - ω_ba
