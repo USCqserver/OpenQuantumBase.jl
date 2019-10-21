@@ -33,6 +33,7 @@ function SparseHamiltonian(funcs, mats; unit=:h)
     SparseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
 end
 
+
 """
     function (h::SparseHamiltonian)(t::Real)
 
@@ -90,13 +91,13 @@ Calculate the eigen value decomposition of the Hamiltonian `h` at time `t`. Keyw
 function eigen_decomp(h::AbstractSparseHamiltonian, t; level = 2, kwargs...)
     H = h(t)
     w, v = eigs(H; nev = level, which = :SR, kwargs...)
-    lmul!(1 / 2 / π, w), v
+    lmul!(1 / 2 / π, real(w)), v
 end
 
 
 function ode_eigen_decomp(h::AbstractSparseHamiltonian, lvl::Integer)
     w, v = eigs(h.u_cache; nev = lvl, which = :SR)
-    w, v
+    real(w), v
 end
 
 
