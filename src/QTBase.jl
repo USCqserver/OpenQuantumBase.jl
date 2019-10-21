@@ -32,6 +32,9 @@ Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object sh
 abstract type AbstractHamiltonian{T<:Number} end
 
 
+Base.eltype(::AbstractHamiltonian{T}) where T = T
+
+
 """
 $(TYPEDEF)
 

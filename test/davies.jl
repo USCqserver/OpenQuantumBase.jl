@@ -1,20 +1,8 @@
 using QTBase, Test
 import LinearAlgebra:eigen, Hermitian
 
-function γ(x)
-    if x==0
-        return 1
-    elseif x>0
-        return x+1
-    else
-        return (1-x)*exp(x)
-    end
-end
-
-function S(x)
-    return x+0.1
-end
-
+γ(x) = x>=0 ? x+1 : (1-x)*exp(x)
+S(x) = x+0.1
 H = DenseHamiltonian([(s)->1-s, (s)->s], [-standard_driver(2), (0.1*σz⊗σi + 0.5*σz⊗σz)])
 coupling = ConstantCouplings(["ZI+IZ"])
 davies_gen = QTBase.DaviesGenerator(coupling, γ, S)
@@ -62,3 +50,9 @@ QTBase.adiabatic_me_update!(du, u, A_ij, gm, sm)
 du = zeros(ComplexF64, (4,4))
 davies_gen(du, u, w_ab, v, 1.0, 1.0)
 @test isapprox(v * du * v', drho, atol=1e-6, rtol=1e-6)
+
+ame_op = AMEDiffEqOperator(H, davies_gen)
+du = zeros(ComplexF64, (4,4))
+ame_op(du, rho, (tf=1.0,), 0.5)
+hmat = H(0.5)
+@test isapprox(du, drho-1.0im*(hmat*rho-rho*hmat), atol=1e-6, rtol=1e-6)

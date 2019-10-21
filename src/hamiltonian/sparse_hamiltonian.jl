@@ -33,6 +33,7 @@ function SparseHamiltonian(funcs, mats; unit=:h)
     SparseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
 end
 
+
 """
     function (h::SparseHamiltonian)(t::Real)
 
