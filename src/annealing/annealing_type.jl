@@ -15,7 +15,7 @@ struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
     """Range of annealing parameter."""
     sspan
     """A list of system bath coupling operators(system part)."""
-    coupling
+    coupling::AbstractCouplings
     """A list of system bath coupling operators(bath part)."""
     bath
     """Additional control protocols for the annealing."""

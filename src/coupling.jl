@@ -7,7 +7,7 @@ Defines constant system bath coupling operators.
 
 $(FIELDS)
 """
-struct ConstantCouplings<:AbstractCouplings
+struct ConstantCouplings <: AbstractCouplings
     """1-D array for independent coupling operators"""
     mats
     """String representation for the coupling (for display purpose)"""
@@ -31,8 +31,9 @@ Constructor of `ConstantCouplings` object. `mats` is 1-D array of matrices. `str
 """
 function ConstantCouplings(
     mats::Union{Vector{Matrix{T}},Vector{SparseMatrixCSC{T,Int}}};
-    str_rep = nothing, unit = :h
-) where T <: Number
+    str_rep = nothing,
+    unit = :h,
+) where {T<:Number}
     if str_rep != nothing
         for s in str_rep
             if !(typeof(s) <: AbstractString)
@@ -48,7 +49,7 @@ end
 
 If the first argument is a 1-D array of strings. The constructor will automatically construct the matrics represented by the string representations.
 """
-function ConstantCouplings(c::Vector{T}; sp = false, unit=:h) where T <: AbstractString
+function ConstantCouplings(c::Vector{T}; sp = false, unit = :h) where {T<:AbstractString}
     mats = unit_scale(unit) * q_translate.(c, sp = sp)
     ConstantCouplings(mats, c)
 end
@@ -59,26 +60,25 @@ end
 
 Create `ConstantCouplings` object with operator `op` on each qubits. `op` can be the string representation of one of the Pauli matrices. `num_qubit` is the total number of qubits. `sp` set whether to use sparse matrices. `unit` set the unit one -- ``h`` or ``ħ``.
 """
-function collective_coupling(op, num_qubit; sp = false, unit=:h)
+function collective_coupling(op, num_qubit; sp = false, unit = :h)
     res = Vector{String}()
     for i = 1:num_qubit
         temp = "I"^(i - 1) * uppercase(op) * "I"^(num_qubit - i)
         push!(res, temp)
     end
-    ConstantCouplings(res; sp = sp, unit=unit)
+    ConstantCouplings(res; sp = sp, unit = unit)
 end
 
 
-Base.summary(C::ConstantCouplings) =
-    string(
-        TYPE_COLOR,
-        nameof(typeof(C)),
-        NO_COLOR,
-        " with ",
-        TYPE_COLOR,
-        typeof(C.mats).parameters[1],
-        NO_COLOR
-    )
+Base.summary(C::ConstantCouplings) = string(
+    TYPE_COLOR,
+    nameof(typeof(C)),
+    NO_COLOR,
+    " with ",
+    TYPE_COLOR,
+    typeof(C.mats).parameters[1],
+    NO_COLOR,
+)
 
 
 function Base.show(io::IO, C::ConstantCouplings)
@@ -103,8 +103,8 @@ struct TimeDependentCoupling
     """1-D array of constant matrics"""
     mats
 
-    function TimeDependentCoupling(funcs, mats; unit=:h)
-        new(funcs, unit_scale(unit)*mats)
+    function TimeDependentCoupling(funcs, mats; unit = :h)
+        new(funcs, unit_scale(unit) * mats)
     end
 end
 
@@ -138,8 +138,7 @@ function (c::TimeDependentCouplings)(t)
 end
 
 
-Base.iterate(c::TimeDependentCouplings, state = 1) =
-    Base.iterate(c.coupling, state)
+Base.iterate(c::TimeDependentCouplings, state = 1) = Base.iterate(c.coupling, state)
 
 Base.length(c::TimeDependentCouplings) = length(c.coupling)
 
