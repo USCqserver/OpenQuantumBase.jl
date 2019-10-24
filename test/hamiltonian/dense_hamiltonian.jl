@@ -7,6 +7,7 @@ u = [1.0 + 0.0im, 1] / sqrt(2)
 
 H = DenseHamiltonian([A, B], [σx, σz])
 
+@test size(H) == (2,2)
 @test H(0) == 2π * σx
 @test evaluate(H, 0) == σx
 @test H(0.5) == π * (σx + σz)

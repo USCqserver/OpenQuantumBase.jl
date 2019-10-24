@@ -33,6 +33,7 @@ abstract type AbstractHamiltonian{T<:Number} end
 
 
 Base.eltype(::AbstractHamiltonian{T}) where T = T
+Base.size(H::AbstractHamiltonian) = H.size
 
 
 """
