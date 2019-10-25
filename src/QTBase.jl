@@ -164,7 +164,7 @@ export AbstractCouplings, ConstantCouplings, TimeDependentCoupling, TimeDependen
 
 export eigen_decomp, p_copy
 
-export Annealing, AnnealingParams, AbstractAnnealingParams, set_tf, AbstractAnnealingControl, LightAnnealingParams
+export AbstractAnnealing, Annealing, AnnealingParams, AbstractAnnealingParams, set_tf, AbstractAnnealingControl, LightAnnealingParams
 
 export AbstractBath, AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperator, AFRWADiffEqOperator
 
