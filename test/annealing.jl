@@ -1,6 +1,9 @@
 using QTBase, Test
 
 H = DenseHamiltonian([(x)->x], [σz])
+u0 = PauliVec[1][1]
+
+@test_throws MethodError annealing = Annealing(H, u0, H)
 
 annealing = AnnealingParams(H, UnitTime(10))
 exp_annealing = set_tf(annealing, 20)

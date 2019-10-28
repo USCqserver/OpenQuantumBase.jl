@@ -26,8 +26,8 @@ using SafeTestsets
     @time @safetestset "Davies and AME" begin
         include("davies.jl")
     end
-    @time @safetestset "Annealing Parameters" begin
-        include("annealing_param.jl")
+    @time @safetestset "Annealing" begin
+        include("annealing.jl")
     end
     @time @safetestset "Projections" begin
         include("projection.jl")

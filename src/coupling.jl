@@ -143,24 +143,3 @@ Base.iterate(c::TimeDependentCouplings, state = 1) = Base.iterate(c.coupling, st
 Base.length(c::TimeDependentCouplings) = length(c.coupling)
 
 Base.eltype(c::TimeDependentCouplings) = typeof(c.coupling[1])
-
-
-"""
-$(TYPEDEF)
-
-Defines the system bath coupling used by NIBA solver.
-
-# Fields
-
-$(FIELDS)
-"""
-struct NIBACoupling
-    """``(σ_m - σ_n)^2``"""
-    a
-    """``|σ_{mn}|^2``"""
-    b
-    """``σ_{mn}(σ_m-σ_n)``"""
-    c
-    """``σ_{mn}(σ_m+σ_n)``"""
-    d
-end
