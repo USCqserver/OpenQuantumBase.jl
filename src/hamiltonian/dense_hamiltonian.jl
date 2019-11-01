@@ -34,16 +34,34 @@ end
 
 
 """
-    function (h::DenseHamiltonian)(t::Real)
+    function (h::DenseHamiltonian)(s::Real)
 
-Calling the Hamiltonian returns the value ``2πH(t)``.
+Calling the Hamiltonian returns the value ``2πH(s)``. The argument `s` is in the unitless time. The returned matrix is in angular frequency.
 """
-function (h::DenseHamiltonian)(t::Real)
+function (h::DenseHamiltonian)(s::Real)
     fill!(h.u_cache, 0.0)
     for (f, m) in zip(h.f, h.m)
-        axpy!(f(t), m, h.u_cache)
+        axpy!(f(s), m, h.u_cache)
     end
     h.u_cache
+end
+
+
+function update_cache!(cache, H::DenseHamiltonian, tf::Real, s::Real)
+    fill!(cache, 0.0)
+    for (f, m) in zip(H.f, H.m)
+        axpy!(-1.0im*f(s), m, cache)
+    end
+    lmul!(tf, cache)
+end
+
+
+function update_cache!(cache, H::DenseHamiltonian, tf::UnitTime, t::Real)
+    s = t/tf
+    fill!(cache, 0.0)
+    for (f, m) in zip(H.f, H.m)
+        axpy!(-1.0im*f(s), m, cache)
+    end
 end
 
 
