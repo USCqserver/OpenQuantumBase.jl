@@ -50,9 +50,9 @@ end
 function update_cache!(cache, H::DenseHamiltonian, tf::Real, s::Real)
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
-        axpy!(-1.0im*f(s), m, cache)
+        axpy!(f(s), m, cache)
     end
-    lmul!(tf, cache)
+    lmul!(-1.0im*tf, cache)
 end
 
 

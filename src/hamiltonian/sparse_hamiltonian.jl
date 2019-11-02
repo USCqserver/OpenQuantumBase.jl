@@ -48,6 +48,23 @@ function (h::SparseHamiltonian)(t::Real)
 end
 
 
+function update_cache!(cache, H::SparseHamiltonian, tf::Real, s::Real)
+    fill!(cache, 0.0)
+    for (f, m) in zip(H.f, H.m)
+        cache .+= -1.0im*tf*f(s) * m
+    end
+end
+
+
+function update_cache!(cache, H::SparseHamiltonian, tf::UnitTime, t::Real)
+    s = t/tf
+    fill!(cache, 0.0)
+    for (f, m) in zip(H.f, H.m)
+        cache .+= -1.0im*f(s) * m
+    end
+end
+
+
 function (h::SparseHamiltonian)(tf::Real, t::Real)
     hmat = h(t)
     lmul!(tf, hmat)
