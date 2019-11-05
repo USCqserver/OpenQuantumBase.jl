@@ -12,6 +12,8 @@ H = DenseHamiltonian([A, B], [σx, σz])
 @test evaluate(H, 0) == σx
 @test H(0.5) == π * (σx + σz)
 @test evaluate(H, 0.5) == (σx + σz)/2
+@test get_cache(H) ≈ π*(σx + σz)
+
 
 # Float/UnitTime on H(tf, t)
 @test H(10, 0.5) == 10π * (σx + σz)
@@ -24,6 +26,7 @@ H(du, ρ, 2.0, 0.5)
 H(du, ρ, UnitTime(2), 1.0)
 @test du ≈ -1.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
 
+# TODO in-place update for vectors will be deprecated
 # in-place update for vectors
 du = [1.0 + 0.0im, 0]
 H(du, u, 2.0, 0.5)

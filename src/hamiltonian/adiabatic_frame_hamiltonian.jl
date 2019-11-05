@@ -43,6 +43,17 @@ function AdiabaticFrameHamiltonian(ωfuns, geofuns)
 end
 
 
+function update_cache!(cache, H::AdiabaticFrameHamiltonian, tf, t::Real)
+    hmat = H(tf, t)
+    cache .= -1.0im * hmat
+end
+
+
+function get_cache(H::AdiabaticFrameHamiltonian{T}) where T
+    zeros(T, size(H))
+end
+
+
 function (H::AdiabaticFrameHamiltonian)(tf::Real, t::Real)
     ω = 2π * tf * H.diagonal(t)
     off = H.geometric(t)
