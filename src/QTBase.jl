@@ -47,6 +47,7 @@ abstract type AbstractHamiltonian{T<:Number} end
 Base.eltype(::AbstractHamiltonian{T}) where {T} = T
 Base.size(H::AbstractHamiltonian) = H.size
 Base.size(H::AbstractHamiltonian, dim::T) where {T<:Integer} = H.size[dim]
+get_cache(H::AbstractHamiltonian) = H.u_cache
 
 
 """
@@ -177,6 +178,7 @@ export AbstractHamiltonian,
        to_dense,
        to_sparse,
        is_sparse,
+       get_cache,
        update_cache!
 
 export AbstractCouplings,

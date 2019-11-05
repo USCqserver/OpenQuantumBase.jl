@@ -14,6 +14,7 @@ H_sparse = SparseHamiltonian([A, B], [spσx, spσz])
 @test evaluate(H_sparse, 0) == spσx
 @test H_sparse(0.5) ≈ π * (spσx + spσz)
 @test evaluate(H_sparse, 0.5) == (spσx + spσz)/2
+@test get_cache(H_sparse) ≈ π*(spσx + spσz)
 
 du = [1.0 + 0.0im 0; 0 0]
 H_sparse(du, ρ, 1.0, 0.5)

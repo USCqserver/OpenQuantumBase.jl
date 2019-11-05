@@ -15,6 +15,7 @@ H = AdiabaticFrameHamiltonian([(x)->-gap(x), (x)->gap(x)], [dθ])
 u = PauliVec[2][1]
 ρ = u * u'
 
+@test get_cache(H) == zeros(ComplexF64, 2, 2)
 @test size(H) == (2,2)
 @test H(UnitTime(10), 5.0) ≈ π * σx / 20
 @test H(UnitTime(5), 0.0) ≈ π * σx / 10 - 2π * σz

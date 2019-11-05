@@ -88,18 +88,6 @@ function (h::SparseHamiltonian)(du, u::Matrix{T}, tf::UnitTime, t::Real) where T
 end
 
 
-function (h::SparseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T <: Number
-    H = h(t)
-    mul!(du, -1.0im * tf * H, u)
-end
-
-
-function (h::SparseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T <: Number
-    H = h(t/tf)
-    mul!(du, -1.0im * H, u)
-end
-
-
 """
     function eigen_decomp(h::AbstractSparseHamiltonian, t; level = 2) -> (w, v)
 
@@ -120,4 +108,17 @@ end
 
 function p_copy(h::SparseHamiltonian)
     SparseHamiltonian(h.f, h.m, spzeros(eltype(h.u_cache), size(h.u_cache)...), h.size)
+end
+
+
+#TODO The folllowing code will be deprecated
+function (h::SparseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T <: Number
+    H = h(t)
+    mul!(du, -1.0im * tf * H, u)
+end
+
+
+function (h::SparseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T <: Number
+    H = h(t/tf)
+    mul!(du, -1.0im * H, u)
 end
