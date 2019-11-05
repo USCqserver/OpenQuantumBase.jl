@@ -92,20 +92,6 @@ function (h::DenseHamiltonian)(du, u::Matrix{T}, tf::UnitTime, t::Real) where T<
 end
 
 
-function (h::DenseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T<:Complex
-    H = h(t)
-    mul!(du, H, u)
-    lmul!(-1.0im * tf, du)
-end
-
-
-function (h::DenseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T<:Complex
-    H = h(t/tf)
-    mul!(du, H, u)
-    lmul!(-1.0im, du)
-end
-
-
 """
     function eigen_decomp(h::AbstractDenseHamiltonian, t; level = 2) -> (w, v)
 
@@ -120,6 +106,21 @@ end
 
 function ode_eigen_decomp(h::AbstractDenseHamiltonian, lvl::Integer)
     eigen!(Hermitian(h.u_cache), 1:lvl)
+end
+
+
+#TODO The folllowing code will be deprecated
+function (h::DenseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T<:Complex
+    H = h(t)
+    mul!(du, H, u)
+    lmul!(-1.0im * tf, du)
+end
+
+
+function (h::DenseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T<:Complex
+    H = h(t/tf)
+    mul!(du, H, u)
+    lmul!(-1.0im, du)
 end
 
 
