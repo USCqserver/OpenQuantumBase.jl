@@ -21,7 +21,19 @@ import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import Arpack: eigs
 import QuadGK: quadgk
-import Interpolations: interpolate, BSpline, Quadratic, Line, OnGrid, scale, gradient1, extrapolate, Linear, Gridded, NoInterp, Cubic, Constant
+import Interpolations: interpolate,
+                       BSpline,
+                       Quadratic,
+                       Line,
+                       OnGrid,
+                       scale,
+                       gradient1,
+                       extrapolate,
+                       Linear,
+                       Gridded,
+                       NoInterp,
+                       Cubic,
+                       Constant
 
 
 """
@@ -32,9 +44,9 @@ Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object sh
 abstract type AbstractHamiltonian{T<:Number} end
 
 
-Base.eltype(::AbstractHamiltonian{T}) where T = T
+Base.eltype(::AbstractHamiltonian{T}) where {T} = T
 Base.size(H::AbstractHamiltonian) = H.size
-Base.size(H::AbstractHamiltonian, dim::T) where T<:Integer = H.size[dim]
+Base.size(H::AbstractHamiltonian, dim::T) where {T<:Integer} = H.size[dim]
 
 
 """
@@ -58,7 +70,10 @@ $(TYPEDEF)
 
 Base for types defining quantum annealing process.
 """
-abstract type AbstractAnnealing{hType<:AbstractHamiltonian,uType<:Union{Vector,Matrix}} end
+abstract type AbstractAnnealing{
+    hType<:AbstractHamiltonian,
+    uType<:Union{Vector,Matrix},
+} end
 
 
 """
@@ -127,7 +142,10 @@ include("projection/gamma_matrix.jl")
 
 
 
-export temperature_2_beta, temperature_2_freq, beta_2_temperature, freq_2_temperature
+export temperature_2_beta,
+       temperature_2_freq,
+       beta_2_temperature,
+       freq_2_temperature
 
 export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy
 
@@ -158,18 +176,45 @@ export AbstractHamiltonian,
        evaluate,
        to_dense,
        to_sparse,
-       is_sparse
+       is_sparse,
+       update_cache!
 
-export AbstractCouplings, ConstantCouplings, TimeDependentCoupling, TimeDependentCouplings, collective_coupling
+export AbstractCouplings,
+       ConstantCouplings,
+       TimeDependentCoupling,
+       TimeDependentCouplings,
+       collective_coupling
 
 export eigen_decomp, p_copy
 
-export AbstractAnnealing, Annealing, AnnealingParams, AbstractAnnealingParams, set_tf, AbstractAnnealingControl, LightAnnealingParams
+export AbstractAnnealing,
+       Annealing,
+       AnnealingParams,
+       AbstractAnnealingParams,
+       set_tf,
+       AbstractAnnealingControl,
+       LightAnnealingParams
 
-export AbstractBath, AbstractOpenSys, OpenSysSets, Redfield, DaviesGenerator, AMEDiffEqOperator, AFRWADiffEqOperator
+export AbstractBath,
+       AbstractOpenSys,
+       OpenSysSets,
+       Redfield,
+       DaviesGenerator,
+       AMEDiffEqOperator,
+       AFRWADiffEqOperator
 
 export UnitTime
 
-export ProjectedSystem, ProjectedTG, project_to_lowlevel, get_dθ, concatenate, ProjectedCoupling, construct_projected_coupling, construct_projected_TG, landau_zener_rotate_angle, landau_zener_rotate, ΓMatrix
+export ProjectedSystem,
+       ProjectedTG,
+       project_to_lowlevel,
+       get_dθ,
+       concatenate,
+       ProjectedCoupling,
+       construct_projected_coupling,
+       construct_projected_TG,
+       landau_zener_rotate_angle,
+       landau_zener_rotate,
+       ΓMatrix
 
 end  # module QTBase

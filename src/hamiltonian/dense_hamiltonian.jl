@@ -34,16 +34,34 @@ end
 
 
 """
-    function (h::DenseHamiltonian)(t::Real)
+    function (h::DenseHamiltonian)(s::Real)
 
-Calling the Hamiltonian returns the value ``2πH(t)``.
+Calling the Hamiltonian returns the value ``2πH(s)``. The argument `s` is in the unitless time. The returned matrix is in angular frequency.
 """
-function (h::DenseHamiltonian)(t::Real)
+function (h::DenseHamiltonian)(s::Real)
     fill!(h.u_cache, 0.0)
     for (f, m) in zip(h.f, h.m)
-        axpy!(f(t), m, h.u_cache)
+        axpy!(f(s), m, h.u_cache)
     end
     h.u_cache
+end
+
+
+function update_cache!(cache, H::DenseHamiltonian, tf::Real, s::Real)
+    fill!(cache, 0.0)
+    for (f, m) in zip(H.f, H.m)
+        axpy!(f(s), m, cache)
+    end
+    lmul!(-1.0im*tf, cache)
+end
+
+
+function update_cache!(cache, H::DenseHamiltonian, tf::UnitTime, t::Real)
+    s = t/tf
+    fill!(cache, 0.0)
+    for (f, m) in zip(H.f, H.m)
+        axpy!(-1.0im*f(s), m, cache)
+    end
 end
 
 
@@ -74,20 +92,6 @@ function (h::DenseHamiltonian)(du, u::Matrix{T}, tf::UnitTime, t::Real) where T<
 end
 
 
-function (h::DenseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T<:Complex
-    H = h(t)
-    mul!(du, H, u)
-    lmul!(-1.0im * tf, du)
-end
-
-
-function (h::DenseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T<:Complex
-    H = h(t/tf)
-    mul!(du, H, u)
-    lmul!(-1.0im, du)
-end
-
-
 """
     function eigen_decomp(h::AbstractDenseHamiltonian, t; level = 2) -> (w, v)
 
@@ -102,6 +106,21 @@ end
 
 function ode_eigen_decomp(h::AbstractDenseHamiltonian, lvl::Integer)
     eigen!(Hermitian(h.u_cache), 1:lvl)
+end
+
+
+#TODO The folllowing code will be deprecated
+function (h::DenseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T<:Complex
+    H = h(t)
+    mul!(du, H, u)
+    lmul!(-1.0im * tf, du)
+end
+
+
+function (h::DenseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T<:Complex
+    H = h(t/tf)
+    mul!(du, H, u)
+    lmul!(-1.0im, du)
 end
 
 

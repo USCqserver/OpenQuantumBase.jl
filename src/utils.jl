@@ -31,18 +31,9 @@ function UnitTime(x::Real)
 end
 
 
-function Base.:*(a::UnitTime, b)
-    a.t * b
-end
-
-
-function Base.:*(b, a::UnitTime)
-    b * a.t
-end
-
-
-function Base.:/(b, a::UnitTime)
-    b / a.t
+for op in (:*, :/, :\)
+  @eval Base.$op(t::UnitTime, x) = $op(t.t, x)
+  @eval Base.$op(x, t::UnitTime) = $op(x, t.t)
 end
 
 
