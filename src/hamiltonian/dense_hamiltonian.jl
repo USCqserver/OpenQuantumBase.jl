@@ -28,7 +28,7 @@ function DenseHamiltonian(funcs, mats; unit = :h)
     if !all((x)->size(x) == size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
-    cache = zeros(eltype(mats[1]), size(mats[1]))
+    cache = similar(sum(mats))
     DenseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
 end
 
