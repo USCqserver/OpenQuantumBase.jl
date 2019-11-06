@@ -28,7 +28,7 @@ function SparseHamiltonian(funcs, mats; unit=:h)
     if !all((x) -> size(x) == size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
-    cache = sum(mats)
+    cache = similar(sum(mats))
     fill!(cache, 0.0 + 0.0im)
     SparseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
 end
