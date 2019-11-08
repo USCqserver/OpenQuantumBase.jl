@@ -55,9 +55,10 @@ function to_real(H::DenseHamiltonian{T}) where {T<:Complex}
     DenseHamiltonian(H.f, m_real)
 end
 
-function to_real(H::SparseHamiltonian{T}) where {T<:Complex}
-    m_real = [real(x) for x in H.m]
-    SparseHamiltonian(H.f, m_real)
+
+function Base.real(H::AbstractHamiltonian{T}) where T
+    S = real(T)
+    convert(S, H)
 end
 
 
