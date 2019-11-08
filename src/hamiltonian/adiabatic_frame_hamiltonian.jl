@@ -81,32 +81,6 @@ end
 
 
 function (h::AdiabaticFrameHamiltonian)(
-    du::Vector{T},
-    u::Vector{T},
-    tf::Real,
-    t::Real
-) where T
-    ω = h.diagonal(t)
-    du .= -2.0im * π * tf * ω * u
-    G = h.geometric(t)
-    du .+= -1.0im * G * u
-end
-
-
-function (h::AdiabaticFrameHamiltonian)(
-    du::Vector{T},
-    u::Vector{T},
-    tf::UnitTime,
-    t::Real
-) where T <: Number
-    ω = h.diagonal(t / tf)
-    du .= -2.0im * π * ω * u
-    G = h.geometric(t / tf)
-    du .+= -1.0im / tf * G * u
-end
-
-
-function (h::AdiabaticFrameHamiltonian)(
     du::Matrix{T},
     u::Matrix{T},
     tf::Real,
@@ -191,4 +165,31 @@ function (G::GeometricOperator)(t)
         end
     end
     Hermitian(G.u_cache, :L)
+end
+
+
+#TODO The following functions will be deprecated
+function (h::AdiabaticFrameHamiltonian)(
+    du::Vector{T},
+    u::Vector{T},
+    tf::Real,
+    t::Real
+) where T
+    ω = h.diagonal(t)
+    du .= -2.0im * π * tf * ω * u
+    G = h.geometric(t)
+    du .+= -1.0im * G * u
+end
+
+
+function (h::AdiabaticFrameHamiltonian)(
+    du::Vector{T},
+    u::Vector{T},
+    tf::UnitTime,
+    t::Real
+) where T <: Number
+    ω = h.diagonal(t / tf)
+    du .= -2.0im * π * ω * u
+    G = h.geometric(t / tf)
+    du .+= -1.0im / tf * G * u
 end
