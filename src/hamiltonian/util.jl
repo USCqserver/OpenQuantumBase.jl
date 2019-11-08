@@ -1,13 +1,12 @@
-Base.summary(H::AbstractHamiltonian) =
-    string(
-        TYPE_COLOR,
-        nameof(typeof(H)),
-        NO_COLOR,
-        " with ",
-        TYPE_COLOR,
-        typeof(H).parameters[1],
-        NO_COLOR
-    )
+Base.summary(H::AbstractHamiltonian) = string(
+    TYPE_COLOR,
+    nameof(typeof(H)),
+    NO_COLOR,
+    " with ",
+    TYPE_COLOR,
+    typeof(H).parameters[1],
+    NO_COLOR,
+)
 
 function Base.show(io::IO, A::AbstractHamiltonian)
     println(io, summary(A))
@@ -51,12 +50,21 @@ end
 
 Convert a Hamiltonian with Complex type to a Hamiltonian with real type. The converted Hamiltonian is used for projection to low-level subspaces and should not be used for any ODE calculations.
 """
-function to_real(H::DenseHamiltonian{T}) where T<:Complex
+function to_real(H::DenseHamiltonian{T}) where {T<:Complex}
     m_real = [real(x) for x in H.m]
     DenseHamiltonian(H.f, m_real)
 end
 
-function to_real(H::SparseHamiltonian{T}) where T<:Complex
+function to_real(H::SparseHamiltonian{T}) where {T<:Complex}
     m_real = [real(x) for x in H.m]
     SparseHamiltonian(H.f, m_real)
+end
+
+
+function is_complex(f_list, m_list)
+    any(m_list) do m
+        eltype(m) <: Complex
+    end || any(f_list) do f
+        typeof(f(0)) <: Complex
+    end
 end
