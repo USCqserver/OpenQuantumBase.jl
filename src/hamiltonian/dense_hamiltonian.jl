@@ -25,11 +25,32 @@ end
 Constructor of DenseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices. `unit` is the unit one -- `:h` or `:ħ`. The `mats` will be scaled by ``2π`` if unit is `:h`.
 """
 function DenseHamiltonian(funcs, mats; unit = :h)
-    if !all((x)->size(x) == size(mats[1]), mats)
+    if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
+    end
+    if is_complex(funcs, mats)
+        mats = complex.(mats)
     end
     cache = similar(sum(mats))
     DenseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
+end
+
+
+function Base.convert(S::Type{T}, H::DenseHamiltonian) where T<:Complex
+    mats = [convert.(S, x) for x in H.m]
+    cache = similar(H.u_cache, S)
+    DenseHamiltonian(H.f, mats, cache, size(H))
+end
+
+
+function Base.convert(S::Type{T}, H::DenseHamiltonian) where T<:Real
+    f_val = sum((x)->x(0.0), H.f)
+    if !(typeof(f_val) <: Real)
+        throw(TypeError(:convert, "H.f", Real, typeof(f_val)))
+    end
+    mats = [convert.(S, x) for x in H.m]
+    cache = similar(H.u_cache, S)
+    DenseHamiltonian(H.f, mats, cache, size(H))
 end
 
 

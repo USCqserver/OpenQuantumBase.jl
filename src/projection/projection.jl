@@ -145,7 +145,7 @@ function project_to_lowlevel(
     ref = zeros((0, 2)), tol = 1e-4, lvl = 2
 ) where T <: Complex
     @warn "The projection method only works with real Hamitonians. Convert the complex Hamiltonian to real one."
-    H_real = to_real(H)
+    H_real = real(H)
     project_to_lowlevel(
         H_real,
         dH,
