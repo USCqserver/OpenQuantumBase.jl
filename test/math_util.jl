@@ -10,11 +10,16 @@ m = r[1]*PauliVec[1][2]*PauliVec[1][2]' + r[2]*PauliVec[1][1]*PauliVec[1][1]'
 @test check_positivity(m)
 @test !check_positivity(σx)
 # == units conversion test ===
-@test isapprox(temperature_2_freq(1e3), 20.8366176361328, atol=1e-4, rtol=1e-4)
+@test temperature_2_freq(1e3)≈20.8366176361328 atol=1e-4 rtol=1e-4
+@test freq_2_temperature(20)≈959.8489324422699 atol=1e-4 rtol=1e-4
+@test temperature_2_freq(1e3) ≈ 1/temperature_2_beta(1e3)/2/π
+@test beta_2_temperature(0.47) ≈ 16.251564065921915
 # === unitary test ===
 u_res = exp(-1.0im*5*0.5*σx)
 @test check_unitary(u_res)
 @test !check_unitary([0 1; 0 0])
+# === integration test ===
+@test cpvagk((x)->1.0, 0, -1, 1)[1] == 0
 
 # == Hamiltonian analysis ===
 hfun(s) = (1-s)*real(σx)+ s*real(σz)
