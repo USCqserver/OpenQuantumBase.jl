@@ -1,6 +1,18 @@
+"""
+$(TYPEDEF)
+
+Defines Redfield operator
+
+# Fields
+
+$(FIELDS)
+"""
 struct Redfield <: AbstractOpenSys
+    """system-bath coupling operator"""
     ops
+    """close system unitary"""
     unitary
+    """bath correlation function"""
     cfun
 end
 
@@ -13,7 +25,8 @@ function (R::Redfield)(du, u, tf::Real, t::Real)
             S,
             R.cfun,
             R.unitary;
-            rtol = 1e-6, atol = 1e-8
+            rtol = 1e-6,
+            atol = 1e-8,
         )
         𝐊₂ = redfield_K(S, Λ, u, t)
         𝐊₂ = 𝐊₂ + 𝐊₂'
@@ -24,13 +37,13 @@ end
 
 function (R::Redfield)(du, u, tf::UnitTime, t::Real)
     for S in R.ops
-        Λ, err = Λ_calculation_unit(
+        Λ, err = Λ_calculation(
             t,
-            tf,
             S,
             R.cfun,
             R.unitary;
-            rtol = 1e-6, atol = 1e-8
+            rtol = 1e-6,
+            atol = 1e-8,
         )
         𝐊₂ = redfield_K(S, Λ, u, t)
         𝐊₂ = 𝐊₂ + 𝐊₂'
@@ -39,7 +52,7 @@ function (R::Redfield)(du, u, tf::UnitTime, t::Real)
 end
 
 
-@inline redfield_K(S::Matrix{T}, Λ, u, t) where T <: Number =
+@inline redfield_K(S::Matrix{T}, Λ, u, t) where {T<:Number} =
     S * Λ * u - Λ * u * S
 @inline redfield_K(S, Λ, u, t) = S(t) * Λ * u - Λ * u * S(t)
 
@@ -49,8 +62,9 @@ function Λ_calculation(
     op::Matrix{T},
     cfun,
     unitary;
-    rtol = 1e-8, atol = 1e-8
-) where T <: Number
+    rtol = 1e-8,
+    atol = 1e-8,
+) where {T<:Number}
     function integrand(x)
         u = unitary(t) * unitary(x)'
         cfun(t - x) * u * op * u'
@@ -63,31 +77,6 @@ function Λ_calculation(t, op, cfun, unitary; rtol = 1e-8, atol = 1e-8)
     function integrand(x)
         u = unitary(t) * unitary(x)'
         cfun(t - x) * u * op(x) * u'
-    end
-    res = quadgk(integrand, 0, t, rtol = rtol, atol = atol)
-end
-
-
-function Λ_calculation_unit(
-    t,
-    tf,
-    op::Matrix{T},
-    cfun,
-    unitary;
-    rtol = 1e-8, atol = 1e-8
-) where T <: Number
-    function integrand(x)
-        u = unitary(t) * unitary(x)'
-        cfun(t - x) * u * op * u'
-    end
-    res = quadgk(integrand, 0, t, rtol = rtol, atol = atol)
-end
-
-
-function Λ_calculation_unit(t, tf, op, cfun, unitary; rtol = 1e-8, atol = 1e-8)
-    function integrand(x)
-        u = unitary(t) * unitary(x)'
-        cfun(t - x) * u * op(x / tf) * u'
     end
     res = quadgk(integrand, 0, t, rtol = rtol, atol = atol)
 end

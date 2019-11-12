@@ -8,6 +8,9 @@ u = [1.0 + 0.0im, 1] / sqrt(2)
 
 H_sparse = SparseHamiltonian([A, B], [spσx, spσz])
 
+@test H_sparse(2.0, 0.5) == 2π*(spσx + spσz)
+@test H_sparse(UnitTime(2.0), 1.0) == π*(spσx + spσz)
+
 H_real = real(H_sparse)
 @test eltype(H_real) <: Real
 @test H_sparse(0.0) ≈ H_real(0.0)
@@ -24,8 +27,12 @@ du = [1.0 + 0.0im 0; 0 0]
 H_sparse(du, ρ, 1.0, 0.5)
 @test du ≈ -1.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
 
-H_new = p_copy(H_sparse)
-@test H_new.u_cache == spzeros(eltype(H_sparse.u_cache), size(H_sparse.u_cache)...)
+# update_cache method
+C = similar(spσz)
+update_cache!(C, H_sparse, 10, 0.5)
+@test C == -10im * π * (spσx + spσz)
+update_cache!(C, H_sparse, UnitTime(10), 5)
+@test C == -1im * π * (spσx + spσz)
 
 H_sparse = SparseHamiltonian([A, B], real.([spσx ⊗ spσi + spσi ⊗ spσx, 0.1spσz ⊗ spσi - spσz ⊗ spσz]))
 w, v = eigen_decomp(H_sparse, 1.0)
