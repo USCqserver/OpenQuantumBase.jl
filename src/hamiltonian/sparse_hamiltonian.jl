@@ -7,7 +7,7 @@ Defines a time dependent Hamiltonian object with sparse Matrices.
 
 $(FIELDS)
 """
-struct SparseHamiltonian{T <: Number} <: AbstractSparseHamiltonian{T}
+struct SparseHamiltonian{T<:Number} <: AbstractSparseHamiltonian{T}
     " List of time dependent functions "
     f
     " List of constant matrices "
@@ -24,7 +24,7 @@ end
 
 Constructor of SparseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices. `unit` is the unit one -- `:h` or `:ħ`. The `mats` will be scaled by ``2π`` is unit is `:h`.
 """
-function SparseHamiltonian(funcs, mats; unit=:h)
+function SparseHamiltonian(funcs, mats; unit = :h)
     if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
@@ -33,19 +33,19 @@ function SparseHamiltonian(funcs, mats; unit=:h)
     end
     cache = similar(sum(mats))
     fill!(cache, 0.0)
-    SparseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
+    SparseHamiltonian(funcs, unit_scale(unit) * mats, cache, size(mats[1]))
 end
 
 
-function Base.convert(S::Type{T}, H::SparseHamiltonian) where T<:Complex
+function Base.convert(S::Type{T}, H::SparseHamiltonian) where {T<:Complex}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, S)
     SparseHamiltonian(H.f, mats, cache, size(H))
 end
 
 
-function Base.convert(S::Type{T}, H::SparseHamiltonian) where T<:Real
-    f_val = sum((x)->x(0.0), H.f)
+function Base.convert(S::Type{T}, H::SparseHamiltonian) where {T<:Real}
+    f_val = sum((x) -> x(0.0), H.f)
     if !(typeof(f_val) <: Real)
         throw(TypeError(:convert, "H.f", Real, typeof(f_val)))
     end
@@ -72,16 +72,16 @@ end
 function update_cache!(cache, H::SparseHamiltonian, tf::Real, s::Real)
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
-        cache .+= -1.0im*tf*f(s) * m
+        cache .+= -1.0im * tf * f(s) * m
     end
 end
 
 
 function update_cache!(cache, H::SparseHamiltonian, tf::UnitTime, t::Real)
-    s = t/tf
+    s = t / tf
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
-        cache .+= -1.0im*f(s) * m
+        cache .+= -1.0im * f(s) * m
     end
 end
 
@@ -97,13 +97,23 @@ function (h::SparseHamiltonian)(tf::UnitTime, t::Real)
 end
 
 
-function (h::SparseHamiltonian)(du, u::Matrix{T}, tf::Real, t::Real) where T <: Number
+function (h::SparseHamiltonian)(
+    du,
+    u::Matrix{T},
+    tf::Real,
+    t::Real,
+) where {T<:Number}
     H = h(t)
     du .= -1.0im * tf * (H * u - u * H)
 end
 
 
-function (h::SparseHamiltonian)(du, u::Matrix{T}, tf::UnitTime, t::Real) where T <: Number
+function (h::SparseHamiltonian)(
+    du,
+    u::Matrix{T},
+    tf::UnitTime,
+    t::Real,
+) where {T<:Number}
     H = h(t / tf)
     du .= -1.0im * (H * u - u * H)
 end
@@ -124,22 +134,4 @@ end
 function ode_eigen_decomp(h::AbstractSparseHamiltonian, lvl::Integer)
     w, v = eigs(h.u_cache; nev = lvl, which = :SR)
     real(w), v
-end
-
-
-function p_copy(h::SparseHamiltonian)
-    SparseHamiltonian(h.f, h.m, spzeros(eltype(h.u_cache), size(h.u_cache)...), h.size)
-end
-
-
-#TODO The folllowing code will be deprecated
-function (h::SparseHamiltonian)(du, u::Vector{T}, tf::Real, t::Real) where T <: Number
-    H = h(t)
-    mul!(du, -1.0im * tf * H, u)
-end
-
-
-function (h::SparseHamiltonian)(du, u::Vector{T}, tf::UnitTime, t::Real) where T <: Number
-    H = h(t/tf)
-    mul!(du, -1.0im * H, u)
 end

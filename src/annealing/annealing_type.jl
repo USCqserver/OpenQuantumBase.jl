@@ -33,7 +33,7 @@ function Annealing(
     coupling = nothing,
     bath = nothing,
     control = nothing,
-    tstops = []
+    tstops = Float64[]
 )
     if need_change_time_scale(control)==true
         sspan = adjust_sspan(control, sspan)

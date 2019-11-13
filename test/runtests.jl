@@ -26,6 +26,9 @@ using SafeTestsets
     @time @safetestset "Davies and AME" begin
         include("davies.jl")
     end
+    @time @safetestset "Redfield" begin
+        include("redfield.jl")
+    end
     @time @safetestset "Annealing" begin
         include("annealing.jl")
     end

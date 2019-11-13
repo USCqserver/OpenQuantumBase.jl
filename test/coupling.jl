@@ -24,3 +24,6 @@ c1 = TimeDependentCoupling([(s)->s], [σz], unit=:ħ)
 c2 = TimeDependentCoupling([(s)->s], [σx], unit=:ħ)
 c = TimeDependentCouplings(c1, c2)
 @test [op for op in c(0.5)] == [c1(0.5), c2(0.5)]
+
+c = collective_coupling("Z", 2, unit=:ħ)
+@test c(0.1) == [σz⊗σi, σi⊗σz]

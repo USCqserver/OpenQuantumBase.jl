@@ -19,6 +19,13 @@ H = DenseHamiltonian([A, B], [σx, σz])
 @test H(10, 0.5) == 10π * (σx + σz)
 @test H(UnitTime(10.0), 5) == π * (σx + σz)
 
+# update_cache method
+C = similar(σz)
+update_cache!(C, H, 10, 0.5)
+@test C == -10im * π * (σx + σz)
+update_cache!(C, H, UnitTime(10), 5)
+@test C == -1im * π * (σx + σz)
+
 # in-place update for matrices
 du = [1.0 + 0.0im 0; 0 0]
 H(du, ρ, 2.0, 0.5)
@@ -26,15 +33,7 @@ H(du, ρ, 2.0, 0.5)
 H(du, ρ, UnitTime(2), 1.0)
 @test du ≈ -1.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
 
-# TODO in-place update for vectors will be deprecated
-# in-place update for vectors
-du = [1.0 + 0.0im, 0]
-H(du, u, 2.0, 0.5)
-@test du ≈ -2.0im * π * (σx + σz) * u
-H(du, u, UnitTime(2.0), 1.0)
-@test du ≈ -1.0im * π * (σx + σz) * u
-
-
+# eigen-decomposition
 w, v = eigen_decomp(H, 0.5)
 @test w ≈ [-1, 1] / sqrt(2)
 w, v = eigen_decomp(H, 0.0)
@@ -43,6 +42,3 @@ w, v = eigen_decomp(H, 0.0)
 H(0.5)
 w, v = QTBase.ode_eigen_decomp(H, 2)
 @test w ≈ [-1, 1] * sqrt(2) * π
-
-H_new = p_copy(H)
-@test H_new.u_cache != H.u_cache
