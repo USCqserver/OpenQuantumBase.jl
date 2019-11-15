@@ -64,7 +64,7 @@ end
 """
     check_positivity(m)
 
-Check if matrix `m` is positive. Internally it compares the minimum eigen value of `m` to 0.
+Check if matrix `m` is positive. Return `true` is the minimum eigenvalue of `m` is greater than or equal to 0.
 """
 function check_positivity(m::Matrix{T}) where T<:Number
     if !ishermitian(m)
@@ -73,7 +73,7 @@ function check_positivity(m::Matrix{T}) where T<:Number
     else
         d = m
     end
-    eigmin(d) > 0
+    eigmin(d) >= 0
 end
 
 
