@@ -34,6 +34,15 @@ update_cache!(C, H_sparse, 10, 0.5)
 update_cache!(C, H_sparse, UnitTime(10), 5)
 @test C == -1im * π * (spσx + spσz)
 
+# update_vectorized_cache method
+C = similar(get_cache(H_sparse)⊗σi)
+update_vectorized_cache!(C, H_sparse, 10, 0.5)
+temp = -10im * π * (spσx + spσz)
+@test C == spσi⊗temp - transpose(temp)⊗spσi
+update_vectorized_cache!(C, H_sparse, UnitTime(10), 5)
+temp = -1im * π * (spσx + spσz)
+@test C == spσi⊗temp - transpose(temp)⊗spσi
+
 H_sparse = SparseHamiltonian([A, B], real.([spσx ⊗ spσi + spσi ⊗ spσx, 0.1spσz ⊗ spσi - spσz ⊗ spσz]))
 w, v = eigen_decomp(H_sparse, 1.0)
 

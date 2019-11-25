@@ -69,6 +69,7 @@ function (h::SparseHamiltonian)(t::Real)
 end
 
 
+# update_func interface for DiffEqOperators
 function update_cache!(cache, H::SparseHamiltonian, tf::Real, s::Real)
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
@@ -86,13 +87,20 @@ function update_cache!(cache, H::SparseHamiltonian, tf::UnitTime, t::Real)
 end
 
 
-function (h::SparseHamiltonian)(tf::Real, t::Real)
+function update_vectorized_cache!(cache, H::SparseHamiltonian, tf, t::Real)
+    hmat = H(tf, t)
+    iden = sparse(I, size(H))
+    cache .= 1.0im*(transpose(hmat)⊗iden - iden⊗hmat)
+end
+
+
+@inline function (h::SparseHamiltonian)(tf::Real, t::Real)
     hmat = h(t)
     lmul!(tf, hmat)
 end
 
 
-function (h::SparseHamiltonian)(tf::UnitTime, t::Real)
+@inline function (h::SparseHamiltonian)(tf::UnitTime, t::Real)
     hmat = h(t / tf)
 end
 

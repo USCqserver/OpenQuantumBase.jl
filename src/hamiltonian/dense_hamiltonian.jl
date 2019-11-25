@@ -87,20 +87,20 @@ function update_cache!(cache, H::DenseHamiltonian, tf::UnitTime, t::Real)
 end
 
 
-function update_vectorized_cache(cache, H::DensenHamiltonian, tf::Real, s::Real)
-    hmat = H(s)
+function update_vectorized_cache!(cache, H::DenseHamiltonian, tf, t::Real)
+    hmat = H(tf, t)
     iden = Matrix{eltype(H)}(I, size(H))
-    cache .= 1.0im*tf*(transpose(hmat)⊗iden - iden⊗hmat)
+    cache .= 1.0im*(transpose(hmat)⊗iden - iden⊗hmat)
 end
 
 
-function (h::DenseHamiltonian)(tf::Real, t::Real)
+@inline function (h::DenseHamiltonian)(tf::Real, t::Real)
     hmat = h(t)
     lmul!(tf, hmat)
 end
 
 
-function (h::DenseHamiltonian)(tf::UnitTime, t::Real)
+@inline function (h::DenseHamiltonian)(tf::UnitTime, t::Real)
     hmat = h(t/tf)
 end
 
