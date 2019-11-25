@@ -35,7 +35,7 @@ update_cache!(C, H_sparse, UnitTime(10), 5)
 @test C == -1im * π * (spσx + spσz)
 
 # update_vectorized_cache method
-C = similar(get_cache(H_sparse)⊗σi)
+C = get_cache(H_sparse, true)
 update_vectorized_cache!(C, H_sparse, 10, 0.5)
 temp = -10im * π * (spσx + spσz)
 @test C == spσi⊗temp - transpose(temp)⊗spσi

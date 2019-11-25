@@ -27,7 +27,7 @@ update_cache!(C, H, UnitTime(10), 5)
 @test C == -1im * π * (σx + σz)
 
 # update_vectorized_cache method
-C = similar(σz⊗σz)
+C = get_cache(H, true)
 update_vectorized_cache!(C, H, 10, 0.5)
 temp = -10im * π * (σx + σz)
 @test C == σi⊗temp - transpose(temp)⊗σi

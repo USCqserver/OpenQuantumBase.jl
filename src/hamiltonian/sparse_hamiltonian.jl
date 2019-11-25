@@ -105,6 +105,17 @@ end
 end
 
 
+function get_cache(H::SparseHamiltonian, vectorize)
+    if vectorize == false
+        get_cache(H)
+    else
+        h_cache = similar(get_cache(H))
+        fill!(h_cache, 1.0)
+        h_cache⊗sparse(I, size(H)) + sparse(I, size(H))⊗h_cache
+    end
+end
+
+
 function (h::SparseHamiltonian)(
     du,
     u::Matrix{T},
