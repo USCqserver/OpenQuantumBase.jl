@@ -68,6 +68,7 @@ function (h::DenseHamiltonian)(s::Real)
 end
 
 
+# update_func interface for DiffEqOperators
 function update_cache!(cache, H::DenseHamiltonian, tf::Real, s::Real)
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
@@ -83,6 +84,13 @@ function update_cache!(cache, H::DenseHamiltonian, tf::UnitTime, t::Real)
     for (f, m) in zip(H.f, H.m)
         axpy!(-1.0im*f(s), m, cache)
     end
+end
+
+
+function update_vectorized_cache(cache, H::DensenHamiltonian, tf::Real, s::Real)
+    hmat = H(s)
+    iden = Matrix{eltype(H)}(I, size(H))
+    cache .= 1.0im*tf*(transpose(hmat)⊗iden - iden⊗hmat)
 end
 
 
