@@ -7,7 +7,7 @@ Defines a time dependent Hamiltonian object with dense Matrices.
 
 $(FIELDS)
 """
-struct DenseHamiltonian{T <: Number} <: AbstractDenseHamiltonian{T}
+struct DenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
     " List of time dependent functions "
     f
     " List of constant matrices "
@@ -32,19 +32,19 @@ function DenseHamiltonian(funcs, mats; unit = :h)
         mats = complex.(mats)
     end
     cache = similar(sum(mats))
-    DenseHamiltonian(funcs, unit_scale(unit)*mats, cache, size(mats[1]))
+    DenseHamiltonian(funcs, unit_scale(unit) * mats, cache, size(mats[1]))
 end
 
 
-function Base.convert(S::Type{T}, H::DenseHamiltonian) where T<:Complex
+function Base.convert(S::Type{T}, H::DenseHamiltonian) where {T<:Complex}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, S)
     DenseHamiltonian(H.f, mats, cache, size(H))
 end
 
 
-function Base.convert(S::Type{T}, H::DenseHamiltonian) where T<:Real
-    f_val = sum((x)->x(0.0), H.f)
+function Base.convert(S::Type{T}, H::DenseHamiltonian) where {T<:Real}
+    f_val = sum((x) -> x(0.0), H.f)
     if !(typeof(f_val) <: Real)
         throw(TypeError(:convert, "H.f", Real, typeof(f_val)))
     end
@@ -68,46 +68,63 @@ function (h::DenseHamiltonian)(s::Real)
 end
 
 
+# update_func interface for DiffEqOperators
 function update_cache!(cache, H::DenseHamiltonian, tf::Real, s::Real)
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
         axpy!(f(s), m, cache)
     end
-    lmul!(-1.0im*tf, cache)
+    lmul!(-1.0im * tf, cache)
 end
 
 
 function update_cache!(cache, H::DenseHamiltonian, tf::UnitTime, t::Real)
-    s = t/tf
+    s = t / tf
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
-        axpy!(-1.0im*f(s), m, cache)
+        axpy!(-1.0im * f(s), m, cache)
     end
 end
 
 
-function (h::DenseHamiltonian)(tf::Real, t::Real)
+function update_vectorized_cache!(cache, H::DenseHamiltonian, tf, t::Real)
+    hmat = H(tf, t)
+    iden = Matrix{eltype(H)}(I, size(H))
+    cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
+end
+
+
+@inline function (h::DenseHamiltonian)(tf::Real, t::Real)
     hmat = h(t)
     lmul!(tf, hmat)
 end
 
 
-function (h::DenseHamiltonian)(tf::UnitTime, t::Real)
-    hmat = h(t/tf)
+@inline function (h::DenseHamiltonian)(tf::UnitTime, t::Real)
+    hmat = h(t / tf)
 end
 
 
-function (h::DenseHamiltonian)(du, u::Matrix{T}, p::Real, t::Real) where T<:Complex
-    fill!(du, 0.0+0.0im)
+function get_cache(H::DenseHamiltonian, vectorize)
+    if vectorize == false
+        get_cache(H)
+    else
+        get_cache(H) ⊗ Matrix{eltype(H)}(I, size(H))
+    end
+end
+
+
+function (h::DenseHamiltonian)(du, u::Matrix{T}, p::Real, t::Real) where {T<:Complex}
+    fill!(du, 0.0 + 0.0im)
     H = h(t)
     gemm!('N', 'N', -1.0im * p, H, u, 1.0 + 0.0im, du)
     gemm!('N', 'N', 1.0im * p, u, H, 1.0 + 0.0im, du)
 end
 
 
-function (h::DenseHamiltonian)(du, u::Matrix{T}, tf::UnitTime, t::Real) where T<:Complex
-    fill!(du, 0.0+0.0im)
-    H = h(t/tf)
+function (h::DenseHamiltonian)(du, u::Matrix{T}, tf::UnitTime, t::Real) where {T<:Complex}
+    fill!(du, 0.0 + 0.0im)
+    H = h(t / tf)
     gemm!('N', 'N', -1.0im, H, u, 1.0 + 0.0im, du)
     gemm!('N', 'N', 1.0im, u, H, 1.0 + 0.0im, du)
 end

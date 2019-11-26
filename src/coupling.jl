@@ -19,10 +19,10 @@ function (c::ConstantCouplings)(t)
 end
 
 Base.iterate(c::ConstantCouplings, state = 1) = Base.iterate(c.mats, state)
-
 Base.length(c::ConstantCouplings) = length(c.mats)
-
 Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
+Base.size(c::ConstantCouplings) = size(c.mats[1])
+
 
 """
     function ConstantCouplings(mats; str_rep=nothing, unit=:h)
@@ -113,6 +113,8 @@ function (c::TimeDependentCoupling)(t)
     sum((x) -> x[1](t) * x[2], zip(c.funcs, c.mats))
 end
 
+Base.size(c::TimeDependentCoupling) = size(c.mats[1])
+
 
 """
 $(TYPEDEF)
@@ -141,3 +143,4 @@ end
 Base.iterate(c::TimeDependentCouplings, state = 1) = Base.iterate(c.coupling, state)
 Base.length(c::TimeDependentCouplings) = length(c.coupling)
 Base.eltype(c::TimeDependentCouplings) = typeof(c.coupling[1])
+Base.size(c::TimeDependentCouplings) = size(c.coupling[1])

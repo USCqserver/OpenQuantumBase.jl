@@ -26,6 +26,15 @@ update_cache!(C, H, 10, 0.5)
 update_cache!(C, H, UnitTime(10), 5)
 @test C == -1im * π * (σx + σz)
 
+# update_vectorized_cache method
+C = get_cache(H, true)
+update_vectorized_cache!(C, H, 10, 0.5)
+temp = -10im * π * (σx + σz)
+@test C == σi⊗temp - transpose(temp)⊗σi
+update_vectorized_cache!(C, H, UnitTime(10), 5)
+temp = -1im * π * (σx + σz)
+@test C == σi⊗temp - transpose(temp)⊗σi
+
 # in-place update for matrices
 du = [1.0 + 0.0im 0; 0 0]
 H(du, ρ, 2.0, 0.5)

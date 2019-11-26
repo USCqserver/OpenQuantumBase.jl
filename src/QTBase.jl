@@ -179,7 +179,8 @@ export AbstractHamiltonian,
        to_sparse,
        is_sparse,
        get_cache,
-       update_cache!
+       update_cache!,
+       update_vectorized_cache!
 
 export AbstractCouplings,
        ConstantCouplings,
