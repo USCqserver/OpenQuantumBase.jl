@@ -55,22 +55,18 @@ end
 
 function construct_interpolations(
     x::AbstractRange{S},
-    y::AbstractArray{Array{T, N},1};
+    y::AbstractArray{W,1};
     method = "BSpline",
     order = 2,
     extrapolation = "line",
-) where {S<:Real,T<:Number,N}
-     y = cat(y...; dims = ndims(y) + 1)
-     construct_interpolations(x, y, method=method, order=order, extrapolation=extrapolation)
-end
-
-
-function construct_interpolations(
-    x::AbstractRange{S},
-    y::AbstractArray{SparseMatrixCSC,1};
-    method = "BSpline",
-    order = 2,
-    extrapolation = "line",
+) where {S<:Real,W<:AbstractArray}
+    y = cat(y...; dims = ndims(y[1]) + 1)
+    construct_interpolations(
+        x,
+        y,
+        method = method,
+        order = order,
+        extrapolation = extrapolation,
     )
 end
 
@@ -126,6 +122,9 @@ function interp_method(method, order::Integer; boundary = Line(OnGrid()))
 end
 
 
-function convert_to_multi_dimension_array(A::Array{Array{T,N},1}) where {T<:Number,N}
+function convert_to_multi_dimension_array(A::Array{
+    Array{T,N},
+    1,
+}) where {T<:Number,N}
     cat(A...; dims = N + 1)
 end

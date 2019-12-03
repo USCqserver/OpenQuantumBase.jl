@@ -7,7 +7,7 @@ Defines interpolating DenseHamiltonian object
 
 $(FIELDS)
 """
-struct InterpDenseHamiltonian
+struct InterpDenseHamiltonian <: AbstractDenseHamiltonian
     """Interpolating object"""
     interp_obj
     """Size"""
@@ -24,9 +24,14 @@ Defines interpolating SparseHamiltonian object
 
 $(FIELDS)
 """
-struct InterpSparseHamiltonian
+struct InterpSparseHamiltonian{grided} <:AbstractSparseHamiltonian
     """Interpolating object"""
     interp_obj
     """Size"""
     size
+end
+
+
+function InterpDenseHamiltonian(s, hmat; method = "bspline", order = 1)
+    construct_interpolations(s, hmat)
 end
