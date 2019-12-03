@@ -9,7 +9,7 @@ function construct_interpolations(
     method = "BSpline",
     order = 2,
     extrapolation = "line",
-) where {S<:Real,T<:Number, N}
+) where {S<:Real,T<:Number,N}
     method = interp_tuple(N, method, order)
     itp = interpolate(y, method)
     if lowercase(extrapolation) == "line"
@@ -26,12 +26,18 @@ function construct_interpolations(
     method = "Gridded",
     order = 1,
     extrapolation = "line",
-) where {S<:Real,T<:Number, N}
+) where {S<:Real,T<:Number,N}
     if lowercase(method) == "bspline"
         Δ = diff(x)
         if allequal(Δ)
-            x = range(x[1], x[end], length=length(x))
-            return construct_interpolations(x, y, method=method, order=order, extrapolation = extrapolation)
+            x = range(x[1], x[end], length = length(x))
+            return construct_interpolations(
+                x,
+                y,
+                method = method,
+                order = order,
+                extrapolation = extrapolation,
+            )
         else
             @warn "The grid is not uniform. Using grided linear interpolation."
             method = "Gridded"
@@ -44,6 +50,28 @@ function construct_interpolations(
         itp = extrapolate(itp, Line())
     end
     itp
+end
+
+
+function construct_interpolations(
+    x::AbstractRange{S},
+    y::AbstractArray{Array{T, N},1};
+    method = "BSpline",
+    order = 2,
+    extrapolation = "line",
+) where {S<:Real,T<:Number,N}
+     y = cat(y...; dims = ndims(y) + 1)
+     construct_interpolations(x, y, method=method, order=order, extrapolation=extrapolation)
+end
+
+
+function construct_interpolations(
+    x::AbstractRange{S},
+    y::AbstractArray{SparseMatrixCSC,1};
+    method = "BSpline",
+    order = 2,
+    extrapolation = "line",
+    )
 end
 
 
@@ -95,4 +123,9 @@ function interp_method(method, order::Integer; boundary = Line(OnGrid()))
         throw(ArgumentError("Method $method is invalid."))
     end
     res
+end
+
+
+function convert_to_multi_dimension_array(A::Array{Array{T,N},1}) where {T<:Number,N}
+    cat(A...; dims = N + 1)
 end
