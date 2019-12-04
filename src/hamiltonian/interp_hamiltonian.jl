@@ -139,7 +139,7 @@ end
 
 function InterpSparseHamiltonian(
     s_axis,
-    H_list::AbstractArray{SparseMatrixCSC{T,Int64},1};
+    H_list::AbstractArray{SparseMatrixCSC{T,Int},1};
     unit = :h,
 ) where {T<:Number}
     interp_obj = construct_interpolations(
