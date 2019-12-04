@@ -20,6 +20,9 @@ using SafeTestsets
     @time @safetestset "Adiabatic Frame Hamiltonian" begin
         include("hamiltonian/adiabatic_frame_hamiltonian.jl")
     end
+    @time @safetestset "Interpolation Hamiltonian" begin
+        include("hamiltonian/interp_hamiltonian.jl")
+    end
     @time @safetestset "Coupling" begin
         include("coupling.jl")
     end

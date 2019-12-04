@@ -71,6 +71,21 @@ function construct_interpolations(
 end
 
 
+function construct_interpolations(
+    x::AbstractArray{S,1},
+    y::AbstractArray{W,1};
+    method = "Gridded",
+    order = 1,
+    extrapolation = "line",
+) where {S<:Real,W<:AbstractArray}
+    itp = interpolate((x,), y, interp_method(method, order))
+    if lowercase(extrapolation) == "line"
+        itp = extrapolate(itp, Line())
+    end
+    itp
+end
+
+
 function interp_index(x, s)
     res = []
     for i = 1:(length(s)-1)
@@ -119,12 +134,4 @@ function interp_method(method, order::Integer; boundary = Line(OnGrid()))
         throw(ArgumentError("Method $method is invalid."))
     end
     res
-end
-
-
-function convert_to_multi_dimension_array(A::Array{
-    Array{T,N},
-    1,
-}) where {T<:Number,N}
-    cat(A...; dims = N + 1)
 end

@@ -126,6 +126,7 @@ include("integration/cpvagk.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
+include("hamiltonian/interp_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
 
@@ -174,6 +175,8 @@ export AbstractHamiltonian,
        AbstractDenseHamiltonian,
        DenseHamiltonian,
        AdiabaticFrameHamiltonian,
+       InterpDenseHamiltonian,
+       InterpSparseHamiltonian,
        evaluate,
        to_dense,
        to_sparse,
