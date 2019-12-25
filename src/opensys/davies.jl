@@ -55,6 +55,23 @@ function (D::DaviesGenerator)(du, u, ω_ba, tf::UnitTime, t::Real)
 end
 
 
+function ame_trajectory_cache_update!(
+    cache,
+    ω_ba,
+    v,
+    D::DaviesGenerator,
+    tf::Real,
+    s::Real,
+)
+    γm = tf * D.γ.(ω_ba)
+    sm = tf * D.S.(ω_ba)
+    for op in D.coupling(t)
+        A = v' * (op * v)
+        adiabatic_me_update!(du, ρ, A, γm, sm)
+    end
+end
+
+
 """
 $(TYPEDEF)
 
@@ -139,19 +156,33 @@ function adiabatic_me_update!(du, u, A, γ, S)
     A2 = abs2.(A)
     γA = γ .* A2
     Γ = sum(γA, dims = 1)
-    dim = size(du)[1]
+    dim = size(du, 1)
     for a = 1:dim
         for b = 1:a-1
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
+            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                        γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
         for b = a+1:dim
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
+            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                        γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
     end
     H_ls = Diagonal(sum(S .* A2, dims = 1)[1, :])
     axpy!(-1.0im, H_ls * u - u * H_ls, du)
+end
+
+
+function ame_trajectory_update!(cache, A, γ, S)
+    A2 = abs2.(A)
+    γA = γ .* A2
+    dim = size(cache, 1)
+    for b = 1:dim
+        for a = 1:dim
+            @inbounds cache[b, b] -= 0.5 * γA[a, b] - 1.0im * S[a, b]
+        end
+    end
 end
 
 
