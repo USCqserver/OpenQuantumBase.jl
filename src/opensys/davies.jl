@@ -65,9 +65,9 @@ function ame_trajectory_cache_update!(
 )
     γm = tf * D.γ.(ω_ba)
     sm = tf * D.S.(ω_ba)
-    for op in D.coupling(t)
+    for op in D.coupling(s)
         A = v' * (op * v)
-        adiabatic_me_update!(du, ρ, A, γm, sm)
+        ame_trajectory_update!(cache, A, γm, sm)
     end
 end
 
@@ -180,7 +180,7 @@ function ame_trajectory_update!(cache, A, γ, S)
     dim = size(cache, 1)
     for b = 1:dim
         for a = 1:dim
-            @inbounds cache[b, b] -= 0.5 * γA[a, b] - 1.0im * S[a, b]
+            cache[b, b] -= 0.5 * γA[a, b] + 1.0im * 0.5 * S[a, b]
         end
     end
 end
