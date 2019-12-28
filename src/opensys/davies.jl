@@ -55,21 +55,56 @@ function (D::DaviesGenerator)(du, u, ω_ba, tf::UnitTime, t::Real)
 end
 
 
-function ame_trajectory_cache_update!(
-    cache,
-    ω_ba,
-    v,
-    D::DaviesGenerator,
-    tf::Real,
-    s::Real,
-)
-    γm = tf * D.γ.(ω_ba)
-    sm = tf * D.S.(ω_ba)
-    for op in D.coupling(s)
-        A = v' * (op * v)
-        ame_trajectory_update!(cache, A, γm, sm)
+"""
+    ame_jump(w, v, D::DaviesGenerator, tf, s::Real)
+
+Calculate the jump operator for the AME.
+"""
+function ame_jump(w, v, u, D::DaviesGenerator, tf::Real, s::Real)
+    # calculate all dimensions
+    sys_dim = size(v, 1)
+    truncated_lvl = size(v, 2)
+    num_noise = length(D.coupling)
+    prob_dim = (truncated_lvl * (truncated_lvl - 1) + 1) * num_noise
+    ω_ba = repeat(w, 1, length(w))
+    ω_ba = transpose(ω_ba) - ω_ba
+    γm = D.γ.(ω_ba)
+    prob = Array{Float64,1}(undef, prob_dim)
+    tag = Array{Tuple{Int,Int,Int},1}(undef, prob_dim)
+    idx = 1
+    ϕb = abs2.(v' * u)
+    σab = [v' * op * v for op in D.coupling(s)]
+    for i = 1:num_noise
+        γA = γm .* abs2.(σab[i])
+        for b = 1:truncated_lvl
+            for a = 1:b-1
+                prob[idx] = γA[a, b] * ϕb[b]
+                tag[idx] = (i, a, b)
+                idx += 1
+                prob[idx] = γA[b, a] * ϕb[a]
+                tag[idx] = (i, b, a)
+                idx += 1
+            end
+        end
+        prob[idx] = transpose(diag(γA)) * ϕb
+        tag[idx] = (i, 0, 0)
+        idx += 1
     end
+    choice = sample(tag, Weights(prob))
+    if choice[2] == 0
+        res = zeros(ComplexF64, sys_dim, sys_dim)
+        for i in range(1, stop = sys_dim)
+            res += sqrt(γm[1, 1]) * σab[choice[1]][i, i] * v[:, i] * v[:, i]'
+        end
+    else
+        res = sqrt(γm[choice[2], choice[3]]) *
+              σab[choice[1]][choice[2], choice[3]] * v[:, choice[2]] *
+              v[:, choice[3]]'
+    end
+    res
 end
+
+@inline ame_jump(w, v, u, D::DaviesGenerator, tf::UnitTime, t::Real) = ame_jump(w, v, u, D, tf, t/tf)
 
 
 """
@@ -171,18 +206,6 @@ function adiabatic_me_update!(du, u, A, γ, S)
     end
     H_ls = Diagonal(sum(S .* A2, dims = 1)[1, :])
     axpy!(-1.0im, H_ls * u - u * H_ls, du)
-end
-
-
-function ame_trajectory_update!(cache, A, γ, S)
-    A2 = abs2.(A)
-    γA = γ .* A2
-    dim = size(cache, 1)
-    for b = 1:dim
-        for a = 1:dim
-            cache[b, b] -= 0.5 * γA[a, b] + 1.0im * 0.5 * S[a, b]
-        end
-    end
 end
 
 
