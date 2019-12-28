@@ -135,3 +135,18 @@ function interp_method(method, order::Integer; boundary = Line(OnGrid()))
     end
     res
 end
+
+
+"""
+    function gradient(itp, s)
+
+Calculate the gradient of `itp` at `s`. 
+"""
+function gradient(itp, s::Number)
+    gradient1(itp, s)
+end
+
+
+function gradient(itp, s::AbstractArray)
+    [gradient1(itp, x) for x in s]
+end

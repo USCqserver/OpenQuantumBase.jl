@@ -14,6 +14,7 @@ res_real = inter_real.(test_x)
 
 @test res_complex ≈ exp_complex
 @test res_real ≈ exp_real
+@test gradient(inter_real, [0.13, 0.21]) ≈ [-1, -1]
 
 # Test for multi-demension array
 y_array = transpose(hcat(y1, y2))
