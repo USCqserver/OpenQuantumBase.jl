@@ -34,6 +34,7 @@ import Interpolations: interpolate,
                        NoInterp,
                        Cubic,
                        Constant
+import StatsBase: sample, Weights
 
 
 """
@@ -163,7 +164,7 @@ export q_translate,
 
 export matrix_decompose, check_positivity, check_unitary
 
-export Complex_Interp, construct_interpolations
+export Complex_Interp, construct_interpolations, gradient
 
 export cpvagk
 
