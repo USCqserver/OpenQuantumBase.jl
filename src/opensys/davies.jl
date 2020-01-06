@@ -55,55 +55,6 @@ function (D::DaviesGenerator)(du, u, ω_ba, tf::UnitTime, t::Real)
 end
 
 
-"""
-    ame_jump(w, v, D::DaviesGenerator, tf, s::Real)
-
-Calculate the jump operator for the AME.
-"""
-function ame_jump(w, v, u, D::DaviesGenerator, tf::Real, s::Real)
-    # calculate all dimensions
-    sys_dim = size(v, 1)
-    truncated_lvl = size(v, 2)
-    num_noise = length(D.coupling)
-    prob_dim = (truncated_lvl * (truncated_lvl - 1) + 1) * num_noise
-    ω_ba = repeat(w, 1, length(w))
-    ω_ba = transpose(ω_ba) - ω_ba
-    γm = D.γ.(ω_ba)
-    prob = Array{Float64,1}(undef, prob_dim)
-    tag = Array{Tuple{Int,Int,Int},1}(undef, prob_dim)
-    idx = 1
-    ϕb = abs2.(v' * u)
-    σab = [v' * op * v for op in D.coupling(s)]
-    for i = 1:num_noise
-        γA = γm .* abs2.(σab[i])
-        for b = 1:truncated_lvl
-            for a = 1:b-1
-                prob[idx] = γA[a, b] * ϕb[b]
-                tag[idx] = (i, a, b)
-                idx += 1
-                prob[idx] = γA[b, a] * ϕb[a]
-                tag[idx] = (i, b, a)
-                idx += 1
-            end
-        end
-        prob[idx] = transpose(diag(γA)) * ϕb
-        tag[idx] = (i, 0, 0)
-        idx += 1
-    end
-    choice = sample(tag, Weights(prob))
-    if choice[2] == 0
-        res = zeros(ComplexF64, sys_dim, sys_dim)
-        for i in range(1, stop = sys_dim)
-            res += sqrt(γm[1, 1]) * σab[choice[1]][i, i] * v[:, i] * v[:, i]'
-        end
-    else
-        res = sqrt(γm[choice[2], choice[3]]) *
-              σab[choice[1]][choice[2], choice[3]] * v[:, choice[2]] *
-              v[:, choice[3]]'
-    end
-    res
-end
-
 @inline ame_jump(w, v, u, D::DaviesGenerator, tf::UnitTime, t::Real) = ame_jump(w, v, u, D, tf, t/tf)
 
 
@@ -238,3 +189,95 @@ end
 @inline diag_update(H, ρ, tf::Real) = -1.0im * tf * (H * ρ - ρ * H)
 
 @inline diag_update(H, ρ, tf::UnitTime) = -1.0im * (H * ρ - ρ * H)
+
+
+"""
+$(TYPEDEF)
+
+Defines an adiabatic master equation trajectory operator. The object is used to update the cache for
+DiffEqArrayOperator.
+
+# Fields
+
+$(FIELDS)
+"""
+struct AMETrajectoryOperator <: AbstractAnnealingControl
+    """Hamiltonian"""
+    H
+    """Davies generator"""
+    Davies::DaviesGenerator
+    """Number of levels to keep"""
+    lvl::Int
+end
+
+
+function update_cache!(cache, A::AMETrajectoryOperator, tf::Real, s::Real)
+    A.H(s)
+    w, v = ode_eigen_decomp(A.H, A.lvl)
+    ω_ba = transpose(w) .- w
+    internal_cache = -1.0im * tf * w
+    γm = tf * A.Davies.γ.(ω_ba)
+    sm = tf * A.Davies.S.(ω_ba)
+    for op in A.Davies.coupling(s)
+        A2 = abs2.(v' * op * v)
+        for b = 1:A.lvl
+            for a = 1:A.lvl
+                @inbounds internal_cache[b] -= A2[a, b] * (0.5 * γm[a, b] + 1.0im * sm[a, b])
+            end
+        end
+    end
+    cache .= v * Diagonal(internal_cache) * v'
+end
+
+
+"""
+    ame_jump(A::AMETrajectoryOperator, u, tf, s::Real)
+
+Calculate the jump operator for the AMETrajectoryOperator at time `s`.
+"""
+function ame_jump(A::AMETrajectoryOperator, u, tf::Real, s::Real)
+    A.H(s)
+    w, v = ode_eigen_decomp(A.H, A.lvl)
+    # calculate all dimensions
+    sys_dim = size(A.H, 1)
+    num_noise = length(A.Davies.coupling)
+    prob_dim = (A.lvl * (A.lvl - 1) + 1) * num_noise
+    ω_ba = transpose(w) .- w
+    γm = A.Davies.γ.(ω_ba)
+    prob = Array{Float64,1}(undef, prob_dim)
+    tag = Array{Tuple{Int,Int,Int},1}(undef, prob_dim)
+    idx = 1
+    ϕb = abs2.(v' * u)
+    σab = [v' * op * v for op in A.Davies.coupling(s)]
+    for i = 1:num_noise
+        γA = γm .* abs2.(σab[i])
+        for b = 1:A.lvl
+            for a = 1:b-1
+                prob[idx] = γA[a, b] * ϕb[b]
+                tag[idx] = (i, a, b)
+                idx += 1
+                prob[idx] = γA[b, a] * ϕb[a]
+                tag[idx] = (i, b, a)
+                idx += 1
+            end
+        end
+        prob[idx] = transpose(diag(γA)) * ϕb
+        tag[idx] = (i, 0, 0)
+        idx += 1
+    end
+    choice = sample(tag, Weights(prob))
+    if choice[2] == 0
+        res = zeros(ComplexF64, sys_dim, sys_dim)
+        for i in range(1, stop = sys_dim)
+            res += sqrt(γm[1, 1]) * σab[choice[1]][i, i] * v[:, i] * v[:, i]'
+        end
+    else
+        res = sqrt(γm[choice[2], choice[3]]) *
+              σab[choice[1]][choice[2], choice[3]] * v[:, choice[2]] *
+              v[:, choice[3]]'
+    end
+    res
+end
+
+
+@inline ame_jump(A::AMETrajectoryOperator, u, tf::UnitTime, t::Real) = ame_jump(A, u, tf, t/tf)

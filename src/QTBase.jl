@@ -208,7 +208,10 @@ export AbstractBath,
        Redfield,
        DaviesGenerator,
        AMEDiffEqOperator,
+       AMETrajectoryOperator,
        AFRWADiffEqOperator
+
+export ame_jump
 
 export UnitTime
 
