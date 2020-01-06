@@ -38,6 +38,24 @@ function ame_update_term(op, w, v, γ, S)
 end
 
 
+# calculate the ame trajectory term
+function ame_trajectory_update_term(op, w, v, γ, S)
+    A_ij = Array{Complex{Float64},2}(undef, (4, 4))
+    for i = 1:4
+        for j = 1:4
+            A_ij[i, j] = v[:, i]' * op * v[:, j]
+        end
+    end
+    cache = zeros(ComplexF64, 4, 4)
+    for i = 1:4
+        for j = 1:4
+            cache -= abs2(A_ij[i, j]) * (0.5 * γ(w[j]-w[i]) + 1.0im * S(w[j]-w[i])) * v[:, j] * v[:, j]'
+        end
+    end
+    cache
+end
+
+
 γ(x) = x >= 0 ? x + 1 : (1 - x) * exp(x)
 S(x) = x + 0.1
 H = DenseHamiltonian(
@@ -67,9 +85,15 @@ du = zeros(ComplexF64, (4, 4))
 davies_gen(du, u, w_ab, v, 1.0, 0.5)
 @test isapprox(v * du * v', drho, atol = 1e-6, rtol = 1e-6)
 
+ame_op = AMETrajectoryOperator(H, davies_gen, 4)
+exp_effective_H = ame_trajectory_update_term(op, w, v, γ, S) - 1.0im * H(0.5)
+cache = zeros(ComplexF64, 4, 4)
+update_cache!(cache, ame_op, 1.0, 0.5)
+@test cache ≈ exp_effective_H atol=1e-6 rtol=1e-6
+
 
 #TODO: Add test for the operator itself
-jump_op = QTBase.ame_jump(w, v, state, davies_gen, 1.0, 0.5)
+jump_op = ame_jump(ame_op, state, 1.0, 0.5)
 @test size(jump_op) == (4, 4)
 
 ame_op = AMEDiffEqOperator(H, davies_gen)
