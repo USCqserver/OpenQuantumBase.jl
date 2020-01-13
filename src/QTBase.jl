@@ -190,6 +190,7 @@ export AbstractCouplings,
        ConstantCouplings,
        TimeDependentCoupling,
        TimeDependentCouplings,
+       CustomCouplings,
        collective_coupling
 
 export eigen_decomp, p_copy

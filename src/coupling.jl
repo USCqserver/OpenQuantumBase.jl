@@ -144,3 +144,23 @@ Base.iterate(c::TimeDependentCouplings, state = 1) = Base.iterate(c.coupling, st
 Base.length(c::TimeDependentCouplings) = length(c.coupling)
 Base.eltype(c::TimeDependentCouplings) = typeof(c.coupling[1])
 Base.size(c::TimeDependentCouplings) = size(c.coupling[1])
+
+
+"""
+$(TYPEDEF)
+
+`CustomCouplings` is a container for any user defined coupling operators.
+
+# Fields
+
+$(FIELDS)
+"""
+struct CustomCouplings <: AbstractCouplings
+    """Callable object that returns a 1-D array of coupling matrices"""
+    obj
+end
+
+
+function (c::CustomCouplings)(s)
+    c.obj(s)
+end

@@ -140,7 +140,7 @@ end
 """
     function gradient(itp, s)
 
-Calculate the gradient of `itp` at `s`. 
+Calculate the gradient of `itp` at `s`.
 """
 function gradient(itp, s::Number)
     gradient1(itp, s)
