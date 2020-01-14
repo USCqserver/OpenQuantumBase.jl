@@ -156,11 +156,24 @@ $(TYPEDEF)
 $(FIELDS)
 """
 struct CustomCouplings <: AbstractCouplings
-    """Callable object that returns a 1-D array of coupling matrices"""
+    """A 1-D array of callable objects that returns coupling matrices"""
     obj
+    """Size of the coupling operator"""
+    size
+end
+
+
+function CustomCouplings(funcs)
+    mat = funcs[1](0.0)
+    CustomCouplings(funcs, size(mat))
 end
 
 
 function (c::CustomCouplings)(s)
-    c.obj(s)
+    [x(s) for x in c.obj]
 end
+
+
+Base.length(c::CustomCouplings) = length(c.obj)
+Base.size(c::CustomCouplings) = c.size
+Base.iterate(c::CustomCouplings, state = 1) = Base.iterate(c.obj, state)
