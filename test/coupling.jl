@@ -28,6 +28,8 @@ c = TimeDependentCouplings(c1, c2)
 c = collective_coupling("Z", 2, unit=:ħ)
 @test c(0.1) == [σz⊗σi, σi⊗σz]
 
-test_coupling(s) = [s*σx, (1-s)*σz]
+
+test_coupling = [(s)->s*σx, (s)->(1-s)*σz]
 coupling = CustomCouplings(test_coupling)
 @test coupling(0.5) == 0.5 * [σx, σz]
+@test [c(0.2) for c in coupling] == [0.2*σx, 0.8*σz]
