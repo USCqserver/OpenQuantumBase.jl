@@ -65,7 +65,28 @@ function update_vectorized_cache!(cache, R::Redfield, tf::Real, t::Real)
     iden = Matrix{eltype(cache)}(I, size(R.ops))
     for S in R.ops
         Λ, err = Λ_calculation(t, S, R.cfun, R.unitary; rtol = 1e-6, atol = 1e-8)
-        SΛ = S * Λ
-        cache .-= tf² * (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(S) ⊗ Λ - conj(Λ) ⊗ S)
+        _update_vectorized_cache!(cache, S, Λ, iden, tf², t)
     end
+end
+
+
+function update_vectorized_cache!(cache, R::Redfield, tf::UnitTime, t::Real)
+    iden = Matrix{eltype(cache)}(I, size(R.ops))
+    for S in R.ops
+        Λ, err = Λ_calculation(t, S, R.cfun, R.unitary; rtol = 1e-6, atol = 1e-8)
+        _update_vectorized_cache!(cache, S, Λ, iden, 1.0, t)
+    end
+end
+
+
+@inline function _update_vectorized_cache!(cache, S::Matrix{T}, Λ, iden, tf², t) where T<:Number
+    SΛ = S * Λ
+    cache .-= tf² * (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(S) ⊗ Λ - conj(Λ) ⊗ S)
+end
+
+
+@inline function _update_vectorized_cache!(cache, Sfun, Λ, iden, tf², t)
+    S = Sfun(t)
+    SΛ = S * Λ
+    cache .-= tf² * (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(S) ⊗ Λ - conj(Λ) ⊗ S)
 end

@@ -23,3 +23,11 @@ dρ = zero(ρ)
 redfield(dρ, ρ, UnitTime(5.0), 2.5)
 Λ = QTBase.quadgk((x) -> unitary(x)' * σz * unitary(x), 0, 2.5)[1]
 @test dρ ≈ -(σz * (Λ * ρ - ρ * Λ') - (Λ * ρ - ρ * Λ') * σz) atol = 1e-6 rtol = 1e-6
+
+coupling = CustomCouplings([(s)->σz])
+redfield = Redfield(coupling, unitary, cfun)
+
+A = zero(ρ ⊗ σi)
+update_vectorized_cache!(A, redfield, 5.0, 0.5)
+Λ = QTBase.quadgk((x) -> unitary(x)' * σz * unitary(x), 0, 0.5)[1]
+@test A * ρ[:] ≈ -25 * (σz*(Λ*ρ-ρ*Λ')-(Λ*ρ-ρ*Λ')*σz)[:]
