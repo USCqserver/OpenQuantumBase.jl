@@ -1,7 +1,8 @@
 using QTBase, Test
-import LinearAlgebra: eigen, Hermitian
+import LinearAlgebra: Diagonal
 
 
+#================ Define  test functions ==================#
 # calculate the AME linblad term using the formula in reference paper
 function ame_update_term(op, w, v, γ, S)
     L_ij = Array{Array{Complex{Float64},2},2}(undef, (4, 4))
@@ -46,7 +47,7 @@ function ame_trajectory_update_term(op, w, v, γ, S)
             A_ij[i, j] = v[:, i]' * op * v[:, j]
         end
     end
-    cache = zeros(ComplexF64, 4, 4)
+    cache = zeros(ComplexF64, size(v, 1), size(v, 1))
     for i = 1:4
         for j = 1:4
             cache -= abs2(A_ij[i, j]) * (0.5 * γ(w[j]-w[i]) + 1.0im * S(w[j]-w[i])) * v[:, j] * v[:, j]'
@@ -58,32 +59,38 @@ end
 
 γ(x) = x >= 0 ? x + 1 : (1 - x) * exp(x)
 S(x) = x + 0.1
+#================= Define test functions ==================#
+
 H = DenseHamiltonian(
     [(s) -> 1 - s, (s) -> s],
     [-standard_driver(2), (0.1 * σz ⊗ σi + 0.5 * σz ⊗ σz)],
 )
 coupling = ConstantCouplings(["ZI+IZ"])
-davies_gen = QTBase.DaviesGenerator(coupling, γ, S)
+davies_gen = DaviesGenerator(coupling, γ, S)
 op = 2π * (σz ⊗ σi + σi ⊗ σz)
 
-H(0.5)
-w, v = QTBase.ode_eigen_decomp(H, 4)
+w, v = eigen_decomp(H, 0.5, level=4)
+w = 2π*w
 state = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)
 rho = state * state'
 u = v' * rho * v
-drho, A_ij = ame_update_term(op, w, v, γ, S)
-
 w_ab = transpose(w) .- w
 gm = γ.(w_ab)
 sm = S.(w_ab)
+
+# expective result
+drho, A_ij = ame_update_term(op, w, v, γ, S)
+
 du = zeros(ComplexF64, (4, 4))
 QTBase.adiabatic_me_update!(du, u, A_ij, gm, sm)
-@test isapprox(v * du * v', drho, atol = 1e-6, rtol = 1e-6)
-
+@test v * du * v' ≈ drho atol = 1e-6 rtol = 1e-6
 
 du = zeros(ComplexF64, (4, 4))
 davies_gen(du, u, w_ab, v, 1.0, 0.5)
-@test isapprox(v * du * v', drho, atol = 1e-6, rtol = 1e-6)
+@test v * du * v' ≈ drho atol = 1e-6 rtol = 1e-6
+du = zeros(ComplexF64, (4, 4))
+davies_gen(du, u, w_ab, v, UnitTime(1.0), 5)
+@test v * du * v' ≈ drho atol = 1e-6 rtol = 1e-6
 
 ame_op = AMETrajectoryOperator(H, davies_gen, 4)
 exp_effective_H = ame_trajectory_update_term(op, w, v, γ, S) - 1.0im * H(0.5)
@@ -96,34 +103,37 @@ update_cache!(cache, ame_op, 1.0, 0.5)
 jump_op = ame_jump(ame_op, state, 1.0, 0.5)
 @test size(jump_op) == (4, 4)
 
-ame_op = AMEDiffEqOperator(H, davies_gen)
+ame_op = AMEDiffEqOperator(H, davies_gen, 4)
 du = zeros(ComplexF64, (4, 4))
 ame_op(du, rho, (tf = 1.0,), 0.5)
 hmat = H(0.5)
 @test isapprox(du, drho - 1.0im * (hmat * rho - rho * hmat), atol = 1e-6, rtol = 1e-6)
 
 
+# Sparse Hamiltonian test
 Hd = standard_driver(4; sp = true)
 Hp = q_translate("-0.9ZZII+IZZI-0.9IIZZ"; sp = true)
 H = SparseHamiltonian([(s) -> 1 - s, (s) -> s], [Hd, Hp])
 op = 2π * q_translate("ZIII+IZII+IIZI+IIIZ")
 coupling = ConstantCouplings(["ZIII+IZII+IIZI+IIIZ"])
-davies_gen = QTBase.DaviesGenerator(coupling, γ, S)
-H(0.5)
-w, v = QTBase.ode_eigen_decomp(H, 4)
+davies_gen = DaviesGenerator(coupling, γ, S)
+w, v = eigen_decomp(H, 0.5, level = 4, tol=0.0)
+w = 2π*real(w)
 
 state = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)
 rho = state * state'
 u = v' * rho * v
 drho, = ame_update_term(op, w, v, γ, S)
+exp_effective_H = ame_trajectory_update_term(op, w, v, γ, S) - 1.0im * v * Diagonal(w) * v'
 
-du = zeros(ComplexF64, (4, 4))
-w_ab = transpose(w) .- w
-davies_gen(du, u, w_ab, v, 1.0, 0.5)
-@test isapprox(v * du * v', drho, atol = 1e-6, rtol = 1e-6)
 
-ame_op = AMEDiffEqOperator(H, davies_gen; lvl = 4)
+ame_op = AMEDiffEqOperator(H, davies_gen, 4)
 du = zeros(ComplexF64, (16, 16))
 ame_op(du, rho, (tf = 1.0,), 0.5)
 hmat = H(0.5)
 @test isapprox(du, drho - 1.0im * (hmat * rho - rho * hmat), atol = 1e-6, rtol = 1e-6)
+
+ame_op = AMETrajectoryOperator(H, davies_gen, 4, eig_tol=0.0)
+cache = zeros(ComplexF64, 16, 16)
+update_cache!(cache, ame_op, 1.0, 0.5)
+@test cache ≈ exp_effective_H atol=1e-6 rtol=1e-6

@@ -17,7 +17,7 @@ t_obj = project_to_lowlevel(H, dH, coupling, [0.0, 0.5, 1.0])
     [[-1.0 0.0; 0.0 1.0]],
 ] atol = 1e-6
 
-    H = SparseHamiltonian(
+H = SparseHamiltonian(
     [(s) -> 1 - s, (s) -> s],
     [-standard_driver(2, sp = true) / 2, (spσz ⊗ spσi - 0.1spσz ⊗ spσz) / 2],
 )
