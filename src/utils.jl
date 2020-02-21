@@ -26,14 +26,12 @@ struct UnitTime{T<:AbstractFloat}
 end
 
 
-function UnitTime(x::Real)
-    UnitTime(float(x))
-end
+UnitTime(x::Real) = UnitTime(float(x))
 
 
 for op in (:*, :/, :\)
-  @eval Base.$op(t::UnitTime, x) = $op(t.t, x)
-  @eval Base.$op(x, t::UnitTime) = $op(x, t.t)
+    @eval Base.$op(t::UnitTime, x) = $op(t.t, x)
+    @eval Base.$op(x, t::UnitTime) = $op(x, t.t)
 end
 
 
@@ -53,12 +51,12 @@ function unit_scale(u)
 end
 
 
-@inline function allequal(x; rtol=1e-6, atol=1e-6)
+@inline function allequal(x; rtol = 1e-6, atol = 1e-6)
     length(x) < 2 && return true
     e1 = x[1]
     i = 2
-    @inbounds for i=2:length(x)
-        isapprox(x[i], e1, rtol=rtol, atol=atol) || return false
+    @inbounds for i = 2:length(x)
+        isapprox(x[i], e1, rtol = rtol, atol = atol) || return false
     end
     return true
 end

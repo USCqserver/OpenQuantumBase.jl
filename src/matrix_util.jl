@@ -11,16 +11,16 @@ julia> q_translate("X+2.0Z")
  1.0+0.0im  -2.0+0.0im
 ```
 """
-function q_translate(h::String; sp=false)
+function q_translate(h::String; sp = false)
     # define operator map to replace [XYZI] with corresponding Pauli matrices
     function operator_map(x)
-        if sp ==false
+        if sp == false
             σ_tag = "σ"
         else
             σ_tag = "spσ"
         end
         res = ""
-        for i in range(1, length=length(x)-1)
+        for i in range(1, length = length(x) - 1)
             res = res * σ_tag * lowercase(x[i]) * "⊗"
         end
         res = res * σ_tag * lowercase(x[end])
@@ -49,7 +49,7 @@ julia> single_clause(["z", "z"], [1, 3], 0.5, 3)
  0.0+0.0im  -0.0+0.0im  0.0+0.0im  -0.0+0.0im  -0.0+0.0im   0.0-0.0im  -0.0+0.0im   0.5-0.0im
 ```
 """
-function single_clause(ops, q_ind, weight, num_qubit; sp=false)
+function single_clause(ops, q_ind, weight, num_qubit; sp = false)
     if sp == false
         σ_tag = "σ"
         i_tag = σi
@@ -58,8 +58,8 @@ function single_clause(ops, q_ind, weight, num_qubit; sp=false)
         i_tag = spσi
     end
     res = weight
-    for i in 1:num_qubit
-        idx = findfirst((x)->x==i, q_ind)
+    for i = 1:num_qubit
+        idx = findfirst((x) -> x == i, q_ind)
         if idx != nothing
             op2 = eval(Meta.parse(σ_tag * lowercase(ops[idx])))
             res = res ⊗ op2
@@ -85,13 +85,13 @@ julia> collective_operator("z", 2)
  0.0+0.0im  0.0+0.0im  0.0+0.0im  -2.0+0.0im
 ```
 """
-function collective_operator(op, num_qubit; sp=false)
+function collective_operator(op, num_qubit; sp = false)
     op_name = uppercase(op)
     res = ""
-    for idx in 1:num_qubit
-        res = res * "I"^(idx-1)*op_name*"I"^(num_qubit-idx) *"+"
+    for idx = 1:num_qubit
+        res = res * "I"^(idx - 1) * op_name * "I"^(num_qubit - idx) * "+"
     end
-    q_translate(res[1:end-1]; sp=sp)
+    q_translate(res[1:end-1]; sp = sp)
 end
 
 """
@@ -99,13 +99,14 @@ end
 
 Construct the standard driver Hamiltonian for a system of `num_qubit` qubits. For example, a two qubits standard driver matrix is `` IX + XI ``. Generate sparse matrix when `sp` is set to true.
 """
-function standard_driver(num_qubit; sp=false)
+function standard_driver(num_qubit; sp = false)
     res = ""
-    for idx in 1:num_qubit
-        res = res * "I"^(idx-1)*"X"*"I"^(num_qubit-idx) *"+"
+    for idx = 1:num_qubit
+        res = res * "I"^(idx - 1) * "X" * "I"^(num_qubit - idx) * "+"
     end
-    q_translate(res[1:end-1], sp=sp)
+    q_translate(res[1:end-1], sp = sp)
 end
+
 
 """
     construct_hamming_weight_op(num_qubit::Int64, op::String; sp=false)
@@ -122,16 +123,17 @@ julia> construct_hamming_weight_op(2,"z")
  0.0+0.0im  0.0+0.0im  0.0+0.0im  2.0+0.0im
 ```
 """
-function construct_hamming_weight_op(num_qubit::Int64, op::String; sp=false)
-    0.5 * (num_qubit*I - collective_operator(op, num_qubit=num_qubit, sp=sp))
+function construct_hamming_weight_op(num_qubit::Int64, op::String; sp = false)
+    0.5 *
+    (num_qubit * I - collective_operator(op, num_qubit = num_qubit, sp = sp))
 end
 
 function GHZ_entanglement_witness(num_qubit)
     s = collective_operator("z", num_qubit)
-    for k in 2:num_qubit
-        s += single_clause(["z","z"], [k-1,k], 1.0, num_qubit)
+    for k = 2:num_qubit
+        s += single_clause(["z", "z"], [k - 1, k], 1.0, num_qubit)
     end
-    (num_qubit-1)I - s
+    (num_qubit - 1)I - s
 end
 
 """
@@ -145,10 +147,10 @@ julia> local_field_term([1.0, 0.5], [1, 2], 2) == σz⊗σi+0.5σi⊗σz
 true
 ```
 """
-function local_field_term(h, idx, num_qubit; sp=false)
-    res = single_clause(["z"], [idx[1]], h[1], num_qubit, sp=sp)
-    for i in 2:length(idx)
-        res += single_clause(["z"], [idx[i]], h[i], num_qubit, sp=sp)
+function local_field_term(h, idx, num_qubit; sp = false)
+    res = single_clause(["z"], [idx[1]], h[1], num_qubit, sp = sp)
+    for i = 2:length(idx)
+        res += single_clause(["z"], [idx[i]], h[i], num_qubit, sp = sp)
     end
     res
 end
@@ -165,10 +167,10 @@ julia> two_local_term([1.0, 0.5], [[1,2], [1,3]], 3) == σz⊗σz⊗σi + 0.5σz
 true
 ```
 """
-function two_local_term(j, idx, num_qubit; sp=false)
-    res = single_clause(["z", "z"], idx[1], j[1], num_qubit, sp=sp)
-    for i in 2:length(idx)
-        res += single_clause(["z", "z"], idx[i], j[i], num_qubit, sp=sp)
+function two_local_term(j, idx, num_qubit; sp = false)
+    res = single_clause(["z", "z"], idx[1], j[1], num_qubit, sp = sp)
+    for i = 2:length(idx)
+        res += single_clause(["z", "z"], idx[i], j[i], num_qubit, sp = sp)
     end
     res
 end
@@ -207,24 +209,34 @@ julia> q_translate_state("(101)+(001)", normal=true)
                 0.0 + 0.0im
 ```
 """
-function q_translate_state(h::String; normal=false)
+function q_translate_state(h::String; normal = false)
     # TODO: add "+", "-" into the symbol list
     if occursin("(", h) || occursin(")", h)
-        h_str = replace(h, r"\(([01]+)\)" => (x)->begin
-            res = ""
-            for i in range(2, length=length(x)-3)
-                res = res * "PauliVec[3]" * "[" * string(parse(Int, x[i]) + 1) * "]" * "⊗"
-            end
-            res = res * "PauliVec[3]" * "[" * string(parse(Int, x[end-1]) + 1) * "]"
-        end)
+        h_str = replace(
+            h,
+            r"\(([01]+)\)" => (x) -> begin
+                res = ""
+                for i in range(2, length = length(x) - 3)
+                    res = res * "PauliVec[3]" * "[" *
+                          string(parse(Int, x[i]) + 1) * "]" * "⊗"
+                end
+                res = res * "PauliVec[3]" * "[" *
+                      string(parse(Int, x[end-1]) + 1) * "]"
+            end,
+        )
     else
-        h_str = replace(h, r"[01]+" => (x)->begin
-            res = ""
-            for i in range(1, length=length(x)-1)
-                res = res * "PauliVec[3]" * "[" * string(parse(Int, x[i]) + 1) * "]" * "⊗"
-            end
-            res = res * "PauliVec[3]" * "[" * string(parse(Int, x[end]) + 1) * "]"
-        end)
+        h_str = replace(
+            h,
+            r"[01]+" => (x) -> begin
+                res = ""
+                for i in range(1, length = length(x) - 1)
+                    res = res * "PauliVec[3]" * "[" *
+                          string(parse(Int, x[i]) + 1) * "]" * "⊗"
+                end
+                res = res * "PauliVec[3]" * "[" *
+                      string(parse(Int, x[end]) + 1) * "]"
+            end,
+        )
     end
     res = eval(Meta.parse(h_str))
     if normal == true

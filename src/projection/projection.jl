@@ -127,7 +127,7 @@ function project_to_lowlevel(
     s_axis::AbstractArray{T,1};
     ref = zeros((0, 2)), tol = 1e-4, lvl = 2
 ) where T <: Real
-    projected_system = ProjectedSystem(s_axis, H.size[1], lvl)
+    projected_system = ProjectedSystem(s_axis, size(H, 1), lvl)
     for s in s_axis
         w, v = eigen_decomp(H, s; level = lvl, tol = tol, v0 = ref[:, 1])
         push_params!(projected_system, w, v, dH(s), coupling(s))
