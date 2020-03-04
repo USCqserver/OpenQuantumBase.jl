@@ -160,11 +160,12 @@ function AMEDiffEqOperator(
         @warn "Sparse Hamiltonian detected. Truncate the level to n-1."
         lvl = lvl - 1
     end
-    if isempty(v0)
-        _, v = eigen_decomp(H, 0.0, level = 2, tol = eig_tol, maxiter = maxiter, )
+    ncv = max(ncv, 2*lvl+1)
+    if isempty(v0) || ndims(v0)!=1
+        _, v = eigen_decomp(H, 0.0, level = 2, tol = eig_tol, maxiter = maxiter, ncv = ncv)
         v0 = v[:, 1]
     end
-    AMESparseDiffEqOperator{typeof(control)}(H, davies, lvl, u_cache, eig_tol, maxiter, max(ncv ,2*lvl+1), v0)
+    AMESparseDiffEqOperator{typeof(control)}(H, davies, lvl, u_cache, eig_tol, maxiter, ncv, v0)
 end
 
 
