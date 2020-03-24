@@ -128,6 +128,7 @@ include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
 include("hamiltonian/interp_hamiltonian.jl")
+include("hamiltonian/custom_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
 
@@ -178,6 +179,8 @@ export AbstractHamiltonian,
        AdiabaticFrameHamiltonian,
        InterpDenseHamiltonian,
        InterpSparseHamiltonian,
+       CustomDenseHamiltonian,
+       hamiltonian_from_function,
        evaluate,
        to_dense,
        to_sparse,
