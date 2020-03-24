@@ -11,7 +11,7 @@ Base.summary(H::AbstractHamiltonian) = string(
 function Base.show(io::IO, A::AbstractHamiltonian)
     println(io, summary(A))
     print(io, "with size: ")
-    show(io, A.size)
+    show(io, size(A))
 end
 
 """

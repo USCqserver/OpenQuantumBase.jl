@@ -90,14 +90,19 @@ function get_cache(H::DenseHamiltonian, vectorize)
 end
 
 
-function (h::DenseHamiltonian)(du, u::Matrix{T}, p::Real, t::Real) where {T<:Complex}
+function (h::DenseHamiltonian)(
+    du,
+    u::Matrix{T},
+    p::Real,
+    t::Real,
+) where {T<:Complex}
     fill!(du, 0.0 + 0.0im)
     H = h(t)
     gemm!('N', 'N', -1.0im * p, H, u, 1.0 + 0.0im, du)
     gemm!('N', 'N', 1.0im * p, u, H, 1.0 + 0.0im, du)
 end
 
-(h::DenseHamiltonian)(du, u, tf::UnitTime, t::Real) = h(du, u, 1.0, t/tf)
+(h::DenseHamiltonian)(du, u, tf::UnitTime, t::Real) = h(du, u, 1.0, t / tf)
 
 
 """

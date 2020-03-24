@@ -23,6 +23,9 @@ using SafeTestsets
     @time @safetestset "Interpolation Hamiltonian" begin
         include("hamiltonian/interp_hamiltonian.jl")
     end
+    @time @safetestset "Custom Hamiltonian" begin
+        include("hamiltonian/custom_hamiltonian.jl")
+    end
     @time @safetestset "Coupling" begin
         include("coupling.jl")
     end
