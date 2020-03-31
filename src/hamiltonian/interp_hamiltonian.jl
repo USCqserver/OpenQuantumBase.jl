@@ -110,6 +110,8 @@ function get_cache(H::InterpDenseHamiltonian{T}, vectorize) where {T}
     end
 end
 
+get_cache(H::InterpDenseHamiltonian{T}) where {T} = Matrix{T}(undef, size(H))
+
 
 function (h::InterpDenseHamiltonian)(
     du,
@@ -177,6 +179,7 @@ function get_cache(H::InterpSparseHamiltonian{T}, vectorize) where {T}
     end
 end
 
+get_cache(H::InterpSparseHamiltonian{T}) where T = spzeros(T, size(H)...)
 
 function update_cache!(cache, H::InterpSparseHamiltonian, tf, t::Real)
     cache .= -1.0im * H(tf, t)
