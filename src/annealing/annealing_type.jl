@@ -1,7 +1,3 @@
-# function adjust_sspan(control, sspan) end
-# function adjust_tstops(control, tstops) end
-# function need_change_time_scale(::Nothing) false end
-
 """
 $(TYPEDEF)
 Defines a quantum annealing process.
@@ -19,6 +15,8 @@ struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
     coupling::Union{AbstractCouplings, Nothing}
     """A list of system bath coupling operators(bath part)."""
     bath
+    """A system bath interaction set."""
+    interactions
     """Additional control protocols for the annealing."""
     control
     """Extra times that the timestepping algorithm must step to."""
@@ -33,11 +31,12 @@ function Annealing(
     coupling = nothing,
     bath = nothing,
     control = nothing,
+    interactions = nothing,
     tstops = Float64[]
 )
-#    if need_change_time_scale(control)==true
-#        sspan = adjust_sspan(control, sspan)
-#        tstops = adjust_tstops(control, tstops)
-#    end
-    Annealing(H, u0, sspan, coupling, bath, control, tstops)
+    if interactions == nothing
+        Annealing(H, u0, sspan, coupling, bath, nothing, control, tstops)
+    else
+        Annealing(H, u0, sspan, nothing, nothing, interactions, control, tstops)
+    end
 end
