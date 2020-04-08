@@ -90,3 +90,28 @@ end
     SΛ = S * Λ
     cache .-= tf² * (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(S) ⊗ Λ - conj(Λ) ⊗ S)
 end
+
+
+struct RedfieldSet{T<:Tuple} <: AbstractOpenSys
+    """Redfield operators"""
+    reds::T
+end
+
+
+function RedfieldSet(red::Redfield...)
+    RedfieldSet(red)
+end
+
+
+function (R::RedfieldSet)(du, u, tf, t)
+    for r in R.reds
+        r(du, u, tf, t)
+    end
+end
+
+
+function update_vectorized_cache!(cache, R::RedfieldSet, tf, t)
+    for r in R.reds
+        update_vectorized_cache!(cache, r, tf, t)
+    end
+end
