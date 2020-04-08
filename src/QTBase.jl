@@ -192,6 +192,7 @@ export AbstractHamiltonian,
 export AbstractCouplings,
        ConstantCouplings,
        TimeDependentCoupling,
+       AbstractTimeDependentCouplings,
        TimeDependentCouplings,
        CustomCouplings,
        collective_coupling
