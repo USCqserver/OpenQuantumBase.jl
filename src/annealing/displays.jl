@@ -12,7 +12,12 @@ function Base.show(io::IO, A::AbstractAnnealing)
     println(io)
     print(io, "u0 with size: ")
     show(io, size(A.u0))
-    println(io)
-    print(io, "bath: ")
-    show(io, A.bath)
+    if A.interactions != nothing
+        println(io)
+        print(io, "custom system bath interactions")
+    else
+        println(io)
+        print(io, "bath: ")
+        show(io, A.bath)
+    end
 end

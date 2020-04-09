@@ -116,6 +116,9 @@ end
 Base.size(c::TimeDependentCoupling) = size(c.mats[1])
 
 
+abstract type AbstractTimeDependentCouplings <: AbstractCouplings end
+
+
 """
 $(TYPEDEF)
 
@@ -125,7 +128,7 @@ Defines an 1-D array of time dependent system bath coupling operators.
 
 $(FIELDS)
 """
-struct TimeDependentCouplings <: AbstractCouplings
+struct TimeDependentCouplings <: AbstractTimeDependentCouplings
     """A tuple of single `TimeDependentCoupling` operators"""
     coupling::Tuple
 
@@ -139,10 +142,6 @@ function (c::TimeDependentCouplings)(t)
     [x(t) for x in c.coupling]
 end
 
-
-Base.iterate(c::TimeDependentCouplings, state = 1) = Base.iterate(c.coupling, state)
-Base.length(c::TimeDependentCouplings) = length(c.coupling)
-Base.eltype(c::TimeDependentCouplings) = typeof(c.coupling[1])
 Base.size(c::TimeDependentCouplings) = size(c.coupling[1])
 
 
@@ -155,9 +154,9 @@ $(TYPEDEF)
 
 $(FIELDS)
 """
-struct CustomCouplings <: AbstractCouplings
+struct CustomCouplings <: AbstractTimeDependentCouplings
     """A 1-D array of callable objects that returns coupling matrices"""
-    obj
+    coupling
     """Size of the coupling operator"""
     size
 end
@@ -170,10 +169,12 @@ end
 
 
 function (c::CustomCouplings)(s)
-    [x(s) for x in c.obj]
+    [x(s) for x in c.coupling]
 end
 
-
-Base.length(c::CustomCouplings) = length(c.obj)
 Base.size(c::CustomCouplings) = c.size
-Base.iterate(c::CustomCouplings, state = 1) = Base.iterate(c.obj, state)
+
+
+Base.iterate(c::AbstractTimeDependentCouplings, state = 1) = Base.iterate(c.coupling, state)
+Base.length(c::AbstractTimeDependentCouplings) = length(c.coupling)
+Base.eltype(c::AbstractTimeDependentCouplings) = typeof(c.coupling[1])
