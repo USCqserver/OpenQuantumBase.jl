@@ -137,7 +137,7 @@ include("opensys/davies.jl")
 
 
 include("annealing/annealing_type.jl")
-include("annealing/annealing_params.jl")
+#include("annealing/annealing_params.jl")
 include("annealing/displays.jl")
 
 include("projection/util.jl")
@@ -200,11 +200,7 @@ export eigen_decomp, p_copy
 
 export AbstractAnnealing,
        Annealing,
-       AnnealingParams,
-       AbstractAnnealingParams,
-       set_tf,
-       AbstractAnnealingControl,
-       LightAnnealingParams
+       AbstractAnnealingControl
 
 export AbstractBath,
        AbstractOpenSys,
