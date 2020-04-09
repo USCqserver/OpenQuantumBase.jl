@@ -1,6 +1,6 @@
-function adjust_sspan(control, sspan) end
-function adjust_tstops(control, tstops) end
-function need_change_time_scale(::Nothing) false end
+# function adjust_sspan(control, sspan) end
+# function adjust_tstops(control, tstops) end
+# function need_change_time_scale(::Nothing) false end
 
 """
 $(TYPEDEF)
@@ -35,9 +35,9 @@ function Annealing(
     control = nothing,
     tstops = Float64[]
 )
-    if need_change_time_scale(control)==true
-        sspan = adjust_sspan(control, sspan)
-        tstops = adjust_tstops(control, tstops)
-    end
+#    if need_change_time_scale(control)==true
+#        sspan = adjust_sspan(control, sspan)
+#        tstops = adjust_tstops(control, tstops)
+#    end
     Annealing(H, u0, sspan, coupling, bath, control, tstops)
 end
