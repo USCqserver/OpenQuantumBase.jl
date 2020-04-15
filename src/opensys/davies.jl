@@ -26,7 +26,8 @@ function (D::DaviesGenerator)(du, ρ, ω_ba, v, tf::Real, t::Real)
     end
 end
 
-(D::DaviesGenerator)(du, ρ, ω_ba, v, tf::UnitTime, t::Real) = D(du, ρ, ω_ba, v, 1.0, t / tf)
+(D::DaviesGenerator)(du, ρ, ω_ba, v, tf::UnitTime, t::Real) =
+    D(du, ρ, ω_ba, v, 1.0, t / tf)
 
 
 function (D::DaviesGenerator)(du, u, ω_ba, tf::Real, t::Real)
@@ -38,7 +39,8 @@ function (D::DaviesGenerator)(du, u, ω_ba, tf::Real, t::Real)
 end
 
 
-(D::DaviesGenerator)(du, u, ω_ba, tf::UnitTime, t::Real) = D(du, u, ω_ba, 1.0, t / tf)
+(D::DaviesGenerator)(du, u, ω_ba, tf::UnitTime, t::Real) =
+    D(du, u, ω_ba, 1.0, t / tf)
 
 
 function adiabatic_me_update!(du, u, A, γ, S)
@@ -49,11 +51,15 @@ function adiabatic_me_update!(du, u, A, γ, S)
     for a = 1:dim
         for b = 1:a-1
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
+            du[a, b] +=
+                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
         for b = a+1:dim
             du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] += -0.5 * (Γ[a] + Γ[b]) * u[a, b] + γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
+            du[a, b] +=
+                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
     end
     H_ls = Diagonal(sum(S .* A2, dims = 1)[1, :])
@@ -70,7 +76,7 @@ Defines an adiabatic master equation differential equation operator.
 
 $(FIELDS)
 """
-struct AMEDenseDiffEqOperator{adiabatic_frame,control_type}
+struct AMEDenseDiffEqOperator{adiabatic_frame}
     """Hamiltonian"""
     H
     """Davies generator"""
@@ -84,7 +90,7 @@ end
 
 function eigen_decomp(A::AMEDenseDiffEqOperator, t)
     hmat = A.H(t)
-    w, v = eigen!(Hermitian(hmat))
+    w, v = eigen!(Hermitian(hmat), 1:A.lvl)
 end
 
 
@@ -97,7 +103,7 @@ Defines a sparse adiabatic master equation differential equation operator.
 
 $(FIELDS)
 """
-struct AMESparseDiffEqOperator{control_type}
+struct AMESparseDiffEqOperator
     """Hamiltonian"""
     H
     """Davies generator"""
@@ -106,77 +112,44 @@ struct AMESparseDiffEqOperator{control_type}
     lvl::Int
     """Internal cache"""
     u_cache
-    """Tolerance for eigen decomposition"""
-    tol::Float64
-    """Maximum number of iterations for Arpack"""
-    maxiter::Int
-    """Number of Krylov vectors used in the computation"""
-    ncv::Int
-    """Ground eigenvector cache"""
-    v0
 end
 
 
 function eigen_decomp(A::AMESparseDiffEqOperator, t)
     hmat = A.H(t)
-    w, v = eigs(hmat, nev = A.lvl, which = :SR, tol = A.tol, v0 = A.v0, maxiter = A.maxiter, ncv = A.ncv)
-    A.v0 .= v[:, 1]
-    real(w), v
+    w, v = eigen!(Hermitian(Array(hmat)), 1:A.lvl)
 end
 
 
-function AMEDiffEqOperator(H::AbstractDenseHamiltonian, davies, lvl; control = nothing, kwargs...)
+function AMEDiffEqOperator(H::AbstractDenseHamiltonian, davies, lvl; kwargs...)
     # initialze the internal cache
     # the internal cache will also be dense for current version
     u_cache = Matrix{eltype(H)}(undef, lvl, lvl)
     # check if the Hamiltonian is defined in adiabatic frames
     adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian ? true : false
     # return AMEDenseDiffEqOperator for dense Hamiltonian
-    AMEDenseDiffEqOperator{adiabatic_frame,typeof(control)}(H, davies, lvl, u_cache)
+    AMEDenseDiffEqOperator{adiabatic_frame}(H, davies, lvl, u_cache)
 end
 
 
-function AMEDiffEqOperator(
-    H::AbstractSparseHamiltonian,
-    davies,
-    lvl;
-    control = nothing,
-    eig_tol = 1e-8,
-    maxiter = 3000,
-    ncv = 20,
-    v0 = zeros((0,)),
-)
+function AMEDiffEqOperator(H::AbstractSparseHamiltonian, davies, lvl; kwargs...)
     # initialze the internal cache
     # the internal cache will also be dense for current version
     u_cache = Matrix{eltype(H)}(undef, lvl, lvl)
-
     # for sparse matrix:
-    # 1. the eigen decomposition does not work with 2X2 matrices
-    # 2. the level must be at most total level-1
-    if size(H, 1) == 2
-        @warn "Hamiltonian size is too small for sparse factorization. Convert to dense Hamiltonian"
-        H = to_dense(A.H)
-    elseif lvl == size(H, 1)
-        @warn "Sparse Hamiltonian detected. Truncate the level to n-1."
-        lvl = lvl - 1
-    end
-    ncv = max(ncv, 2*lvl+1)
-    if isempty(v0) || ndims(v0)!=1
-        _, v = eigen_decomp(H, 0.0, level = 2, tol = eig_tol, maxiter = maxiter, ncv = ncv)
-        v0 = v[:, 1]
-    end
-    AMESparseDiffEqOperator{typeof(control)}(H, davies, lvl, u_cache, eig_tol, maxiter, ncv, v0)
+    # the current implementation convert them to dense matrices for eigen decomposition
+    AMESparseDiffEqOperator(H, davies, lvl, u_cache)
 end
 
 
-function (A::AMEDenseDiffEqOperator{true,Nothing})(du, u, p, t)
+function (A::AMEDenseDiffEqOperator{true})(du, u, p, t)
     A.H(du, u, p.tf, t)
     ω_ba = ω_matrix(A.H, A.lvl)
     A.Davies(du, u, ω_ba, p.tf, t)
 end
 
 
-function (A::AMEDenseDiffEqOperator{false,Nothing})(du, u, p, t)
+function (A::AMEDenseDiffEqOperator{false})(du, u, p, t)
     w, v = eigen_decomp(A, t)
     ρ = v' * u * v
     H = Diagonal(w)
@@ -187,7 +160,7 @@ function (A::AMEDenseDiffEqOperator{false,Nothing})(du, u, p, t)
 end
 
 
-function (A::AMESparseDiffEqOperator{Nothing})(du, u, p, t)
+function (A::AMESparseDiffEqOperator)(du, u, p, t)
     w, v = eigen_decomp(A, t)
     ρ = v' * u * v
     H = Diagonal(w)
@@ -287,34 +260,17 @@ struct AMESparseTrajectoryOperator <: AMETrajectoryOperator
     Davies::DaviesGenerator
     """Number of levels to keep"""
     lvl::Int
-    """Tolerance for eigen decomposition"""
-    eig_tol::Float64
-    """Ground eigenvector cache"""
-    v0
 end
 
 
 function eigen_decomp(A::AMESparseTrajectoryOperator, t)
     hmat = A.H(t)
-    w, v = eigs(hmat, nev = A.lvl, which = :SR, tol = A.eig_tol, v0 = A.v0)
-    A.v0 .= v[:, 1]
-    real(w), v
+    w, v = eigen!(Hermitian(Array(hmat)), 1:A.lvl)
 end
 
 
-function AMETrajectoryOperator(
-    H::AbstractSparseHamiltonian,
-    davies,
-    lvl;
-    eig_tol = 1e-8,
-    v0 = zeros((0,)),
-)
-    if isempty(v0)
-        _, v = eigen_decomp(H, 0.0, level = 2, tol = eig_tol)
-        v0 = v[:, 1]
-    end
-    AMESparseTrajectoryOperator(H, davies, lvl, eig_tol, v0)
-end
+AMETrajectoryOperator(H::AbstractSparseHamiltonian, davies, lvl, kwargs...) =
+    AMESparseTrajectoryOperator(H, davies, lvl)
 
 
 AMETrajectoryOperator(H::AbstractDenseHamiltonian, davies, lvl, kwargs...) =
@@ -331,7 +287,8 @@ function update_cache!(cache, A::AMETrajectoryOperator, tf::Real, s::Real)
         A2 = abs2.(v' * op * v)
         for b = 1:A.lvl
             for a = 1:A.lvl
-                @inbounds internal_cache[b] -= A2[a, b] * (0.5 * γm[a, b] + 1.0im * sm[a, b])
+                @inbounds internal_cache[b] -=
+                    A2[a, b] * (0.5 * γm[a, b] + 1.0im * sm[a, b])
             end
         end
     end
@@ -345,7 +302,7 @@ end
 Calculate the jump operator for the AMETrajectoryOperator at time `s`.
 """
 function ame_jump(
-    A::Union{AMEDenseTrajectoryOperator,AMESparseTrajectoryOperator},
+    A::AMETrajectoryOperator,
     u,
     tf::Real,
     s::Real,
@@ -385,15 +342,18 @@ function ame_jump(
             res += sqrt(γm[1, 1]) * σab[choice[1]][i, i] * v[:, i] * v[:, i]'
         end
     else
-        res = sqrt(γm[choice[2], choice[3]]) * σab[choice[1]][choice[2], choice[3]] *
-              v[:, choice[2]] * v[:, choice[3]]'
+        res =
+            sqrt(γm[choice[2], choice[3]]) *
+            σab[choice[1]][choice[2], choice[3]] *
+            v[:, choice[2]] *
+            v[:, choice[3]]'
     end
     res
 end
 
 
 @inline ame_jump(
-    A::Union{AMEDenseTrajectoryOperator,AMESparseTrajectoryOperator},
+    A::AMETrajectoryOperator,
     u,
     tf::UnitTime,
     t::Real,
