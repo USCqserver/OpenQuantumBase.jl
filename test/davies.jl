@@ -133,7 +133,7 @@ ame_op(du, rho, (tf = 1.0,), 0.5)
 hmat = H(0.5)
 @test isapprox(du, drho - 1.0im * (hmat * rho - rho * hmat), atol = 1e-6, rtol = 1e-6)
 
-ame_op = AMETrajectoryOperator(H, davies_gen, 4, eig_tol=0.0)
+ame_op = AMETrajectoryOperator(H, davies_gen, 4)
 cache = zeros(ComplexF64, 16, 16)
 update_cache!(cache, ame_op, 1.0, 0.5)
 @test cache ≈ exp_effective_H atol=1e-6 rtol=1e-6
