@@ -84,13 +84,13 @@ function ProjectedCoupling(s, lvl)
         Float64,
         t_dim,
         lvl;
-        idx_exchange_func = (x) -> -conj(x)
+        idx_exchange_func = (x) -> -conj(x),
     )
     d = LinearIdxLowerTriangular(
         Float64,
         t_dim,
         lvl;
-        idx_exchange_func = (x) -> conj(x)
+        idx_exchange_func = (x) -> conj(x),
     )
     ProjectedCoupling(s, a, b, c, d)
 end
@@ -103,13 +103,13 @@ function ProjectedTG(s, lvl)
         Float64,
         t_dim,
         lvl;
-        idx_exchange_func = (x) -> x
+        idx_exchange_func = (x) -> x,
     )
     G = LinearIdxLowerTriangular(
         Float64,
         t_dim,
         lvl;
-        idx_exchange_func = (x) -> -x
+        idx_exchange_func = (x) -> -x,
     )
     ProjectedTG(s, ω, T, G)
 end
@@ -125,11 +125,23 @@ function project_to_lowlevel(
     dH,
     coupling,
     s_axis::AbstractArray{T,1};
-    ref = zeros((0, 2)), tol = 1e-4, lvl = 2
-) where T <: Real
+    lvl = 2,
+    tol = 0.0,
+    ncv = max(20, 2 * lvl + 1),
+    maxiter = 300,
+    ref = zeros((0, lvl)),
+) where {T<:Real}
     projected_system = ProjectedSystem(s_axis, size(H, 1), lvl)
     for s in s_axis
-        w, v = eigen_decomp(H, s; level = lvl, tol = tol, v0 = ref[:, 1])
+        w, v = eigen_decomp(
+            H,
+            s;
+            level = lvl,
+            tol = tol,
+            ncv = ncv,
+            maxiter = maxiter,
+            v0 = ref[:, 1],
+        )
         push_params!(projected_system, w, v, dH(s), coupling(s))
         ref = projected_system.ref
     end
@@ -142,8 +154,12 @@ function project_to_lowlevel(
     dH,
     coupling,
     s_axis;
-    ref = zeros((0, 2)), tol = 1e-4, lvl = 2
-) where T <: Complex
+    lvl = 2,
+    tol = 0.0,
+    ncv = max(20, 2 * lvl + 1),
+    maxiter = 300,
+    ref = zeros((0, lvl)),
+) where {T<:Complex}
     @warn "The projection method only works with real Hamitonians. Convert the complex Hamiltonian to real one."
     H_real = real(H)
     project_to_lowlevel(
@@ -151,9 +167,11 @@ function project_to_lowlevel(
         dH,
         coupling,
         s_axis,
-        ref = ref,
+        lvl = lvl,
         tol = tol,
-        lvl = lvl
+        ncv = ncv,
+        maxiter = maxiter,
+        ref = ref,
     )
 end
 
@@ -227,14 +245,10 @@ function construct_projected_coupling(sys)
             for i = (j+1):(sys.lvl-j+1)
                 proj_c.a[t_idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
                 proj_c.b[t_idx, i, j] = sum((x) -> abs2(x[i, j]), op)
-                proj_c.c[t_idx, i, j] = sum(
-                    (x) -> x[i, j] * (x[i, i] - x[j, j]),
-                    op
-                )
-                proj_c.d[t_idx, i, j] = sum(
-                    (x) -> x[i, j] * (x[i, i] + x[j, j]),
-                    op
-                )
+                proj_c.c[t_idx, i, j] =
+                    sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
+                proj_c.d[t_idx, i, j] =
+                    sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
             end
         end
     end
@@ -267,9 +281,12 @@ function landau_zener_rotate_angle(sys::ProjectedSystem, rotation_point)
     dθ_itp = construct_interpolations(
         sys.s[rotation_idx],
         -get_dθ(sys, 2, 1)[rotation_idx],
-        extrapolation = "line"
+        extrapolation = "line",
     )
-    θᴸ_2 = [quadgk(dθ_itp, sys.s[rotation_point], s)[1] for s in sys.s[rotation_idx]]
+    θᴸ_2 = [
+        quadgk(dθ_itp, sys.s[rotation_point], s)[1]
+        for s in sys.s[rotation_idx]
+    ]
     θᴸ_1 = zeros(rotation_point - 1)
     θᴸ = vcat(θᴸ_1, θᴸ_2)
 end
@@ -282,7 +299,7 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
     proj_tg = ProjectedTG(sys.s, sys.lvl)
     proj_c = ProjectedCoupling(sys.s, sys.lvl)
 
-    for idx = non_rotation_idx
+    for idx in non_rotation_idx
         proj_tg.ω[idx, :] = sys.ev[idx]
         proj_tg.T[idx, :] = 0.0
         proj_tg.G[idx, :] = sys.dθ[idx]
@@ -291,19 +308,15 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
             for i = (j+1):(sys.lvl-j+1)
                 proj_c.a[idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
                 proj_c.b[idx, i, j] = sum((x) -> abs2(x[i, j]), op)
-                proj_c.c[idx, i, j] = sum(
-                    (x) -> x[i, j] * (x[i, i] - x[j, j]),
-                    op
-                )
-                proj_c.d[idx, i, j] = sum(
-                    (x) -> x[i, j] * (x[i, i] + x[j, j]),
-                    op
-                )
+                proj_c.c[idx, i, j] =
+                    sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
+                proj_c.d[idx, i, j] =
+                    sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
             end
         end
     end
 
-    for idx = rotation_idx
+    for idx in rotation_idx
         U = @unitary_landau_zener(θ[idx])
         H = Diagonal(sys.ev[idx])
         H = U' * H * U
@@ -314,8 +327,10 @@ function landau_zener_rotate(sys::ProjectedSystem, rotation_point)
             for i = (j+1):(sys.lvl-j+1)
                 proj_c.a[idx, i, j] = sum((x) -> (x[i, i] - x[j, j])^2, op)
                 proj_c.b[idx, i, j] = sum((x) -> abs2(x[i, j]), op)
-                proj_c.c[idx, i, j] = sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
-                proj_c.d[idx, i, j] = sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
+                proj_c.c[idx, i, j] =
+                    sum((x) -> x[i, j] * (x[i, i] - x[j, j]), op)
+                proj_c.d[idx, i, j] =
+                    sum((x) -> x[i, j] * (x[i, i] + x[j, j]), op)
                 proj_tg.T[idx, i, j] = H[i, j]
             end
         end
