@@ -25,17 +25,16 @@ Redfield(ops::AbstractTimeDependentCouplings, unitary, cfun) =
 
 
 function (R::Redfield{true})(du, u, tf::Real, t::Real)
-    tf² = tf^2
     for S in R.ops
         #TODO Expose the error tolerance for integration
         function integrand(x)
             unitary = R.unitary(t) * R.unitary(x)'
-            R.cfun(t - x) * unitary * S * unitary'
+            tf * R.cfun(t - x) * unitary * S * unitary'
         end
         Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
         𝐊₂ = S * Λ * u - Λ * u * S
         𝐊₂ = 𝐊₂ + 𝐊₂'
-        axpy!(-tf², 𝐊₂, du)
+        axpy!(-tf, 𝐊₂, du)
     end
 end
 
@@ -45,16 +44,15 @@ end
 
 
 function (R::Redfield{false})(du, u, tf::Real, t::Real)
-    tf² = tf^2
     for S in R.ops
         function integrand(x)
             unitary = R.unitary(t) * R.unitary(x)'
-            R.cfun(t - x) * unitary * S(x) * unitary'
+            tf * R.cfun(t - x) * unitary * S(x) * unitary'
         end
         Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
         𝐊₂ = S(t) * Λ * u - Λ * u * S(t)
         𝐊₂ = 𝐊₂ + 𝐊₂'
-        axpy!(-tf², 𝐊₂, du)
+        axpy!(-tf, 𝐊₂, du)
     end
 end
 
@@ -74,17 +72,16 @@ end
 
 
 function update_vectorized_cache!(cache, R::Redfield{true}, tf::Real, t::Real)
-    tf² = tf^2
     iden = Matrix{eltype(cache)}(I, size(R.ops))
     for S in R.ops
         function integrand(x)
             unitary = R.unitary(t) * R.unitary(x)'
-            R.cfun(t - x) * unitary * S * unitary'
+            tf * R.cfun(t - x) * unitary * S * unitary'
         end
         Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
         SΛ = S * Λ
         cache .-=
-            tf² * (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(S) ⊗ Λ - conj(Λ) ⊗ S)
+            tf * (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(S) ⊗ Λ - conj(Λ) ⊗ S)
     end
 end
 
@@ -94,18 +91,17 @@ update_vectorized_cache!(cache, R::Redfield{true}, tf::UnitTime, t::Real) =
 
 
 function update_vectorized_cache!(cache, R::Redfield{false}, tf::Real, t::Real)
-    tf² = tf^2
     iden = Matrix{eltype(cache)}(I, size(R.ops))
     for S in R.ops
         function integrand(x)
             u = R.unitary(t) * R.unitary(x)'
-            R.cfun(t - x) * u * S(x) * u'
+            tf * R.cfun(t - x) * u * S(x) * u'
         end
         Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
         Sm = S(t)
         SΛ = Sm * Λ
         cache .-=
-            tf² *
+            tf *
             (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(Sm) ⊗ Λ - conj(Λ) ⊗ Sm)
     end
 end
