@@ -14,14 +14,23 @@ struct Redfield{is_const} <: AbstractOpenSys
     unitary
     """bath correlation function"""
     cfun
+    """absolute error tolerance for integration"""
+    atol::Float64
+    """relative error tolerance for integration"""
+    rtol::Float64
 end
 
 
-Redfield(ops::ConstantCouplings, unitary, cfun) =
-    Redfield{true}(ops, unitary, cfun)
+Redfield(ops::ConstantCouplings, unitary, cfun; atol = 1e-8, rtol = 1e-6) =
+    Redfield{true}(ops, unitary, cfun, atol, rtol)
 
-Redfield(ops::AbstractTimeDependentCouplings, unitary, cfun) =
-    Redfield{false}(ops, unitary, cfun)
+Redfield(
+    ops::AbstractTimeDependentCouplings,
+    unitary,
+    cfun;
+    atol = 1e-8,
+    rtol = 1e-6,
+) = Redfield{false}(ops, unitary, cfun, atol, rtol)
 
 
 function (R::Redfield{true})(du, u, tf::Real, t::Real)
@@ -31,7 +40,7 @@ function (R::Redfield{true})(du, u, tf::Real, t::Real)
             unitary = R.unitary(t) * R.unitary(x)'
             tf * R.cfun(t - x) * unitary * S * unitary'
         end
-        Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
+        Λ, err = quadgk(integrand, 0, t, rtol = R.rtol, atol = R.atol)
         𝐊₂ = S * Λ * u - Λ * u * S
         𝐊₂ = 𝐊₂ + 𝐊₂'
         axpy!(-tf, 𝐊₂, du)
@@ -49,7 +58,7 @@ function (R::Redfield{false})(du, u, tf::Real, t::Real)
             unitary = R.unitary(t) * R.unitary(x)'
             tf * R.cfun(t - x) * unitary * S(x) * unitary'
         end
-        Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
+        Λ, err = quadgk(integrand, 0, t, rtol = R.rtol, atol = R.atol)
         𝐊₂ = S(t) * Λ * u - Λ * u * S(t)
         𝐊₂ = 𝐊₂ + 𝐊₂'
         axpy!(-tf, 𝐊₂, du)
@@ -63,7 +72,7 @@ function (R::Redfield{false})(du, u, tf::UnitTime, t::Real)
             unitary = R.unitary(t) * R.unitary(x)'
             R.cfun(t - x) * unitary * S(x / tf) * unitary'
         end
-        Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
+        Λ, err = quadgk(integrand, 0, t, rtol = R.rtol, atol = R.atol)
         𝐊₂ = S(t / tf) * Λ * u - Λ * u * S(t / tf)
         𝐊₂ = 𝐊₂ + 𝐊₂'
         axpy!(-1.0, 𝐊₂, du)
@@ -78,7 +87,7 @@ function update_vectorized_cache!(cache, R::Redfield{true}, tf::Real, t::Real)
             unitary = R.unitary(t) * R.unitary(x)'
             tf * R.cfun(t - x) * unitary * S * unitary'
         end
-        Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
+        Λ, err = quadgk(integrand, 0, t, rtol = R.rtol, atol = R.atol)
         SΛ = S * Λ
         cache .-=
             tf * (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(S) ⊗ Λ - conj(Λ) ⊗ S)
@@ -97,7 +106,7 @@ function update_vectorized_cache!(cache, R::Redfield{false}, tf::Real, t::Real)
             u = R.unitary(t) * R.unitary(x)'
             tf * R.cfun(t - x) * u * S(x) * u'
         end
-        Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
+        Λ, err = quadgk(integrand, 0, t, rtol = R.rtol, atol = R.atol)
         Sm = S(t)
         SΛ = Sm * Λ
         cache .-=
@@ -119,7 +128,7 @@ function update_vectorized_cache!(
             u = R.unitary(t) * R.unitary(x)'
             R.cfun(t - x) * u * S(x / tf) * u'
         end
-        Λ, err = quadgk(integrand, 0, t, rtol = 1e-6, atol = 1e-8)
+        Λ, err = quadgk(integrand, 0, t, rtol = R.rtol, atol = R.atol)
         Sm = S(t / tf)
         SΛ = Sm * Λ
         cache .-= iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(Sm) ⊗ Λ - conj(Λ) ⊗ Sm
