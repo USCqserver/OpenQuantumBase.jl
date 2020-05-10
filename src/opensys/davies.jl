@@ -66,6 +66,8 @@ function adiabatic_me_update!(du, u, A, γ, S)
     axpy!(-1.0im, H_ls * u - u * H_ls, du)
 end
 
+abstract type AMEOperator end
+eigen_decomp(A::AMEOperator, t, tf::UnitTime) = eigen_decomp(A, t / tf, 1)
 
 """
 $(TYPEDEF)
@@ -76,7 +78,7 @@ Defines an adiabatic master equation differential equation operator.
 
 $(FIELDS)
 """
-struct AMEDenseDiffEqOperator{adiabatic_frame}
+struct AMEDenseDiffEqOperator{adiabatic_frame} <: AMEOperator
     """Hamiltonian"""
     H
     """Davies generator"""
@@ -88,7 +90,7 @@ struct AMEDenseDiffEqOperator{adiabatic_frame}
 end
 
 
-function eigen_decomp(A::AMEDenseDiffEqOperator, t)
+function eigen_decomp(A::AMEDenseDiffEqOperator, t, ::Real)
     hmat = A.H(t)
     w, v = eigen!(Hermitian(hmat), 1:A.lvl)
 end
@@ -103,7 +105,7 @@ Defines a sparse adiabatic master equation differential equation operator.
 
 $(FIELDS)
 """
-struct AMESparseDiffEqOperator
+struct AMESparseDiffEqOperator <: AMEOperator
     """Hamiltonian"""
     H
     """Davies generator"""
@@ -115,7 +117,7 @@ struct AMESparseDiffEqOperator
 end
 
 
-function eigen_decomp(A::AMESparseDiffEqOperator, t)
+function eigen_decomp(A::AMESparseDiffEqOperator, t, ::Real)
     hmat = A.H(t)
     w, v = eigen!(Hermitian(Array(hmat)), 1:A.lvl)
 end
@@ -150,7 +152,7 @@ end
 
 
 function (A::AMEDenseDiffEqOperator{false})(du, u, p, t)
-    w, v = eigen_decomp(A, t)
+    w, v = eigen_decomp(A, t, p.tf)
     ρ = v' * u * v
     H = Diagonal(w)
     diag_cache_update!(A.u_cache, H, ρ, p.tf)
@@ -161,7 +163,7 @@ end
 
 
 function (A::AMESparseDiffEqOperator)(du, u, p, t)
-    w, v = eigen_decomp(A, t)
+    w, v = eigen_decomp(A, t, p.tf)
     ρ = v' * u * v
     H = Diagonal(w)
     diag_cache_update!(A.u_cache, H, ρ, p.tf)
