@@ -116,7 +116,7 @@ end
 
 
 """
-    project_to_lowlevel(H::AbstractHamiltonian{T}, dH, coupling, s_axis; ref=zeros((0,2)), tol=1e-4, lvl=2)
+    project_to_lowlevel(H::AbstractHamiltonian{T}, dH, coupling, s_axis; lvl=2, ref=zeros((0,lvl)), tol=1e-4, lvl=2)
 
 Project a Hamiltonian `H` to the lowest `lvl` level subspace. `dH` is the derivative of Hamiltonian and `coupling` is the system-bath interaction operator. They should be callable with a single argument -- annealing parameter `s`. `s_axis` is the (unitless) times to calculate the projection.
 """
