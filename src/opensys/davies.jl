@@ -9,11 +9,11 @@ $(FIELDS)
 """
 struct DaviesGenerator <: AbstractOpenSys
     """System bath coupling operators"""
-    coupling
+    coupling::Any
     """Spectrum density"""
-    γ
+    γ::Any
     """Lambshift spectrum density"""
-    S
+    S::Any
 end
 
 
@@ -80,13 +80,13 @@ $(FIELDS)
 """
 struct AMEDenseDiffEqOperator{adiabatic_frame} <: AMEOperator
     """Hamiltonian"""
-    H
+    H::Any
     """Davies generator"""
     Davies::DaviesGenerator
     """Number of levels to keep"""
     lvl::Int
     """Internal cache"""
-    u_cache
+    u_cache::Any
 end
 
 
@@ -107,13 +107,13 @@ $(FIELDS)
 """
 struct AMESparseDiffEqOperator <: AMEOperator
     """Hamiltonian"""
-    H
+    H::Any
     """Davies generator"""
     Davies::DaviesGenerator
     """Number of levels to keep"""
     lvl::Int
     """Internal cache"""
-    u_cache
+    u_cache::Any
 end
 
 
@@ -184,8 +184,8 @@ end
 
 
 struct AFRWADiffEqOperator{control_type}
-    H
-    Davies
+    H::Any
+    Davies::Any
     lvl::Int
 end
 
@@ -232,7 +232,7 @@ $(FIELDS)
 """
 struct AMEDenseTrajectoryOperator <: AMETrajectoryOperator
     """Hamiltonian"""
-    H
+    H::Any
     """Davies generator"""
     Davies::DaviesGenerator
     """Number of levels to keep"""
@@ -257,7 +257,7 @@ $(FIELDS)
 """
 struct AMESparseTrajectoryOperator <: AMETrajectoryOperator
     """Hamiltonian"""
-    H
+    H::Any
     """Davies generator"""
     Davies::DaviesGenerator
     """Number of levels to keep"""
@@ -303,12 +303,7 @@ end
 
 Calculate the jump operator for the AMETrajectoryOperator at time `s`.
 """
-function ame_jump(
-    A::AMETrajectoryOperator,
-    u,
-    tf::Real,
-    s::Real,
-)
+function ame_jump(A::AMETrajectoryOperator, u, tf::Real, s::Real)
     w, v = eigen_decomp(A, s)
     # calculate all dimensions
     sys_dim = size(A.H, 1)
@@ -354,9 +349,5 @@ function ame_jump(
 end
 
 
-@inline ame_jump(
-    A::AMETrajectoryOperator,
-    u,
-    tf::UnitTime,
-    t::Real,
-) = ame_jump(A, u, tf, t / tf)
+@inline ame_jump(A::AMETrajectoryOperator, u, tf::UnitTime, t::Real) =
+    ame_jump(A, u, tf, t / tf)
