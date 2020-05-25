@@ -197,10 +197,11 @@ export AbstractCouplings,
        CustomCouplings,
        collective_coupling
 
-export eigen_decomp, p_copy
+export eigen_decomp
 
 export AbstractAnnealing,
        Annealing,
+       ODEParams,
        AbstractAnnealingControl
 
 export AbstractBath,
