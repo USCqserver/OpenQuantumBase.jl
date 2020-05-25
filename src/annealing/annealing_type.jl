@@ -50,7 +50,7 @@ $(FIELDS)
 """
 struct ODEParams{T<:Union{AbstractFloat,UnitTime}}
     """Hamiltonian"""
-    H::AbstractHamiltonian
+    H::Union{AbstractHamiltonian,Nothing}
     """Total annealing time"""
     tf::T
     """Open system object"""
@@ -73,4 +73,4 @@ ODEParams(H, tf::UnitTime; opensys = nothing, control = nothing) =
     ODEParams(H, tf, opensys, control)
 
 ODEParams(tf; opensys = nothing, control = nothing) =
-    ODEParams(nothing, tf, opensys, control)
+    ODEParams(nothing, float(tf), opensys, control)
