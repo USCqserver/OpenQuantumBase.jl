@@ -132,13 +132,13 @@ include("hamiltonian/custom_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
 
+include("annealing/annealing_type.jl")
+include("annealing/displays.jl")
+
+
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
 
-
-include("annealing/annealing_type.jl")
-#include("annealing/annealing_params.jl")
-include("annealing/displays.jl")
 
 include("projection/util.jl")
 include("projection/projection.jl")
@@ -197,10 +197,11 @@ export AbstractCouplings,
        CustomCouplings,
        collective_coupling
 
-export eigen_decomp, p_copy
+export eigen_decomp
 
 export AbstractAnnealing,
        Annealing,
+       ODEParams,
        AbstractAnnealingControl
 
 export AbstractBath,

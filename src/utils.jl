@@ -51,6 +51,11 @@ function unit_scale(u)
 end
 
 
+"""
+    function allequal(x; rtol = 1e-6, atol = 1e-6)
+
+Check if all elements in `x` are equal upto an absolute error tolerance `atol` and relative error tolerance `rtol`.
+"""
 @inline function allequal(x; rtol = 1e-6, atol = 1e-6)
     length(x) < 2 && return true
     e1 = x[1]

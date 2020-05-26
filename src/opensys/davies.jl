@@ -9,11 +9,11 @@ $(FIELDS)
 """
 struct DaviesGenerator <: AbstractOpenSys
     """System bath coupling operators"""
-    coupling
+    coupling::AbstractCouplings
     """Spectrum density"""
-    γ
+    γ::Any
     """Lambshift spectrum density"""
-    S
+    S::Any
 end
 
 
@@ -22,7 +22,7 @@ function (D::DaviesGenerator)(du, ρ, ω_ba, v, tf::Real, t::Real)
     sm = tf * D.S.(ω_ba)
     for op in D.coupling(t)
         A = v' * (op * v)
-        adiabatic_me_update!(du, ρ, A, γm, sm)
+        davies_update!(du, ρ, A, γm, sm)
     end
 end
 
@@ -34,7 +34,7 @@ function (D::DaviesGenerator)(du, u, ω_ba, tf::Real, t::Real)
     γm = tf * D.γ.(ω_ba)
     sm = tf * D.S.(ω_ba)
     for op in D.coupling(t)
-        adiabatic_me_update!(du, u, op, γm, sm)
+        davies_update!(du, u, op, γm, sm)
     end
 end
 
@@ -43,7 +43,7 @@ end
     D(du, u, ω_ba, 1.0, t / tf)
 
 
-function adiabatic_me_update!(du, u, A, γ, S)
+function davies_update!(du, u, A, γ, S)
     A2 = abs2.(A)
     γA = γ .* A2
     Γ = sum(γA, dims = 1)
@@ -76,148 +76,117 @@ Defines an adiabatic master equation differential equation operator.
 
 $(FIELDS)
 """
-struct AMEDenseDiffEqOperator{adiabatic_frame}
+struct AMEDiffEqOperator{is_sparse,is_adiabatic_frame}
     """Hamiltonian"""
-    H
+    H::AbstractHamiltonian
     """Davies generator"""
     Davies::DaviesGenerator
     """Number of levels to keep"""
     lvl::Int
     """Internal cache"""
-    u_cache
+    u_cache::Matrix{ComplexF64}
+    """Eigen decomposition function"""
+    _eig::Any
 end
 
 
-function eigen_decomp(A::AMEDenseDiffEqOperator, t)
+function eigen_decomp(A::AMEDiffEqOperator, t)
     hmat = A.H(t)
-    w, v = eigen!(Hermitian(hmat), 1:A.lvl)
+    w, v = A._eig(hmat, A.lvl)
 end
 
 
-"""
-$(TYPEDEF)
-
-Defines a sparse adiabatic master equation differential equation operator.
-
-# Fields
-
-$(FIELDS)
-"""
-struct AMESparseDiffEqOperator
-    """Hamiltonian"""
-    H
-    """Davies generator"""
-    Davies::DaviesGenerator
-    """Number of levels to keep"""
-    lvl::Int
-    """Internal cache"""
-    u_cache
-end
-
-
-function eigen_decomp(A::AMESparseDiffEqOperator, t)
-    hmat = A.H(t)
-    w, v = eigen!(Hermitian(Array(hmat)), 1:A.lvl)
-end
-
-
-function AMEDiffEqOperator(H::AbstractDenseHamiltonian, davies, lvl; kwargs...)
+function AMEDiffEqOperator(
+    H::AbstractHamiltonian,
+    davies,
+    lvl::Int,
+    eig_init = DEFAULT_EIGEN_INIT;
+    kwargs...,
+)
     # initialze the internal cache
     # the internal cache will also be dense for current version
     u_cache = Matrix{eltype(H)}(undef, lvl, lvl)
+    # check if the Hamiltonian is sparse
+    is_sparse = typeof(H) <: AbstractSparseHamiltonian
     # check if the Hamiltonian is defined in adiabatic frames
-    adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian ? true : false
-    # return AMEDenseDiffEqOperator for dense Hamiltonian
-    AMEDenseDiffEqOperator{adiabatic_frame}(H, davies, lvl, u_cache)
+    is_adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
+    # initialze the eigen decomposition method
+    eig = eig_init(H)
+    # return AMEDiffEqOperator
+    AMEDiffEqOperator{is_sparse,is_adiabatic_frame}(
+        H,
+        davies,
+        lvl,
+        u_cache,
+        eig,
+    )
 end
 
 
-function AMEDiffEqOperator(H::AbstractSparseHamiltonian, davies, lvl; kwargs...)
-    # initialze the internal cache
-    # the internal cache will also be dense for current version
-    u_cache = Matrix{eltype(H)}(undef, lvl, lvl)
-    # for sparse matrix:
-    # the current implementation convert them to dense matrices for eigen decomposition
-    AMESparseDiffEqOperator(H, davies, lvl, u_cache)
+(A::AMEDiffEqOperator{S,false})(
+    du,
+    u,
+    p::ODEParams{T},
+    t,
+) where {S,T<:AbstractFloat} = ame_update!(du, u, p.tf, t, A)
+
+
+(A::AMEDiffEqOperator{S,false})(
+    du,
+    u,
+    p::ODEParams{T},
+    t,
+) where {S,T<:UnitTime} = ame_update!(du, u, 1.0, t / p.tf, A)
+
+
+function ame_update!(du, u, tf, t, A)
+    w, v = eigen_decomp(A, t)
+    ρ = v' * u * v
+    H = Diagonal(w)
+    A.u_cache .= -1.0im * tf * (H * ρ - ρ * H)
+    ω_ba = transpose(w) .- w
+    A.Davies(A.u_cache, ρ, ω_ba, v, tf, t)
+    mul!(du, v, A.u_cache * v')
 end
 
 
-function (A::AMEDenseDiffEqOperator{true})(du, u, p, t)
+function (A::AMEDiffEqOperator{S,true})(du, u, p, t) where {S}
     A.H(du, u, p.tf, t)
     ω_ba = ω_matrix(A.H, A.lvl)
     A.Davies(du, u, ω_ba, p.tf, t)
 end
 
 
-function (A::AMEDenseDiffEqOperator{false})(du, u, p, t)
-    w, v = eigen_decomp(A, t)
-    ρ = v' * u * v
-    H = Diagonal(w)
-    diag_cache_update!(A.u_cache, H, ρ, p.tf)
-    ω_ba = transpose(w) .- w
-    A.Davies(A.u_cache, ρ, ω_ba, v, p.tf, t)
-    mul!(du, v, A.u_cache * v')
-end
+# struct AFRWADiffEqOperator{control_type}
+#     H::Any
+#     Davies::Any
+#     lvl::Int
+# end
+#
+#
+# function AFRWADiffEqOperator(H, davies; lvl = nothing, control = nothing)
+#     if lvl == nothing
+#         lvl = H.size[1]
+#     end
+#     AFRWADiffEqOperator{typeof(control)}(H, davies, lvl)
+# end
+#
+#
+# function (D::AFRWADiffEqOperator{Nothing})(du, u, p, t)
+#     w, v = ω_matrix_RWA(D.H, p.tf, t, D.lvl)
+#     ρ = v' * u * v
+#     H = Diagonal(w)
+#     cache = diag_update(H, ρ, p.tf)
+#     ω_ba = repeat(w, 1, length(w))
+#     ω_ba = transpose(ω_ba) - ω_ba
+#     D.Davies(cache, ρ, ω_ba, v, p.tf, t)
+#     mul!(du, v, cache * v')
+# end
+#
+# @inline diag_update(H, ρ, tf::Real) = -1.0im * tf * (H * ρ - ρ * H)
+#
+# @inline diag_update(H, ρ, tf::UnitTime) = -1.0im * (H * ρ - ρ * H)
 
-
-function (A::AMESparseDiffEqOperator)(du, u, p, t)
-    w, v = eigen_decomp(A, t)
-    ρ = v' * u * v
-    H = Diagonal(w)
-    diag_cache_update!(A.u_cache, H, ρ, p.tf)
-    ω_ba = transpose(w) .- w
-    A.Davies(A.u_cache, ρ, ω_ba, v, p.tf, t)
-    mul!(du, v, A.u_cache * v')
-end
-
-
-@inline function diag_cache_update!(cache, H, ρ, tf::Real)
-    cache .= -1.0im * tf * (H * ρ - ρ * H)
-end
-
-
-@inline function diag_cache_update!(cache, H, ρ, tf::UnitTime)
-    cache .= -1.0im * (H * ρ - ρ * H)
-end
-
-
-struct AFRWADiffEqOperator{control_type}
-    H
-    Davies
-    lvl::Int
-end
-
-
-function AFRWADiffEqOperator(H, davies; lvl = nothing, control = nothing)
-    if lvl == nothing
-        lvl = H.size[1]
-    end
-    AFRWADiffEqOperator{typeof(control)}(H, davies, lvl)
-end
-
-
-function (D::AFRWADiffEqOperator{Nothing})(du, u, p, t)
-    w, v = ω_matrix_RWA(D.H, p.tf, t, D.lvl)
-    ρ = v' * u * v
-    H = Diagonal(w)
-    cache = diag_update(H, ρ, p.tf)
-    ω_ba = repeat(w, 1, length(w))
-    ω_ba = transpose(ω_ba) - ω_ba
-    D.Davies(cache, ρ, ω_ba, v, p.tf, t)
-    mul!(du, v, cache * v')
-end
-
-@inline diag_update(H, ρ, tf::Real) = -1.0im * tf * (H * ρ - ρ * H)
-
-@inline diag_update(H, ρ, tf::UnitTime) = -1.0im * (H * ρ - ρ * H)
-
-
-"""
-$(TYPEDEF)
-
-Base for types defining adiabatic master equation trajectory controller.
-"""
-abstract type AMETrajectoryOperator <: AbstractAnnealingControl end
 
 """
 $(TYPEDEF)
@@ -228,59 +197,51 @@ Defines an adiabatic master equation trajectory operator. The object is used to 
 
 $(FIELDS)
 """
-struct AMEDenseTrajectoryOperator <: AMETrajectoryOperator
+struct AMETrajectoryOperator{is_sparse,is_adiabatic_frame} <:
+       AbstractAnnealingControl
     """Hamiltonian"""
-    H
+    H::Any
     """Davies generator"""
     Davies::DaviesGenerator
     """Number of levels to keep"""
     lvl::Int
+    """Internal cache"""
+    u_cache::Vector{ComplexF64}
+    """Eigen decomposition function"""
+    _eig::Any
 end
 
 
-function eigen_decomp(A::AMEDenseTrajectoryOperator, t)
+function eigen_decomp(A::AMETrajectoryOperator, t)
     hmat = A.H(t)
-    eigen!(Hermitian(hmat), 1:A.lvl)
+    A._eig(hmat, A.lvl)
 end
 
 
-"""
-$(TYPEDEF)
-
-Defines an sparse adiabatic master equation trajectory operator. The object is used to update the cache for `DiffEqArrayOperator`.
-
-# Fields
-
-$(FIELDS)
-"""
-struct AMESparseTrajectoryOperator <: AMETrajectoryOperator
-    """Hamiltonian"""
-    H
-    """Davies generator"""
-    Davies::DaviesGenerator
-    """Number of levels to keep"""
-    lvl::Int
+function AMETrajectoryOperator(
+    H,
+    davies,
+    lvl::Int,
+    eig_init = DEFAULT_EIGEN_INIT;
+    kwargs...,
+)
+    # initialze the internal cache
+    # the internal cache will also be dense for current version
+    u_cache = Vector{eltype(H)}(undef, lvl)
+    # check if the Hamiltonian is sparse
+    is_sparse = typeof(H) <: AbstractSparseHamiltonian
+    # check if the Hamiltonian is defined in adiabatic frames
+    is_adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
+    # initialze the eigen decomposition method
+    eig = eig_init(H)
+    AMETrajectoryOperator{is_sparse, is_adiabatic_frame}(H, davies, lvl, u_cache, eig)
 end
-
-
-function eigen_decomp(A::AMESparseTrajectoryOperator, t)
-    hmat = A.H(t)
-    w, v = eigen!(Hermitian(Array(hmat)), 1:A.lvl)
-end
-
-
-AMETrajectoryOperator(H::AbstractSparseHamiltonian, davies, lvl, kwargs...) =
-    AMESparseTrajectoryOperator(H, davies, lvl)
-
-
-AMETrajectoryOperator(H::AbstractDenseHamiltonian, davies, lvl, kwargs...) =
-    AMEDenseTrajectoryOperator(H, davies, lvl)
 
 
 function update_cache!(cache, A::AMETrajectoryOperator, tf::Real, s::Real)
     w, v = eigen_decomp(A, s)
     ω_ba = transpose(w) .- w
-    internal_cache = -1.0im * tf * w
+    internal_cache = mul!(A.u_cache, -1.0im * tf, w)
     γm = tf * A.Davies.γ.(ω_ba)
     sm = tf * A.Davies.S.(ω_ba)
     for op in A.Davies.coupling(s)
@@ -301,12 +262,7 @@ end
 
 Calculate the jump operator for the AMETrajectoryOperator at time `s`.
 """
-function ame_jump(
-    A::AMETrajectoryOperator,
-    u,
-    tf::Real,
-    s::Real,
-)
+function ame_jump(A::AMETrajectoryOperator, u, tf::Real, s::Real)
     w, v = eigen_decomp(A, s)
     # calculate all dimensions
     sys_dim = size(A.H, 1)
@@ -352,9 +308,12 @@ function ame_jump(
 end
 
 
-@inline ame_jump(
-    A::AMETrajectoryOperator,
-    u,
-    tf::UnitTime,
-    t::Real,
-) = ame_jump(A, u, tf, t / tf)
+@inline ame_jump(A::AMETrajectoryOperator, u, tf::UnitTime, t::Real) =
+    ame_jump(A, u, 1.0, t / tf)
+
+
+DEFAULT_EIGEN_INIT(::AbstractDenseHamiltonian) =
+    (hmat, lvl) -> eigen!(Hermitian(hmat), 1:lvl)
+
+DEFAULT_EIGEN_INIT(::AbstractSparseHamiltonian) =
+    (hmat, lvl) -> eigen!(Hermitian(Array(hmat)), 1:lvl)
