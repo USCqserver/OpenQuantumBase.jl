@@ -60,17 +60,14 @@ struct ODEParams{T<:Union{AbstractFloat,UnitTime}}
 end
 
 
-function ODEParams(
-    H,
-    tf::T;
-    opensys = nothing,
-    control = nothing,
-) where {T<:Number}
+ODEParams(H, tf::Real; opensys = nothing, control = nothing) =
     ODEParams(H, float(tf), opensys, control)
-end
 
 ODEParams(H, tf::UnitTime; opensys = nothing, control = nothing) =
     ODEParams(H, tf, opensys, control)
 
-ODEParams(tf; opensys = nothing, control = nothing) =
+ODEParams(tf::Real; opensys = nothing, control = nothing) =
     ODEParams(nothing, float(tf), opensys, control)
+
+ODEParams(tf::UnitTime; opensys = nothing, control = nothing) =
+    ODEParams(nothing, tf, opensys, control)

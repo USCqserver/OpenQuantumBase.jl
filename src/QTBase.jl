@@ -132,13 +132,13 @@ include("hamiltonian/custom_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
 
+include("annealing/annealing_type.jl")
+include("annealing/displays.jl")
+
+
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
 
-
-include("annealing/annealing_type.jl")
-#include("annealing/annealing_params.jl")
-include("annealing/displays.jl")
 
 include("projection/util.jl")
 include("projection/projection.jl")

@@ -89,11 +89,11 @@ w_ab = transpose(w) .- w
 gm = γ.(w_ab)
 sm = S.(w_ab)
 
-# expective result
+# expected result
 drho, A_ij = ame_update_term(op, w, v, γ, S)
 
 du = zeros(ComplexF64, (4, 4))
-QTBase.adiabatic_me_update!(du, u, A_ij, gm, sm)
+QTBase.davies_update!(du, u, A_ij, gm, sm)
 @test v * du * v' ≈ drho atol = 1e-6 rtol = 1e-6
 
 du = zeros(ComplexF64, (4, 4))
@@ -114,17 +114,18 @@ update_cache!(cache, ame_op, 1.0, 0.5)
 jump_op = ame_jump(ame_op, state, 1.0, 0.5)
 @test size(jump_op) == (4, 4)
 
+# test for AMEDiffEqOperator
 ame_op = AMEDiffEqOperator(H, davies_gen, 4)
-du = zeros(ComplexF64, (4, 4))
-ame_op(du, rho, (tf = 1.0,), 0.5)
 hmat = H(0.5)
-@test isapprox(
-    du,
-    drho - 1.0im * (hmat * rho - rho * hmat),
-    atol = 1e-6,
-    rtol = 1e-6,
-)
+expected_drho = drho - 1.0im * (hmat * rho - rho * hmat)
 
+du = zeros(ComplexF64, (4, 4))
+ame_op(du, rho, ODEParams(2.0), 0.5)
+@test du ≈ 2.0 * expected_drho atol = 1e-6 rtol = 1e-6
+
+du = zeros(ComplexF64, (4, 4))
+ame_op(du, rho, ODEParams(UnitTime(5)), 2.5)
+@test du ≈ expected_drho atol = 1e-6 rtol = 1e-6
 
 # Sparse Hamiltonian test
 Hd = standard_driver(4; sp = true)
@@ -146,7 +147,7 @@ exp_effective_H =
 
 ame_op = AMEDiffEqOperator(H, davies_gen, 4)
 du = zeros(ComplexF64, (16, 16))
-ame_op(du, rho, (tf = 1.0,), 0.5)
+ame_op(du, rho, ODEParams(1.0), 0.5)
 hmat = H(0.5)
 @test isapprox(
     du,
