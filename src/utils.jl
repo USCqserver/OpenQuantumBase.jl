@@ -65,3 +65,19 @@ Check if all elements in `x` are equal upto an absolute error tolerance `atol` a
     end
     return true
 end
+
+
+function EIGEN_DEFAULT(H::AbstractDenseHamiltonian)
+    function (H, t, lvl)
+        hmat = H(t)
+        eigen!(Hermitian(hmat), 1:lvl)
+    end
+end
+
+
+function EIGEN_DEFAULT(H::AbstractSparseHamiltonian)
+    function (H, t, lvl)
+        hmat = H(t)
+        eigen!(Hermitian(Array(hmat)), 1:lvl)
+    end
+end
