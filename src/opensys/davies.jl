@@ -234,7 +234,13 @@ function AMETrajectoryOperator(
     is_adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
     # initialze the eigen decomposition method
     eig = eig_init(H)
-    AMETrajectoryOperator{is_sparse, is_adiabatic_frame}(H, davies, lvl, u_cache, eig)
+    AMETrajectoryOperator{is_sparse,is_adiabatic_frame}(
+        H,
+        davies,
+        lvl,
+        u_cache,
+        eig,
+    )
 end
 
 
@@ -256,6 +262,9 @@ function update_cache!(cache, A::AMETrajectoryOperator, tf::Real, s::Real)
     cache .= v * Diagonal(internal_cache) * v'
 end
 
+
+update_cache!(cache, A::AMETrajectoryOperator, tf::UnitTime, t::Real) =
+    update_cache!(cache, A, 1.0, t / tf)
 
 """
     ame_jump(A::AMETrajectoryOperator, u, tf, s::Real)
