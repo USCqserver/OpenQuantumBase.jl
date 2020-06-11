@@ -105,13 +105,13 @@ function gibbs_state(h, T)
 end
 
 """
-    low_level_hamiltonian(h, levels)
+    low_level_matrix(M, lvl)
 
-Calculate the Hamiltonian `h` projected to lower energy subspace containing `levels` energy levels.
+Calculate the matrix `M` projected to lower energy subspace containing `lvl` energy lvl.
 
 # Examples
 ```julia-repl
-julia> low_level_hamiltonian(σx⊗σx, 2)
+julia> low_level_matrix(σx⊗σx, 2)
 4×4 Array{Complex{Float64},2}:
  -0.5+0.0im   0.0+0.0im   0.0+0.0im   0.5+0.0im
   0.0+0.0im  -0.5+0.0im   0.5+0.0im   0.0+0.0im
@@ -119,14 +119,14 @@ julia> low_level_hamiltonian(σx⊗σx, 2)
   0.5+0.0im   0.0+0.0im   0.0+0.0im  -0.5+0.0im
 ```
 """
-function low_level_hamiltonian(h, levels)
-    if levels > size(h)[1]
+function low_level_matrix(M, lvl)
+    if lvl > size(M, 1)
         @warn "Subspace dimension bigger than total dimension."
-        return h
+        return M
     else
-        w, v = eigen(Hermitian(h))
-        res = zeros(eltype(v), size(h))
-        for i in range(1,stop=levels)
+        w, v = eigen(Hermitian(M))
+        res = zeros(eltype(v), size(M))
+        for i in range(1,stop=lvl)
             vi = @view v[:, i]
             res += w[i] * vi * vi'
         end
