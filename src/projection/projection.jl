@@ -128,10 +128,10 @@ function project_to_lowlevel(
     lvl = 2,
     eig_init = EIGEN_DEFAULT,
 ) where {T<:Real,S<:Real}
-    eigs = eig_init(H)
+    _eigs = eig_init(H)
     projected_system = ProjectedSystem(s_axis, size(H, 1), lvl)
     for s in s_axis
-        w, v = eigs(H, s, lvl)
+        w, v = _eigs(H, s, lvl)
         push_params!(projected_system, w, v, dH(s), coupling(s))
     end
     projected_system

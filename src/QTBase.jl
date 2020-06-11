@@ -164,11 +164,9 @@ export q_translate,
 
 export matrix_decompose, check_positivity, check_unitary
 
-export Complex_Interp, construct_interpolations, gradient
+export construct_interpolations, gradient
 
-export cpvagk
-
-export inst_population, gibbs_state, eigen_sys, low_level_hamiltonian
+export inst_population, gibbs_state, low_level_matrix
 
 export AbstractHamiltonian,
        AbstractSparseHamiltonian,
@@ -196,7 +194,7 @@ export AbstractCouplings,
        CustomCouplings,
        collective_coupling
 
-export eigen_decomp
+export eigen_decomp, EIGEN_DEFAULT
 
 export AbstractAnnealing,
        Annealing,
@@ -211,7 +209,6 @@ export AbstractBath,
        DaviesGenerator,
        AMEDiffEqOperator,
        AMETrajectoryOperator,
-       AFRWADiffEqOperator
 
 export ame_jump
 
