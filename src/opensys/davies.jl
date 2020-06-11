@@ -89,18 +89,13 @@ struct AMEDiffEqOperator{is_sparse,is_adiabatic_frame}
     _eig::Any
 end
 
-
-function eigen_decomp(A::AMEDiffEqOperator, t)
-    hmat = A.H(t)
-    w, v = A._eig(hmat, A.lvl)
-end
-
+eigen_decomp(A::AMEDiffEqOperator, t) = A._eig(A.H, t, A.lvl)
 
 function AMEDiffEqOperator(
     H::AbstractHamiltonian,
     davies,
     lvl::Int,
-    eig_init = DEFAULT_EIGEN_INIT;
+    eig_init = EIGEN_DEFAULT;
     kwargs...,
 )
     # initialze the internal cache
@@ -211,18 +206,13 @@ struct AMETrajectoryOperator{is_sparse,is_adiabatic_frame} <:
     _eig::Any
 end
 
-
-function eigen_decomp(A::AMETrajectoryOperator, t)
-    hmat = A.H(t)
-    A._eig(hmat, A.lvl)
-end
-
+eigen_decomp(A::AMETrajectoryOperator, t) = A._eig(A.H, t, A.lvl)
 
 function AMETrajectoryOperator(
     H,
     davies,
     lvl::Int,
-    eig_init = DEFAULT_EIGEN_INIT;
+    eig_init = EIGEN_DEFAULT;
     kwargs...,
 )
     # initialze the internal cache
@@ -234,7 +224,13 @@ function AMETrajectoryOperator(
     is_adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
     # initialze the eigen decomposition method
     eig = eig_init(H)
-    AMETrajectoryOperator{is_sparse, is_adiabatic_frame}(H, davies, lvl, u_cache, eig)
+    AMETrajectoryOperator{is_sparse,is_adiabatic_frame}(
+        H,
+        davies,
+        lvl,
+        u_cache,
+        eig,
+    )
 end
 
 
@@ -310,10 +306,3 @@ end
 
 @inline ame_jump(A::AMETrajectoryOperator, u, tf::UnitTime, t::Real) =
     ame_jump(A, u, 1.0, t / tf)
-
-
-DEFAULT_EIGEN_INIT(::AbstractDenseHamiltonian) =
-    (hmat, lvl) -> eigen!(Hermitian(hmat), 1:lvl)
-
-DEFAULT_EIGEN_INIT(::AbstractSparseHamiltonian) =
-    (hmat, lvl) -> eigen!(Hermitian(Array(hmat)), 1:lvl)

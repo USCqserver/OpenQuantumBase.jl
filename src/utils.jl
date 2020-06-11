@@ -67,6 +67,11 @@ Check if all elements in `x` are equal upto an absolute error tolerance `atol` a
 end
 
 
+"""
+    function EIGEN_DEFAULT(H)
+
+The default initializer for eigen factorization method. It returns a function of signature: `(H, s, lvl) -> (w, v)`. `H` is the Hamiltonian object, `s` is the dimensionless time and `lvl` is the energy levels to keep. This default initializer will use `LAPACK` routine for both dense and sparse matrices.
+"""
 function EIGEN_DEFAULT(H::AbstractDenseHamiltonian)
     function (H, t, lvl)
         hmat = H(t)

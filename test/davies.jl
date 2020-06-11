@@ -80,7 +80,7 @@ coupling = ConstantCouplings(["ZI+IZ"])
 davies_gen = DaviesGenerator(coupling, γ, S)
 op = 2π * (σz ⊗ σi + σi ⊗ σz)
 
-w, v = eigen_decomp(H, 0.5, level = 4)
+w, v = eigen_decomp(H, 0.5, lvl = 4)
 w = 2π * w
 state = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)
 rho = state * state'
@@ -134,7 +134,7 @@ H = SparseHamiltonian([(s) -> 1 - s, (s) -> s], [Hd, Hp])
 op = 2π * q_translate("ZIII+IZII+IIZI+IIIZ")
 coupling = ConstantCouplings(["ZIII+IZII+IIZI+IIIZ"])
 davies_gen = DaviesGenerator(coupling, γ, S)
-w, v = eigen_decomp(H, 0.5, level = 4, tol = 0.0)
+w, v = eigen_decomp(H, 0.5, lvl = 4)
 w = 2π * real(w)
 
 state = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)

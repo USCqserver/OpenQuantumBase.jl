@@ -78,62 +78,6 @@ end
 
 
 """
-    eigen_sys(hfun, t; levels=2, tol=1e-4)
-
-Calculate the eigen values and eigen states of Hamiltonian `hfun` at each points of vector `t`. The output keeps the lowest `levels` eigenstates and their corresponding eigenvalues. `tol` specifies the error tolerance for sparse matrices decomposition. Output (vals, vecs) whose dimensions are (levels, tdim) and (hdim, levels, tdim) respectively.
-"""
-function eigen_sys(hfun, t::AbstractArray{Float64,1}; levels::Int=2, tol=1e-4)
-    t_dim = length(t)
-    H = hfun(t[1])
-    res_val = Array{eltype(H), 2}(undef, (levels, t_dim))
-    res_vec = Array{eltype(H), 3}(undef, (size(H)[1], levels, t_dim))
-    if issparse(H)
-        eigfun = (x)-> eigs(x, nev=levels, which=:SR, tol=tol)
-    else
-        eigfun = (x)-> eigen(Hermitian(x))
-    end
-    val, vec = eigfun(H)
-    res_val[:, 1] = val[1:levels]
-    res_vec[:, :, 1] = vec[:, 1:levels]
-    for (i, t_val) in enumerate(t[2:end])
-        val, vec = eigfun(hfun(t_val))
-        res_val[:, i+1] = val[1:levels]
-        res_vec[:, :, i+1] = vec[:, 1:levels]
-    end
-    res_val, res_vec
-end
-
-"""
-    function inst_population(t, states, hamiltonian; level=1)
-
-For a time series quantum states given by `states`, whose time points are given by `t`, calculate the population of instantaneous eigenstates of `hamiltonian`. The levels of the instantaneous eigenstates are specified by `level`, which can be any slice index.
-"""
-function inst_population(t, states, hamiltonian; level=1:1)
-    if typeof(level)<:Int
-        level = level:level
-    end
-    pop = Array{Array{Float64, 1}, 1}(undef, length(t))
-    for (i, v) in enumerate(t)
-        hmat = hamiltonian(v)
-        eig_sys = eigen(Hermitian(hmat))
-        if ndims(states[i]) == 1
-            inst_state = view(eig_sys.vectors,:,level)'
-            pop[i] = abs2.(inst_state * states[i])
-        elseif ndims(states[i]) == 2
-            l = length(level)
-            temp = Array{Float64, 1}(undef, l)
-            for j in range(1, length=l)
-                inst_state = view(eig_sys.vectors,:,j)
-                temp[j] = real(inst_state'*states[i]*inst_state)
-            end
-            pop[i] = temp
-        end
-    end
-    pop
-end
-
-
-"""
     gibbs_state(h, β)
 
 Calculate the Gibbs state of the matrix `h` at temperature `T` (mK).

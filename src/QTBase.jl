@@ -19,7 +19,6 @@ import LinearAlgebra: kron,
                       normalize
 import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
-import Arpack: eigs
 import QuadGK: quadgk
 import Interpolations: interpolate,
                        BSpline,
