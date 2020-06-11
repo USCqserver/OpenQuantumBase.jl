@@ -208,7 +208,7 @@ export AbstractBath,
        RedfieldSet,
        DaviesGenerator,
        AMEDiffEqOperator,
-       AMETrajectoryOperator,
+       AMETrajectoryOperator
 
 export ame_jump
 
