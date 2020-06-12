@@ -211,7 +211,7 @@ export AbstractBath,
        AMETrajectoryOperator
 
 export ame_jump
-
+export cpvagk
 export UnitTime
 
 export ProjectedSystem,
