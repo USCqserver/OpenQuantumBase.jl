@@ -19,7 +19,6 @@ import LinearAlgebra: kron,
                       normalize
 import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
-import Arpack: eigs
 import QuadGK: quadgk
 import Interpolations: interpolate,
                        BSpline,
@@ -165,11 +164,9 @@ export q_translate,
 
 export matrix_decompose, check_positivity, check_unitary
 
-export Complex_Interp, construct_interpolations, gradient
+export construct_interpolations, gradient
 
-export cpvagk
-
-export inst_population, gibbs_state, eigen_sys, low_level_hamiltonian
+export inst_population, gibbs_state, low_level_matrix
 
 export AbstractHamiltonian,
        AbstractSparseHamiltonian,
@@ -197,7 +194,7 @@ export AbstractCouplings,
        CustomCouplings,
        collective_coupling
 
-export eigen_decomp
+export eigen_decomp, EIGEN_DEFAULT
 
 export AbstractAnnealing,
        Annealing,
@@ -211,11 +208,10 @@ export AbstractBath,
        RedfieldSet,
        DaviesGenerator,
        AMEDiffEqOperator,
-       AMETrajectoryOperator,
-       AFRWADiffEqOperator
+       AMETrajectoryOperator
 
 export ame_jump
-
+export cpvagk
 export UnitTime
 
 export ProjectedSystem,

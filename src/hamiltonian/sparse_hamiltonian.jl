@@ -9,13 +9,13 @@ $(FIELDS)
 """
 struct SparseHamiltonian{T<:Number} <: AbstractSparseHamiltonian{T}
     " List of time dependent functions "
-    f
+    f::Any
     " List of constant matrices "
     m::Vector{SparseMatrixCSC{T,Int}}
     """Internal cache"""
     u_cache::SparseMatrixCSC{T,Int}
     """Size"""
-    size
+    size::Any
 end
 
 
@@ -92,24 +92,17 @@ function get_cache(H::SparseHamiltonian, vectorize)
 end
 
 
-function (h::SparseHamiltonian)(du, u::Matrix{T}, tf::Real, t::Real) where {T<:Number}
+function (h::SparseHamiltonian)(
+    du,
+    u::Matrix{T},
+    tf::Real,
+    t::Real,
+) where {T<:Number}
     H = h(t)
     du .= -1.0im * tf * (H * u - u * H)
 end
 
-(h::SparseHamiltonian)(du, u, tf::UnitTime, t::Real) = h(du, u, 1.0, t/tf)
-
-
-"""
-    function eigen_decomp(h::AbstractSparseHamiltonian, t; level = 2, kwargs...) -> (w, v)
-
-Calculate the eigen value decomposition of the Hamiltonian `h` at time `t`. Keyword argument `level` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`. [Arpack.jl](https://julialinearalgebra.github.io/Arpack.jl/stable/) is used internally for solving eigensystems of sparse matrices. Any keyword arguments of `eigs` function is supported here.
-"""
-function eigen_decomp(h::AbstractSparseHamiltonian, t; level = 2, kwargs...)
-    H = h(t)
-    w, v = eigs(H; nev = level, which = :SR, kwargs...)
-    lmul!(1 / 2 / π, real(w)), v
-end
+(h::SparseHamiltonian)(du, u, tf::UnitTime, t::Real) = h(du, u, 1.0, t / tf)
 
 
 function Base.convert(S::Type{T}, H::SparseHamiltonian) where {T<:Complex}

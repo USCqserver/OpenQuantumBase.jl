@@ -34,15 +34,15 @@ $(FIELDS)
 """
 struct ProjectedCoupling
     """Time grid (unitless) for projection"""
-    s
+    s::Any
     """``(σ_m - σ_n)^2``"""
-    a
+    a::Any
     """``|σ_{mn}|^2``"""
-    b
+    b::Any
     """``σ_{mn}(σ_m-σ_n)``"""
-    c
+    c::Any
     """``σ_{mn}(σ_m+σ_n)``"""
-    d
+    d::Any
 end
 
 
@@ -57,13 +57,13 @@ $(FIELDS)
 """
 struct ProjectedTG
     """Time grid (unitless) for projection"""
-    s
+    s::Any
     """Frequencies of given basis states"""
-    ω
+    ω::Any
     """Adiabatic part"""
-    T
+    T::Any
     """Geometric phase"""
-    G
+    G::Any
 end
 
 
@@ -116,7 +116,7 @@ end
 
 
 """
-    project_to_lowlevel(H::AbstractHamiltonian{T}, dH, coupling, s_axis; lvl=2, ref=zeros((0,lvl)), tol=1e-4, lvl=2)
+    project_to_lowlevel(H::AbstractHamiltonian{T}, dH, coupling, s_axis; lvl=2, eig_init = EIGEN_DEFAULT)
 
 Project a Hamiltonian `H` to the lowest `lvl` level subspace. `dH` is the derivative of Hamiltonian and `coupling` is the system-bath interaction operator. They should be callable with a single argument -- annealing parameter `s`. `s_axis` is the (unitless) times to calculate the projection.
 """
@@ -124,26 +124,15 @@ function project_to_lowlevel(
     H::AbstractHamiltonian{T},
     dH,
     coupling,
-    s_axis::AbstractArray{T,1};
+    s_axis::AbstractArray{S,1};
     lvl = 2,
-    tol = 0.0,
-    ncv = max(20, 2 * lvl + 1),
-    maxiter = 300,
-    ref = zeros((0, lvl)),
-) where {T<:Real}
+    eig_init = EIGEN_DEFAULT,
+) where {T<:Real,S<:Real}
+    _eigs = eig_init(H)
     projected_system = ProjectedSystem(s_axis, size(H, 1), lvl)
     for s in s_axis
-        w, v = eigen_decomp(
-            H,
-            s;
-            level = lvl,
-            tol = tol,
-            ncv = ncv,
-            maxiter = maxiter,
-            v0 = ref[:, 1],
-        )
+        w, v = _eigs(H, s, lvl)
         push_params!(projected_system, w, v, dH(s), coupling(s))
-        ref = projected_system.ref
     end
     projected_system
 end
@@ -153,13 +142,10 @@ function project_to_lowlevel(
     H::AbstractHamiltonian{T},
     dH,
     coupling,
-    s_axis;
+    s_axis::AbstractArray{S,1};
     lvl = 2,
-    tol = 0.0,
-    ncv = max(20, 2 * lvl + 1),
-    maxiter = 300,
-    ref = zeros((0, lvl)),
-) where {T<:Complex}
+    eig_init = EIGEN_DEFAULT,
+) where {T<:Complex,S<:Real}
     @warn "The projection method only works with real Hamitonians. Convert the complex Hamiltonian to real one."
     H_real = real(H)
     project_to_lowlevel(
@@ -168,16 +154,14 @@ function project_to_lowlevel(
         coupling,
         s_axis,
         lvl = lvl,
-        tol = tol,
-        ncv = ncv,
-        maxiter = maxiter,
-        ref = ref,
+        eig_init = eig_init,
     )
 end
 
 
 function push_params!(sys::ProjectedSystem, w, v, dH, interaction)
-    push!(sys.ev, w)
+    E = w / 2 / π
+    push!(sys.ev, E)
     # update reference vectors
     for i = 1:sys.lvl
         if v[:, i]' * sys.ref[:, i] < 0
@@ -192,7 +176,7 @@ function push_params!(sys::ProjectedSystem, w, v, dH, interaction)
         for i = (j+1):sys.lvl
             vi = @view sys.ref[:, i]
             vj = @view sys.ref[:, j]
-            t = vi' * dH * vj / (w[j] - w[i])
+            t = vi' * dH * vj / (E[j] - E[i])
             push!(dθ, t)
         end
     end
