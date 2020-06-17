@@ -11,7 +11,7 @@ struct ConstantCouplings <: AbstractCouplings
     """1-D array for independent coupling operators"""
     mats::Any
     """String representation for the coupling (for display purpose)"""
-    str_rep::String
+    str_rep::Vector{String}
 end
 
 (c::ConstantCouplings)(t) = c.mats
