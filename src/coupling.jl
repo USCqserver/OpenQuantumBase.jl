@@ -9,20 +9,16 @@ $(FIELDS)
 """
 struct ConstantCouplings <: AbstractCouplings
     """1-D array for independent coupling operators"""
-    mats
+    mats::Any
     """String representation for the coupling (for display purpose)"""
-    str_rep
+    str_rep::String
 end
 
-function (c::ConstantCouplings)(t)
-    c.mats
-end
-
+(c::ConstantCouplings)(t) = c.mats
 Base.iterate(c::ConstantCouplings, state = 1) = Base.iterate(c.mats, state)
 Base.length(c::ConstantCouplings) = length(c.mats)
 Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
 Base.size(c::ConstantCouplings) = size(c.mats[1])
-
 
 """
     function ConstantCouplings(mats; str_rep=nothing, unit=:h)
@@ -49,7 +45,11 @@ end
 
 If the first argument is a 1-D array of strings. The constructor will automatically construct the matrics represented by the string representations.
 """
-function ConstantCouplings(c::Vector{T}; sp = false, unit = :h) where {T<:AbstractString}
+function ConstantCouplings(
+    c::Vector{T};
+    sp = false,
+    unit = :h,
+) where {T<:AbstractString}
     mats = unit_scale(unit) * q_translate.(c, sp = sp)
     ConstantCouplings(mats, c)
 end
@@ -69,7 +69,6 @@ function collective_coupling(op, num_qubit; sp = false, unit = :h)
     ConstantCouplings(res; sp = sp, unit = unit)
 end
 
-
 Base.summary(C::ConstantCouplings) = string(
     TYPE_COLOR,
     nameof(typeof(C)),
@@ -80,13 +79,11 @@ Base.summary(C::ConstantCouplings) = string(
     NO_COLOR,
 )
 
-
 function Base.show(io::IO, C::ConstantCouplings)
     println(io, summary(C))
     print(io, "with string representation: ")
     show(io, C.str_rep)
 end
-
 
 """
 $(TYPEDEF)
@@ -99,25 +96,19 @@ $(FIELDS)
 """
 struct TimeDependentCoupling
     """1-D array of time dependent functions"""
-    funcs
+    funcs::Any
     """1-D array of constant matrics"""
-    mats
+    mats::Any
 
     function TimeDependentCoupling(funcs, mats; unit = :h)
         new(funcs, unit_scale(unit) * mats)
     end
 end
 
-
-function (c::TimeDependentCoupling)(t)
-    sum((x) -> x[1](t) * x[2], zip(c.funcs, c.mats))
-end
-
+(c::TimeDependentCoupling)(t) = sum((x) -> x[1](t) * x[2], zip(c.funcs, c.mats))
 Base.size(c::TimeDependentCoupling) = size(c.mats[1])
 
-
 abstract type AbstractTimeDependentCouplings <: AbstractCouplings end
-
 
 """
 $(TYPEDEF)
@@ -137,13 +128,8 @@ struct TimeDependentCouplings <: AbstractTimeDependentCouplings
     end
 end
 
-
-function (c::TimeDependentCouplings)(t)
-    [x(t) for x in c.coupling]
-end
-
+(c::TimeDependentCouplings)(t) = [x(t) for x in c.coupling]
 Base.size(c::TimeDependentCouplings) = size(c.coupling[1])
-
 
 """
 $(TYPEDEF)
@@ -156,25 +142,19 @@ $(FIELDS)
 """
 struct CustomCouplings <: AbstractTimeDependentCouplings
     """A 1-D array of callable objects that returns coupling matrices"""
-    coupling
+    coupling::Any
     """Size of the coupling operator"""
-    size
+    size::Any
 end
-
 
 function CustomCouplings(funcs)
     mat = funcs[1](0.0)
     CustomCouplings(funcs, size(mat))
 end
 
-
-function (c::CustomCouplings)(s)
-    [x(s) for x in c.coupling]
-end
-
+(c::CustomCouplings)(s) = [x(s) for x in c.coupling]
 Base.size(c::CustomCouplings) = c.size
-
-
-Base.iterate(c::AbstractTimeDependentCouplings, state = 1) = Base.iterate(c.coupling, state)
+Base.iterate(c::AbstractTimeDependentCouplings, state = 1) =
+    Base.iterate(c.coupling, state)
 Base.length(c::AbstractTimeDependentCouplings) = length(c.coupling)
 Base.eltype(c::AbstractTimeDependentCouplings) = typeof(c.coupling[1])

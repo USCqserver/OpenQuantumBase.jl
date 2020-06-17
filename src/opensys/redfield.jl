@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 
-Defines Redfield operator
+Defines Redfield operator.
 
 # Fields
 
