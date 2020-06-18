@@ -81,7 +81,7 @@ Base.summary(C::ConstantCouplings) = string(
 
 function Base.show(io::IO, C::ConstantCouplings)
     println(io, summary(C))
-    print(io, "with string representation: ")
+    print(io, "and string representation: ")
     show(io, C.str_rep)
 end
 
