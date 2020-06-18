@@ -199,7 +199,9 @@ export eigen_decomp, EIGEN_DEFAULT
 export AbstractAnnealing,
        Annealing,
        ODEParams,
-       AbstractAnnealingControl
+       AbstractAnnealingControl,
+       Interaction,
+       InteractionSet
 
 export AbstractBath,
        AbstractOpenSys,

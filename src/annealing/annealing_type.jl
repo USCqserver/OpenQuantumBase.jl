@@ -11,10 +11,6 @@ struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
     u0::uType
     """Range of annealing parameter."""
     sspan::Tuple
-    """A list of system bath coupling operators(system part)."""
-    coupling::Union{AbstractCouplings,Nothing}
-    """A list of system bath coupling operators(bath part)."""
-    bath::Union{AbstractBath,Nothing}
     """A system bath interaction set."""
     interactions::Any
     """Additional control protocols for the annealing."""
@@ -22,7 +18,6 @@ struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
     """Extra times that the timestepping algorithm must step to."""
     tstops::Any
 end
-
 
 function Annealing(
     H,
@@ -34,13 +29,14 @@ function Annealing(
     interactions = nothing,
     tstops = Float64[],
 )
-    if interactions == nothing
-        Annealing(H, u0, sspan, coupling, bath, nothing, control, tstops)
-    else
-        Annealing(H, u0, sspan, nothing, nothing, interactions, control, tstops)
+    if coupling != nothing && bath != nothing
+        if interactions != nothing
+            throw(ArgumentError("Both interactions and coupling/bath are specified. Please merge coupling/bath into interactions."))
+        end
+        interactions = InteractionSet(Interaction(coupling, bath))
     end
+    Annealing(H, u0, sspan, interactions, control, tstops)
 end
-
 
 """
 $(TYPEDEF)
@@ -71,3 +67,34 @@ ODEParams(tf::Real; opensys = nothing, control = nothing) =
 
 ODEParams(tf::UnitTime; opensys = nothing, control = nothing) =
     ODEParams(nothing, tf, opensys, control)
+
+"""
+$(TYPEDEF)
+
+An object to hold system operator and the corresponding bath object.
+
+$(FIELDS)
+"""
+struct Interaction
+    """system operator"""
+    coupling::AbstractCouplings
+    """bath coupling to the system operator"""
+    bath::AbstractBath
+end
+
+"""
+$(TYPEDEF)
+
+An container for different system-bath interactions.
+
+$(FIELDS)
+"""
+struct InteractionSet{T<:Tuple}
+    """A tuple of Interaction"""
+    interactions::T
+end
+
+InteractionSet(inters::Interaction...) = InteractionSet(inters)
+Base.length(inters::InteractionSet) = Base.length(inters.interactions)
+Base.getindex(inters::InteractionSet, key...) =
+    Base.getindex(inters.interactions, key...)
