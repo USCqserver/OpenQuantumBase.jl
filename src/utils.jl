@@ -29,7 +29,7 @@ end
 UnitTime(x::Real) = UnitTime(float(x))
 
 
-for op in (:*, :/, :\)
+for op in (:*, :/, :\, :>, :<)
     @eval Base.$op(t::UnitTime, x) = $op(t.t, x)
     @eval Base.$op(x, t::UnitTime) = $op(x, t.t)
 end
