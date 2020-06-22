@@ -20,6 +20,7 @@ import LinearAlgebra: kron,
 import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import QuadGK: quadgk
+import HCubature: hcubature
 import Interpolations: interpolate,
                        BSpline,
                        Quadratic,
@@ -34,6 +35,7 @@ import Interpolations: interpolate,
                        Cubic,
                        Constant
 import StatsBase: sample, Weights
+#import StaticArrays: SMatrix, MMatrix
 
 
 """
@@ -130,14 +132,12 @@ include("hamiltonian/interp_hamiltonian.jl")
 include("hamiltonian/custom_hamiltonian.jl")
 include("hamiltonian/util.jl")
 
-
 include("annealing/annealing_type.jl")
 include("annealing/displays.jl")
 
-
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
-
+include("opensys/cgme.jl")
 
 include("projection/util.jl")
 include("projection/projection.jl")
@@ -207,6 +207,7 @@ export AbstractBath,
        AbstractOpenSys,
        OpenSysSets,
        Redfield,
+       CGOP,
        RedfieldSet,
        DaviesGenerator,
        AMEDiffEqOperator,

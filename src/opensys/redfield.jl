@@ -35,7 +35,6 @@ Redfield(
 
 function (R::Redfield{true})(du, u, tf::Real, t::Real)
     for S in R.ops
-        #TODO Expose the error tolerance for integration
         function integrand(x)
             unitary = R.unitary(t) * R.unitary(x)'
             tf * R.cfun(t - x) * unitary * S * unitary'
