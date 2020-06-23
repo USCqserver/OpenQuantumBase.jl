@@ -86,14 +86,12 @@ Base for types defining various control protocols in quantum annealing process.
 """
 abstract type AbstractAnnealingControl end
 
-
 """
 $(TYPEDEF)
 
 Base for types defining system bath coupling operators in open quantum system models.
 """
 abstract type AbstractCouplings end
-
 
 """
 $(TYPEDEF)
@@ -102,17 +100,10 @@ Base for types defining bath object.
 """
 abstract type AbstractBath end
 
-
 """
 $(TYPEDEF)
 """
 abstract type AbstractOpenSys end
-
-
-"""
-$(TYPEDEF)
-"""
-abstract type OpenSysSets <: AbstractOpenSys end
 
 include("base_util.jl")
 include("unit_util.jl")
@@ -206,7 +197,7 @@ export AbstractAnnealing,
 
 export AbstractBath,
        AbstractOpenSys,
-       OpenSysSets,
+       OpenSysSet,
        Redfield,
        CGOP,
        RedfieldSet,
