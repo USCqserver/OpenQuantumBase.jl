@@ -9,17 +9,16 @@ $(FIELDS)
 """
 struct Redfield{is_const} <: AbstractOpenSys
     """system-bath coupling operator"""
-    ops
+    ops::Any
     """close system unitary"""
-    unitary
+    unitary::Any
     """bath correlation function"""
-    cfun
+    cfun::Any
     """absolute error tolerance for integration"""
     atol::Float64
     """relative error tolerance for integration"""
     rtol::Float64
 end
-
 
 Redfield(ops::ConstantCouplings, unitary, cfun; atol = 1e-8, rtol = 1e-6) =
     Redfield{true}(ops, unitary, cfun, atol, rtol)
@@ -31,7 +30,6 @@ Redfield(
     atol = 1e-8,
     rtol = 1e-6,
 ) = Redfield{false}(ops, unitary, cfun, atol, rtol)
-
 
 function (R::Redfield{true})(du, u, tf::Real, t::Real)
     for S in R.ops
@@ -46,10 +44,7 @@ function (R::Redfield{true})(du, u, tf::Real, t::Real)
     end
 end
 
-
 (R::Redfield{true})(du, u, tf::UnitTime, t::Real) = R(du, u, 1.0, t)
-
-
 
 function (R::Redfield{false})(du, u, tf::Real, t::Real)
     for S in R.ops
@@ -64,7 +59,6 @@ function (R::Redfield{false})(du, u, tf::Real, t::Real)
     end
 end
 
-
 function (R::Redfield{false})(du, u, tf::UnitTime, t::Real)
     for S in R.ops
         function integrand(x)
@@ -77,7 +71,6 @@ function (R::Redfield{false})(du, u, tf::UnitTime, t::Real)
         axpy!(-1.0, 𝐊₂, du)
     end
 end
-
 
 function update_vectorized_cache!(cache, R::Redfield{true}, tf::Real, t::Real)
     iden = Matrix{eltype(cache)}(I, size(R.ops))
@@ -93,10 +86,8 @@ function update_vectorized_cache!(cache, R::Redfield{true}, tf::Real, t::Real)
     end
 end
 
-
 update_vectorized_cache!(cache, R::Redfield{true}, tf::UnitTime, t::Real) =
     update_vectorized_cache!(cache, R, 1.0, t)
-
 
 function update_vectorized_cache!(cache, R::Redfield{false}, tf::Real, t::Real)
     iden = Matrix{eltype(cache)}(I, size(R.ops))
@@ -113,7 +104,6 @@ function update_vectorized_cache!(cache, R::Redfield{false}, tf::Real, t::Real)
             (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(Sm) ⊗ Λ - conj(Λ) ⊗ Sm)
     end
 end
-
 
 function update_vectorized_cache!(
     cache,
@@ -134,24 +124,18 @@ function update_vectorized_cache!(
     end
 end
 
-
 struct RedfieldSet{T<:Tuple} <: AbstractOpenSys
     """Redfield operators"""
     reds::T
 end
 
-
-function RedfieldSet(red::Redfield...)
-    RedfieldSet(red)
-end
-
+RedfieldSet(red::Redfield...) = RedfieldSet(red)
 
 function (R::RedfieldSet)(du, u, tf, t)
     for r in R.reds
         r(du, u, tf, t)
     end
 end
-
 
 function update_vectorized_cache!(cache, R::RedfieldSet, tf, t)
     for r in R.reds

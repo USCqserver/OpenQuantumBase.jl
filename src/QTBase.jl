@@ -138,6 +138,7 @@ include("annealing/displays.jl")
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
 include("opensys/cgme.jl")
+include("opensys/opensys_set.jl")
 
 include("projection/util.jl")
 include("projection/projection.jl")
