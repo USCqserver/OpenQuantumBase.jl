@@ -2,15 +2,9 @@ macro CSI_str(str)
     return :(string("\x1b[", $(esc(str)), "m"))
 end
 
-
 const TYPE_COLOR = CSI"36"
 const NO_COLOR = CSI"0"
-
-
-function is_sparse(H::AbstractHamiltonian)
-    typeof(H) <: AbstractSparseHamiltonian
-end
-
+is_sparse(H::AbstractHamiltonian) = typeof(H) <: AbstractSparseHamiltonian
 
 """
 $(TYPEDEF)
@@ -25,15 +19,14 @@ struct UnitTime{T<:AbstractFloat}
     t::T
 end
 
-
 UnitTime(x::Real) = UnitTime(float(x))
-
 
 for op in (:*, :/, :\, :>, :<)
     @eval Base.$op(t::UnitTime, x) = $op(t.t, x)
     @eval Base.$op(x, t::UnitTime) = $op(x, t.t)
 end
 
+Base.convert(T::Type{Any}, x::UnitTime) = Base.convert(T, x.t)
 
 """
     function unit_scale(u)
@@ -50,7 +43,6 @@ function unit_scale(u)
     end
 end
 
-
 """
     function allequal(x; rtol = 1e-6, atol = 1e-6)
 
@@ -66,7 +58,6 @@ Check if all elements in `x` are equal upto an absolute error tolerance `atol` a
     return true
 end
 
-
 """
     function EIGEN_DEFAULT(H)
 
@@ -78,7 +69,6 @@ function EIGEN_DEFAULT(H::AbstractDenseHamiltonian)
         eigen!(Hermitian(hmat), 1:lvl)
     end
 end
-
 
 function EIGEN_DEFAULT(H::AbstractSparseHamiltonian)
     function (H, t, lvl)

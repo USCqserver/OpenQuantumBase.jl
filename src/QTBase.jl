@@ -114,7 +114,7 @@ $(TYPEDEF)
 """
 abstract type OpenSysSets <: AbstractOpenSys end
 
-include("utils.jl")
+include("base_util.jl")
 include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")

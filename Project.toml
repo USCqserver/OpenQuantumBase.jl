@@ -1,7 +1,7 @@
 name = "QTBase"
 uuid = "5dd19120-8766-11e9-1ef9-27094038a7db"
 authors = ["neversakura <neversakura@hotmail.com>"]
-version = "0.4.3"
+version = "0.4.4"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
