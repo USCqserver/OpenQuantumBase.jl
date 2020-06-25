@@ -72,6 +72,8 @@ function (R::Redfield{false})(du, u, tf::UnitTime, t::Real)
     end
 end
 
+update_ρ!(du, u, p, t, R::Redfield) = R(du, u, p.tf, t)
+
 function update_vectorized_cache!(cache, R::Redfield{true}, tf::Real, t::Real)
     iden = Matrix{eltype(cache)}(I, size(R.ops))
     for S in R.ops
@@ -123,6 +125,9 @@ function update_vectorized_cache!(
         cache .-= iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(Sm) ⊗ Λ - conj(Λ) ⊗ Sm
     end
 end
+
+update_vectorized_cache!(du, u, p::ODEParams, t, R::Redfield) =
+    update_vectorized_cache!(du, R, p.tf, t)
 
 struct RedfieldSet{T<:Tuple} <: AbstractOpenSys
     """Redfield operators"""

@@ -112,9 +112,7 @@ include("matrix_util.jl")
 include("interpolation.jl")
 include("coupling.jl")
 
-
 include("integration/cpvagk.jl")
-
 
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
@@ -205,7 +203,7 @@ export AbstractBath,
        AMEDiffEqOperator,
        AMETrajectoryOperator
 
-export ame_jump
+export ame_jump, update_ρ!
 export cpvagk
 export UnitTime
 
