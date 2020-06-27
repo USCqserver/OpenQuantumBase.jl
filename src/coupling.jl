@@ -1,3 +1,16 @@
+struct CallableMatrix
+    mat::AbstractArray
+end
+(M::CallableMatrix)(x) = M.mat
+Base.size(m::CallableMatrix) = size(m.mat)
+Base.size(m::CallableMatrix, d) = size(m.mat, d)
+Base.isequal(m::CallableMatrix, x) = Base.isequal(m.mat, x)
+Base.isequal(x, m::CallableMatrix) = Base.isequal(x, m.mat)
+for op in (:*, :+, :-, :/, :\)
+    @eval Base.$op(m::CallableMatrix, x) = $op(m.mat, x)
+    @eval Base.$op(x, m::CallableMatrix) = $op(x, m.mat)
+end
+
 """
 $(TYPEDEF)
 
@@ -9,7 +22,7 @@ $(FIELDS)
 """
 struct ConstantCouplings <: AbstractCouplings
     """1-D array for independent coupling operators"""
-    mats::Any
+    mats::Vector{CallableMatrix}
     """String representation for the coupling (for display purpose)"""
     str_rep::Vector{String}
 end
@@ -19,6 +32,7 @@ Base.iterate(c::ConstantCouplings, state = 1) = Base.iterate(c.mats, state)
 Base.length(c::ConstantCouplings) = length(c.mats)
 Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
 Base.size(c::ConstantCouplings) = size(c.mats[1])
+Base.size(c::ConstantCouplings, d) = size(c.mats[1], d)
 
 """
     function ConstantCouplings(mats; str_rep=nothing, unit=:h)
@@ -37,7 +51,10 @@ function ConstantCouplings(
             end
         end
     end
-    ConstantCouplings(unit_scale(unit) * mats, str_rep)
+    ConstantCouplings(
+        unit_scale(unit) .* [CallableMatrix(m) for m in mats],
+        str_rep,
+    )
 end
 
 """
@@ -51,7 +68,7 @@ function ConstantCouplings(
     unit = :h,
 ) where {T<:AbstractString}
     mats = unit_scale(unit) * q_translate.(c, sp = sp)
-    ConstantCouplings(mats, c)
+    ConstantCouplings([CallableMatrix(m) for m in mats], c)
 end
 
 
@@ -107,6 +124,7 @@ end
 
 (c::TimeDependentCoupling)(t) = sum((x) -> x[1](t) * x[2], zip(c.funcs, c.mats))
 Base.size(c::TimeDependentCoupling) = size(c.mats[1])
+Base.size(c::TimeDependentCoupling, d) = size(c.mats[1], d)
 
 abstract type AbstractTimeDependentCouplings <: AbstractCouplings end
 
@@ -130,6 +148,7 @@ end
 
 (c::TimeDependentCouplings)(t) = [x(t) for x in c.coupling]
 Base.size(c::TimeDependentCouplings) = size(c.coupling[1])
+Base.size(c::TimeDependentCouplings, d) = size(c.coupling[1], d)
 
 """
 $(TYPEDEF)
@@ -147,13 +166,19 @@ struct CustomCouplings <: AbstractTimeDependentCouplings
     size::Any
 end
 
-function CustomCouplings(funcs)
+function CustomCouplings(funcs; unit = :h)
     mat = funcs[1](0.0)
+    if unit == :h
+        funcs = [(s) -> 2π * f(s) for f in funcs]
+    elseif unit != :ħ
+        throw(ArgumentError("The unit can only be :h or :ħ."))
+    end
     CustomCouplings(funcs, size(mat))
 end
 
 (c::CustomCouplings)(s) = [x(s) for x in c.coupling]
 Base.size(c::CustomCouplings) = c.size
+Base.size(c::CustomCouplings, d) = c.size[d]
 Base.iterate(c::AbstractTimeDependentCouplings, state = 1) =
     Base.iterate(c.coupling, state)
 Base.length(c::AbstractTimeDependentCouplings) = length(c.coupling)
