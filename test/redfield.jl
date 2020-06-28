@@ -31,7 +31,7 @@ update_vectorized_cache!(A, redfield, UnitTime(5.0), 2.5)
 @test A * ρ[:] ≈ -(σz*(Λ*ρ-ρ*Λ')-(Λ*ρ-ρ*Λ')*σz)[:]
 
 # test for CustomCouplings
-coupling = CustomCouplings([(s) -> σz])
+coupling = CustomCouplings([(s) -> σz], unit=:ħ)
 redfield = Redfield(coupling, unitary, cfun)
 
 A = zero(ρ ⊗ σi)

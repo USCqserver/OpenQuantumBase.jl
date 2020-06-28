@@ -19,7 +19,7 @@ import LinearAlgebra: kron,
                       normalize
 import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
-import QuadGK: quadgk
+import QuadGK: quadgk, quadgk!
 import HCubature: hcubature
 import Interpolations: interpolate,
                        BSpline,
@@ -35,7 +35,7 @@ import Interpolations: interpolate,
                        Cubic,
                        Constant
 import StatsBase: sample, Weights
-#import StaticArrays: SMatrix, MMatrix
+import StaticArrays: SMatrix, MMatrix
 
 
 """
@@ -111,7 +111,9 @@ include("math_util.jl")
 include("matrix_util.jl")
 include("interpolation.jl")
 include("coupling.jl")
+include("bath.jl")
 
+include("integration/util.jl")
 include("integration/cpvagk.jl")
 
 include("hamiltonian/dense_hamiltonian.jl")
@@ -203,9 +205,9 @@ export AbstractBath,
        AMEDiffEqOperator,
        AMETrajectoryOperator
 
-export ame_jump, update_ρ!
+export ame_jump, update_ρ!, τ_B, τ_SB, coarse_grain_timescale
 export cpvagk
-export UnitTime
+export UnitTime, InplaceUnitary
 
 export ProjectedSystem,
        ProjectedTG,
