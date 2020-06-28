@@ -205,7 +205,7 @@ export AbstractBath,
        AMEDiffEqOperator,
        AMETrajectoryOperator
 
-export ame_jump, update_ρ!
+export ame_jump, update_ρ!, τ_B, τ_SB, coarse_grain_timescale
 export cpvagk
 export UnitTime, InplaceUnitary
 
