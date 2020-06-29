@@ -145,3 +145,5 @@ function update_vectorized_cache!(cache, R::RedfieldSet, tf, t)
         update_vectorized_cache!(cache, r, tf, t)
     end
 end
+
+update_vectorized_cache!(cache, u, p::ODEParams, t::Real, R::RedfieldSet) = update_vectorized_cache!(cache, R, p.tf, t)
