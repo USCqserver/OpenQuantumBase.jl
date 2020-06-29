@@ -27,9 +27,18 @@ struct Redfield <: AbstractOpenSys
     Uτ::Union{Matrix,MMatrix}
     """cache matrix for integration"""
     Λ::Union{Matrix,MMatrix}
+    """tf minus coarse grain time scale"""
+    Ta::Number
 end
 
-function Redfield(ops::AbstractCouplings, U, cfun; atol = 1e-8, rtol = 1e-6)
+function Redfield(
+    ops::AbstractCouplings,
+    U,
+    cfun,
+    Ta;
+    atol = 1e-8,
+    rtol = 1e-6,
+)
     m_size = size(ops)
     if m_size[1] <= 1
         Λ = zeros(MMatrix{m_size[1],m_size[2],ComplexF64})
@@ -41,7 +50,7 @@ function Redfield(ops::AbstractCouplings, U, cfun; atol = 1e-8, rtol = 1e-6)
     else
         unitary = (cache, t) -> cache .= U(t)
     end
-    Redfield(ops, unitary, cfun, atol, rtol, similar(Λ), similar(Λ), Λ)
+    Redfield(ops, unitary, cfun, atol, rtol, similar(Λ), similar(Λ), Λ, Ta)
 end
 
 function (R::Redfield)(du, u, tf::Real, t::Real)
@@ -53,7 +62,7 @@ function (R::Redfield)(du, u, tf::Real, t::Real)
             mul!(R.Uτ, S(t), R.Ut')
             mul!(cache, R.Ut, R.Uτ, tf * R.cfun(t - x), 0)
         end
-        quadgk!(integrand, R.Λ, 0.0, t, rtol = R.rtol, atol = R.atol)
+        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
         𝐊₂ = S(t) * R.Λ * u - R.Λ * u * S(t)
         𝐊₂ = 𝐊₂ + 𝐊₂'
         axpy!(-tf, 𝐊₂, du)
@@ -69,7 +78,7 @@ function (R::Redfield)(du, u, tf::UnitTime, t::Real)
             mul!(R.Uτ, S(t / tf), R.Ut')
             mul!(cache, R.Ut, R.Uτ, R.cfun(t - x), 0)
         end
-        quadgk!(integrand, R.Λ, 0.0, t, rtol = R.rtol, atol = R.atol)
+        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
         𝐊₂ = S(t / tf) * R.Λ * u - R.Λ * u * S(t / tf)
         𝐊₂ = 𝐊₂ + 𝐊₂'
         axpy!(-1.0, 𝐊₂, du)
@@ -88,7 +97,7 @@ function update_vectorized_cache!(cache, R::Redfield, tf::Real, t::Real)
             mul!(R.Uτ, S(t), R.Ut')
             mul!(cache, R.Ut, R.Uτ, tf * R.cfun(t - x), 0)
         end
-        quadgk!(integrand, R.Λ, 0.0, t, rtol = R.rtol, atol = R.atol)
+        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
         SS = S(t)
         SΛ = SS * R.Λ
         cache .-=
@@ -107,7 +116,7 @@ function update_vectorized_cache!(cache, R::Redfield, tf::UnitTime, t::Real)
             mul!(R.Uτ, S(t / tf), R.Ut')
             mul!(cache, R.Ut, R.Uτ, R.cfun(t - x), 0)
         end
-        quadgk!(integrand, R.Λ, 0.0, t, rtol = R.rtol, atol = R.atol)
+        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
         SS = S(t / tf)
         SΛ = SS * R.Λ
         cache .-=

@@ -1,3 +1,8 @@
+build_correlation(bath::AbstractBath, tf::Real) =
+    (s) -> correlation(s * tf, bath)
+build_correlation(bath::AbstractBath, ::UnitTime) = (τ) -> correlation(τ, bath)
+build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
+
 """
 $(SIGNATURES)
 
@@ -24,15 +29,10 @@ end
 τ_B(bath::AbstractBath, lim, τsb; rtol = sqrt(eps()), atol = 0) =
     τ_B((t) -> correlation(t, bath), lim, τsb; rtol = rtol, atol = atol)
 
-function coarse_grain_timescale(
-    cfun,
-    lim;
-    rtol = sqrt(eps()),
-    atol = 0,
-)
+function coarse_grain_timescale(cfun, lim; rtol = sqrt(eps()), atol = 0)
     τsb, err_sb = τ_SB(cfun, rtol = rtol, atol = atol)
     τb, err_b = τ_B(cfun, lim, τsb, rtol = rtol, atol = atol)
-    sqrt(τsb * τb / 5)
+    sqrt(τsb * τb / 5), (err_sb * τb + τsb * err_b) / 10 / sqrt(τsb * τb / 5)
 end
 
 """
@@ -48,5 +48,51 @@ function coarse_grain_timescale(
 )
     τsb, err_sb = τ_SB(bath, rtol = rtol, atol = atol)
     τb, err_b = τ_B(bath, lim, τsb, rtol = rtol, atol = atol)
-    sqrt(τsb * τb / 5)
+    sqrt(τsb * τb / 5), (err_sb * τb + τsb * err_b) / 10 / sqrt(τsb * τb / 5)
+end
+
+function build_redfield(
+    coupling::AbstractCouplings,
+    bath::AbstractBath,
+    unitary,
+    tf::Union{Real,UnitTime},
+    Ta;
+    atol = 1e-8,
+    rtol = 1e-6,
+)
+    cfun = build_correlation(bath, tf)
+    Redfield(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
+end
+
+function build_davies(
+    coupling::AbstractCouplings,
+    bath::AbstractBath,
+    ω_range,
+    lambshift::Bool,
+)
+    if lambshift == true
+        if isempty(ω_range)
+            S_loc = (ω) -> S(ω, bath)
+        else
+            s_list = [S(ω, bath) for ω in ω_range]
+            S_loc = construct_interpolations(ω_range, s_list)
+        end
+    else
+        S_loc = (ω) -> 0.0
+    end
+    DaviesGenerator(coupling, build_spectrum(bath), S_loc)
+end
+
+function build_CGME(
+    coupling::AbstractCouplings,
+    unitary,
+    tf::Union{Real,UnitTime},
+    bath::AbstractBath;
+    atol = 1e-8,
+    rtol = 1e-6,
+    Ta = nothing,
+)
+    Ta = Ta == nothing ? coarse_grain_timescale(bath, tf)[1] : Ta
+    cfun = build_correlation(bath, tf)
+    CGOP(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
 end
