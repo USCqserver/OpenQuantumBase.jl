@@ -1,3 +1,18 @@
+import Interpolations:
+    interpolate,
+    BSpline,
+    Quadratic,
+    Line,
+    OnGrid,
+    scale,
+    gradient1,
+    extrapolate,
+    Linear,
+    Gridded,
+    NoInterp,
+    Cubic,
+    Constant
+
 """
     function construct_interpolations(x, y; method = "BSpline", order = 2, extrapolation = "line")
 

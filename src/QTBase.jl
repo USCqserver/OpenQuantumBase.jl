@@ -2,41 +2,21 @@ module QTBase
 
 using DocStringExtensions
 
-import LinearAlgebra: kron,
-                      mul!,
-                      axpy!,
-                      I,
-                      ishermitian,
-                      Hermitian,
-                      eigmin,
-                      eigen,
-                      tr,
-                      eigen!,
-                      axpy!,
-                      diag,
-                      lmul!,
-                      Diagonal,
-                      normalize
+import LinearAlgebra:
+    mul!,
+    axpy!,
+    I,
+    ishermitian,
+    Hermitian,
+    eigen,
+    tr,
+    eigen!,
+    diag,
+    lmul!,
+    Diagonal
 import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
-import QuadGK: quadgk, quadgk!
-import HCubature: hcubature
-import Interpolations: interpolate,
-                       BSpline,
-                       Quadratic,
-                       Line,
-                       OnGrid,
-                       scale,
-                       gradient1,
-                       extrapolate,
-                       Linear,
-                       Gridded,
-                       NoInterp,
-                       Cubic,
-                       Constant
-import StatsBase: sample, Weights
-import StaticArrays: SMatrix, MMatrix
-
+import QuadGK: quadgk
 
 """
 $(TYPEDEF)
@@ -110,11 +90,17 @@ include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
 include("interpolation.jl")
-include("coupling.jl")
-include("bath.jl")
 
-include("integration/util.jl")
+include("coupling/coupling.jl")
+include("coupling/interaction.jl")
+
+include("bath/bath_util.jl")
+include("bath/ohmic.jl")
+include("bath/spin_fluc.jl")
+include("bath/custom.jl")
+
 include("integration/cpvagk.jl")
+include("integration/ext_util.jl")
 
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
@@ -138,87 +124,95 @@ include("projection/gamma_matrix.jl")
 
 
 export temperature_2_beta,
-       temperature_2_freq,
-       beta_2_temperature,
-       freq_2_temperature
+    temperature_2_freq, beta_2_temperature, freq_2_temperature
 
 export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy
 
 export q_translate,
-       construct_hamming_weight_op,
-       single_clause,
-       standard_driver,
-       collective_operator,
-       GHZ_entanglement_witness,
-       local_field_term,
-       two_local_term,
-       q_translate_state
+    construct_hamming_weight_op,
+    single_clause,
+    standard_driver,
+    collective_operator,
+    GHZ_entanglement_witness,
+    local_field_term,
+    two_local_term,
+    q_translate_state
 
 export matrix_decompose, check_positivity, check_unitary
 
 export construct_interpolations, gradient
 
-export inst_population, gibbs_state, low_level_matrix
+export inst_population, gibbs_state, low_level_matrix, ame_jump, update_ρ!
 
 export AbstractHamiltonian,
-       AbstractSparseHamiltonian,
-       SparseHamiltonian,
-       AbstractDenseHamiltonian,
-       DenseHamiltonian,
-       AdiabaticFrameHamiltonian,
-       InterpDenseHamiltonian,
-       InterpSparseHamiltonian,
-       CustomDenseHamiltonian,
-       hamiltonian_from_function,
-       evaluate,
-       to_dense,
-       to_sparse,
-       is_sparse,
-       get_cache,
-       update_cache!,
-       update_vectorized_cache!
+    AbstractSparseHamiltonian,
+    SparseHamiltonian,
+    AbstractDenseHamiltonian,
+    DenseHamiltonian,
+    AdiabaticFrameHamiltonian,
+    InterpDenseHamiltonian,
+    InterpSparseHamiltonian,
+    CustomDenseHamiltonian,
+    hamiltonian_from_function,
+    evaluate,
+    to_dense,
+    to_sparse,
+    is_sparse,
+    get_cache,
+    update_cache!,
+    update_vectorized_cache!
 
 export AbstractCouplings,
-       ConstantCouplings,
-       TimeDependentCoupling,
-       AbstractTimeDependentCouplings,
-       TimeDependentCouplings,
-       CustomCouplings,
-       collective_coupling
+    ConstantCouplings,
+    TimeDependentCoupling,
+    AbstractTimeDependentCouplings,
+    TimeDependentCouplings,
+    CustomCouplings,
+    collective_coupling
 
 export eigen_decomp, EIGEN_DEFAULT
 
 export AbstractAnnealing,
-       Annealing,
-       ODEParams,
-       AbstractAnnealingControl,
-       Interaction,
-       InteractionSet
+    Annealing, ODEParams, AbstractAnnealingControl, Interaction, InteractionSet
 
 export AbstractBath,
-       AbstractOpenSys,
-       OpenSysSet,
-       Redfield,
-       CGOP,
-       RedfieldSet,
-       DaviesGenerator,
-       AMEDiffEqOperator,
-       AMETrajectoryOperator
+    AbstractOpenSys,
+    OpenSysSet,
+    Redfield,
+    CGOP,
+    RedfieldSet,
+    DaviesGenerator,
+    AMEDiffEqOperator,
+    AMETrajectoryOperator
 
-export ame_jump, update_ρ!, τ_B, τ_SB, coarse_grain_timescale
-export cpvagk
+export τ_B,
+    τ_SB,
+    coarse_grain_timescale,
+    correlation,
+    γ,
+    S,
+    spectrum,
+    Ohmic,
+    OhmicBath,
+    CustomBath,
+    EnsembleFluctuator,
+    construct_distribution,
+    build_redfield,
+    build_davies,
+    build_CGME
+
 export UnitTime, InplaceUnitary
 
 export ProjectedSystem,
-       ProjectedTG,
-       project_to_lowlevel,
-       get_dθ,
-       concatenate,
-       ProjectedCoupling,
-       construct_projected_coupling,
-       construct_projected_TG,
-       landau_zener_rotate_angle,
-       landau_zener_rotate,
-       ΓMatrix
+    ProjectedTG,
+    project_to_lowlevel,
+    get_dθ,
+    concatenate,
+    ProjectedCoupling,
+    construct_projected_coupling,
+    construct_projected_TG,
+    landau_zener_rotate_angle,
+    landau_zener_rotate,
+    ΓMatrix
 
 end  # module QTBase

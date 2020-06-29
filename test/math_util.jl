@@ -21,7 +21,7 @@ u_res = exp(-1.0im * 5 * 0.5 * σx)
 @test check_unitary(u_res)
 @test !check_unitary([0 1; 0 0])
 # === integration test ===
-@test cpvagk((x) -> 1.0, 0, -1, 1)[1] == 0
+@test QTBase.cpvagk((x) -> 1.0, 0, -1, 1)[1] == 0
 
 # == Hamiltonian analysis ===
 DH = DenseHamiltonian([(s) -> 1 - s, (s) -> s], [σx, σz], unit = :ħ)

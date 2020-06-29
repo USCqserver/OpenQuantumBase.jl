@@ -67,34 +67,3 @@ ODEParams(tf::Real; opensys = nothing, control = nothing) =
 
 ODEParams(tf::UnitTime; opensys = nothing, control = nothing) =
     ODEParams(nothing, tf, opensys, control)
-
-"""
-$(TYPEDEF)
-
-An object to hold system operator and the corresponding bath object.
-
-$(FIELDS)
-"""
-struct Interaction
-    """system operator"""
-    coupling::AbstractCouplings
-    """bath coupling to the system operator"""
-    bath::AbstractBath
-end
-
-"""
-$(TYPEDEF)
-
-An container for different system-bath interactions.
-
-$(FIELDS)
-"""
-struct InteractionSet{T<:Tuple}
-    """A tuple of Interaction"""
-    interactions::T
-end
-
-InteractionSet(inters::Interaction...) = InteractionSet(inters)
-Base.length(inters::InteractionSet) = Base.length(inters.interactions)
-Base.getindex(inters::InteractionSet, key...) =
-    Base.getindex(inters.interactions, key...)

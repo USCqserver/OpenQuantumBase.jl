@@ -1,3 +1,5 @@
+import StatsBase: sample, Weights
+
 """
 $(TYPEDEF)
 
@@ -117,14 +119,12 @@ function AMEDiffEqOperator(
     )
 end
 
-
 (A::AMEDiffEqOperator{S,false})(
     du,
     u,
     p::ODEParams{T},
     t,
 ) where {S,T<:AbstractFloat} = ame_update!(du, u, p.tf, t, A)
-
 
 (A::AMEDiffEqOperator{S,false})(
     du,

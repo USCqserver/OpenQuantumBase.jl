@@ -35,6 +35,9 @@ using SafeTestsets
     @time @safetestset "Redfield" begin
         include("redfield.jl")
     end
+    @time @safetestset "Bath" begin
+        include("bath.jl")
+    end
     @time @safetestset "Annealing" begin
         include("annealing.jl")
     end

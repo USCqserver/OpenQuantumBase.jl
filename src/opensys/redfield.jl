@@ -1,3 +1,6 @@
+import StaticArrays: MMatrix
+import QuadGK: quadgk!
+
 """
 $(TYPEDEF)
 
@@ -40,19 +43,6 @@ function Redfield(ops::AbstractCouplings, U, cfun; atol = 1e-8, rtol = 1e-6)
     end
     Redfield(ops, unitary, cfun, atol, rtol, similar(Λ), similar(Λ), Λ)
 end
-
-# function (R::Redfield{true})(du, u, tf::Real, t::Real)
-#     for S in R.ops
-#         function integrand(x)
-#             unitary = R.unitary(t) * R.unitary(x)'
-#             tf * R.cfun(t - x) * unitary * S * unitary'
-#         end
-#         Λ, err = quadgk(integrand, 0, t, rtol = R.rtol, atol = R.atol)
-#         𝐊₂ = S * Λ * u - Λ * u * S
-#         𝐊₂ = 𝐊₂ + 𝐊₂'
-#         axpy!(-tf, 𝐊₂, du)
-#     end
-# end
 
 function (R::Redfield)(du, u, tf::Real, t::Real)
     for S in R.ops

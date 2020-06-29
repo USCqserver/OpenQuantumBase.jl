@@ -1,11 +1,13 @@
-const σx = [0.0+0.0im 1; 1 0]
-const σy = [0.0+0.0im -1.0im; 1.0im 0]
-const σz = [1.0+0.0im 0; 0 -1]
-const σi = [1.0+0.0im 0; 0 1]
+import LinearAlgebra: kron, eigmin
+
+const σx = [0.0 + 0.0im 1; 1 0]
+const σy = [0.0 + 0.0im -1.0im; 1.0im 0]
+const σz = [1.0 + 0.0im 0; 0 -1]
+const σi = [1.0 + 0.0im 0; 0 1]
 const σ = [σx, σy, σz, σi]
-xvec = [[1.0+0.0im, 1.0]/sqrt(2), [1.0+0.0im, -1.0]/sqrt(2)]
-yvec = [[1.0im, -1.0]/sqrt(2), [1.0im, 1.0]/sqrt(2)]
-zvec = [[1.0+0.0im, 0], [0, 1.0+0.0im]]
+xvec = [[1.0 + 0.0im, 1.0] / sqrt(2), [1.0 + 0.0im, -1.0] / sqrt(2)]
+yvec = [[1.0im, -1.0] / sqrt(2), [1.0im, 1.0] / sqrt(2)]
+zvec = [[1.0 + 0.0im, 0], [0, 1.0 + 0.0im]]
 
 const spσz = sparse(σz)
 const spσx = sparse(σx)
@@ -56,9 +58,12 @@ julia> matrix_decompose(1.0*σx+2.0*σy+3.0*σz, [σx,σy,σz])
  3.0 + 0.0im
 ```
 """
-function matrix_decompose(mat::Matrix{T}, basis::Array{Matrix{T},1}) where T<:Number
+function matrix_decompose(
+    mat::Matrix{T},
+    basis::Array{Matrix{T},1},
+) where {T<:Number}
     dim = size(basis[1])[1]
-    [tr(mat*b)/dim for b in basis]
+    [tr(mat * b) / dim for b in basis]
 end
 
 """
@@ -66,7 +71,7 @@ end
 
 Check if matrix `m` is positive. Return `true` is the minimum eigenvalue of `m` is greater than or equal to 0.
 """
-function check_positivity(m::Matrix{T}) where T<:Number
+function check_positivity(m::Matrix{T}) where {T<:Number}
     if !ishermitian(m)
         @warn "Input fails the numerical test for Hermitian matrix. Use the upper triangle to construct a new Hermitian matrix."
         d = Hermitian(m)
@@ -96,12 +101,12 @@ function gibbs_state(h, T)
     w, v = eigen(Hermitian(h))
     res = zeros(eltype(v), size(h))
     for (i, E) in enumerate(w)
-        t = exp(-β*E)
+        t = exp(-β * E)
         vi = @view v[:, i]
-        res += t*vi*vi'
+        res += t * vi * vi'
         Z += t
     end
-    res/Z
+    res / Z
 end
 
 """
@@ -126,7 +131,7 @@ function low_level_matrix(M, lvl)
     else
         w, v = eigen(Hermitian(M))
         res = zeros(eltype(v), size(M))
-        for i in range(1,stop=lvl)
+        for i in range(1, stop = lvl)
             vi = @view v[:, i]
             res += w[i] * vi * vi'
         end
@@ -146,14 +151,18 @@ julia> check_unitary(exp(-1.0im*5*0.5*σx))
 true
 ```
 """
-function check_unitary(𝐔::Matrix{T}; rtol=1e-6, atol=1e-8) where T<:Number
-    a1 = isapprox(𝐔*𝐔', Matrix{eltype(𝐔)}(I,size(𝐔)),rtol=rtol,atol=atol)
-    a2 = isapprox(𝐔'*𝐔, Matrix{eltype(𝐔)}(I,size(𝐔)),rtol=rtol,atol=atol)
+function check_unitary(𝐔::Matrix{T}; rtol = 1e-6, atol = 1e-8) where {T<:Number}
+    a1 = isapprox(
+        𝐔 * 𝐔',
+        Matrix{eltype(𝐔)}(I, size(𝐔)),
+        rtol = rtol,
+        atol = atol,
+    )
+    a2 = isapprox(
+        𝐔' * 𝐔,
+        Matrix{eltype(𝐔)}(I, size(𝐔)),
+        rtol = rtol,
+        atol = atol,
+    )
     a1 && a2
-end
-
-
-@inline function comm_update!(dρ, H, ρ, p)
-    gemm!('N', 'N', -1.0im*p, H, ρ, 1.0+0.0im, dρ)
-    gemm!('N', 'N', 1.0im*p, ρ, H, 1.0+0.0im, dρ)
 end

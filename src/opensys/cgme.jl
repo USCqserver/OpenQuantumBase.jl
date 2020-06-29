@@ -1,3 +1,5 @@
+import HCubature: hcubature
+
 """
 $(TYPEDEF)
 
