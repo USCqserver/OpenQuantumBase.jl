@@ -199,7 +199,8 @@ export τ_B,
     construct_distribution,
     build_redfield,
     build_davies,
-    build_CGME
+    build_CGME,
+    info_freq
 
 export UnitTime, InplaceUnitary
 
