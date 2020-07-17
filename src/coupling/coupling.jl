@@ -24,7 +24,7 @@ struct ConstantCouplings <: AbstractCouplings
     """1-D array for independent coupling operators"""
     mats::Vector{CallableMatrix}
     """String representation for the coupling (for display purpose)"""
-    str_rep::Vector{String}
+    str_rep::Union{Vector{String}, Nothing}
 end
 
 (c::ConstantCouplings)(t) = c.mats
@@ -52,7 +52,7 @@ function ConstantCouplings(
         end
     end
     ConstantCouplings(
-        unit_scale(unit) .* [CallableMatrix(m) for m in mats],
+        [CallableMatrix(m) for m in (unit_scale(unit) .* mats)],
         str_rep,
     )
 end
