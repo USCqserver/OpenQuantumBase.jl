@@ -15,6 +15,14 @@ res = c(0.2)
 @test res[2](0) == σi⊗σz
 @test [op(0) for op in c] == [σz⊗σi, σi⊗σz]
 
+c = ConstantCouplings([σz⊗σi, σi⊗σz], unit=:ħ)
+@test isequal(c.mats[1], σz⊗σi)
+@test isequal(c.mats[2], σi⊗σz)
+res = c(0.2)
+@test res[1](0) == σz⊗σi
+@test res[2](0) == σi⊗σz
+@test [op(0) for op in c] == [σz⊗σi, σi⊗σz]
+
 c = ConstantCouplings(["ZI", "IZ"], sp=true)
 @test isequal(c.mats[1], 2π*spσz⊗spσi)
 @test isequal(c.mats[2], 2π*spσi⊗spσz)
