@@ -140,7 +140,7 @@ export q_translate,
 
 export matrix_decompose, check_positivity, check_unitary
 
-export construct_interpolations, gradient
+export construct_interpolations, gradient, log_uniform
 
 export inst_population, gibbs_state, low_level_matrix, ame_jump, update_ρ!
 

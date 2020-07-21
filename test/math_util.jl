@@ -52,3 +52,5 @@ w, v = eigen_decomp(H_check, [0.5])
       isapprox(spv[:, 1, 1], -v[:, 1, 1], atol = 1e-4)
 @test isapprox(spv[:, 2, 1], v[:, 2, 1], atol = 1e-4) ||
       isapprox(spv[:, 2, 1], -v[:, 2, 1], atol = 1e-4)
+# == utilit math functions ==
+@test log_uniform(1, 10, 3) == [1, 10^0.5, 10]

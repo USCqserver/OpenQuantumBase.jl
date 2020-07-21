@@ -166,3 +166,14 @@ function check_unitary(𝐔::Matrix{T}; rtol = 1e-6, atol = 1e-8) where {T<:Numb
     )
     a1 && a2
 end
+
+"""
+$(SIGNATURES)
+
+Generate a log-uniformly distributed array with `num` elements between `a` and `b`. The base of log is `base` with default value 10.
+"""
+function log_uniform(a, b, num; base = 10)
+    loga = log(base, a)
+    logb = log(base, b)
+    10 .^ range(loga, logb, length=num)
+end
