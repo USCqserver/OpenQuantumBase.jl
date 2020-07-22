@@ -175,5 +175,39 @@ Generate a log-uniformly distributed array with `num` elements between `a` and `
 function log_uniform(a, b, num; base = 10)
     loga = log(base, a)
     logb = log(base, b)
-    10 .^ range(loga, logb, length=num)
+    10 .^ range(loga, logb, length = num)
+end
+
+"""
+$(SIGNATURES)
+
+Calculate the partial trace of the density matrix `ρ`. `qubit_2_keep` is an array of qubit indices to keep.
+
+# Examples
+```julia-repl
+julia> ρ1 = [0.4 0.5; 0.5 0.6]; ρ2 = [0.5 0; 0 0.5];
+julia> partial_trace(ρ1⊗ρ2, [1])
+2×2 Array{Float64,2}:
+ 0.4  0.5
+ 0.5  0.6
+```
+"""
+function partial_trace(ρ::Matrix, qubit_2_keep)
+    num = Int(log2(size(ρ, 1)))
+    mat = reshape(ρ, repeat([2, 2], num)...)
+    axis_2_sum =
+        [(i, num + i) for i in 1:num if !(i in (num .- qubit_2_keep .+ 1))]
+    minus_factor = [(i, 2 * i) for i = 0:(length(axis_2_sum)-1)]
+    axis_2_sum =
+        [(q[1] - m[1], q[2] - m[2]) for (q, m) in zip(axis_2_sum, minus_factor)]
+    for (i, j) in axis_2_sum
+        idx1 = fill!(Array{Any,1}(undef, ndims(mat)), Colon())
+        idx2 = fill!(Array{Any,1}(undef, ndims(mat)), Colon())
+        idx1[i] = 1
+        idx1[j] = 1
+        idx2[i] = 2
+        idx2[j] = 2
+        mat = mat[idx1...] + mat[idx2...]
+    end
+    mat
 end
