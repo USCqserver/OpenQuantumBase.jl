@@ -6,11 +6,11 @@ _h = 6.62607004
 _k = 1.38064852
 
 """
-    temperature_2_beta(T)
+     temperature_2_β(T)
 
 Convert physical temperature `T` in mK to thermodynamic `β` in the unit of inverse angular frequency, that is to say ``β = ħ/kT``.
 """
-function temperature_2_beta(T)
+function  temperature_2_β(T)
     5*_h/_k/pi/T
 end
 
@@ -24,11 +24,11 @@ function temperature_2_freq(T)
 end
 
 """
-    beta_2_temperature(β)
+    β_2_temperature(β)
 
 Convert thermodynamic `β` in the unit of inverse angular frequency to physical temperature `T` in GHz.
 """
-function beta_2_temperature(β)
+function β_2_temperature(β)
     5*_h/_k/pi/β
 end
 

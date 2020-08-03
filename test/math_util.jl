@@ -14,8 +14,8 @@ m =
 # == units conversion test ===
 @test temperature_2_freq(1e3) ≈ 20.8366176361328 atol = 1e-4 rtol = 1e-4
 @test freq_2_temperature(20) ≈ 959.8489324422699 atol = 1e-4 rtol = 1e-4
-@test temperature_2_freq(1e3) ≈ 1 / temperature_2_beta(1e3) / 2 / π
-@test beta_2_temperature(0.47) ≈ 16.251564065921915
+@test temperature_2_freq(1e3) ≈ 1 /  temperature_2_β(1e3) / 2 / π
+@test β_2_temperature(0.47) ≈ 16.251564065921915
 # === unitary test ===
 u_res = exp(-1.0im * 5 * 0.5 * σx)
 @test check_unitary(u_res)

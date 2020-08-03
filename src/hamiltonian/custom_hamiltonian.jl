@@ -9,11 +9,11 @@ $(FIELDS)
 """
 struct CustomDenseHamiltonian{T<:Number,in_place} <: AbstractDenseHamiltonian{T}
     """Function for the Hamiltonian `H(s)`"""
-    f
+    f::Any
     """Internal cache"""
-    u_cache
+    u_cache::Any
     """Size"""
-    size
+    size::Any
 end
 
 
@@ -24,8 +24,6 @@ end
 
 get_cache(H::CustomDenseHamiltonian) = zeros(eltype(H), size(H))
 (H::CustomDenseHamiltonian)(s) = H.f(s)
-(H::CustomDenseHamiltonian)(tf::Real, s) = tf * H.f(s)
-(H::CustomDenseHamiltonian)(tf::UnitTime, t) = H.f(t / tf)
 
 update_cache!(cache, H::CustomDenseHamiltonian, tf, s) =
-    cache .= -1.0im * H(tf, s)
+    cache .= -1.0im * H(s)

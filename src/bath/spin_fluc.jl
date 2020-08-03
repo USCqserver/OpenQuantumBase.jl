@@ -16,8 +16,7 @@ end
 
 correlation(τ, R::SymetricRTN) = R.b^2 * exp(-R.γ * τ)
 spectrum(ω, R::SymetricRTN) = 2 * R.b^2 * R.γ / (ω^2 + R.γ^2)
-construct_distribution(tf::Real, R::SymetricRTN) = Exponential(1 / R.γ / tf)
-construct_distribution(tf::UnitTime, R::SymetricRTN) = Exponential(1 / R.γ)
+construct_distribution(R::SymetricRTN) = Exponential(1 / R.γ)
 
 """
 $(TYPEDEF)
@@ -35,11 +34,19 @@ EnsembleFluctuator(b::AbstractArray{T}, ω::AbstractArray{T}) where {T<:Number} 
     EnsembleFluctuator([SymetricRTN(x, y) for (x, y) in zip(b, ω)])
 correlation(τ, E::EnsembleFluctuator) = sum((x) -> correlation(τ, x), E.f)
 spectrum(ω, E::EnsembleFluctuator) = sum((x) -> spectrum(ω, x), E.f)
-construct_distribution(tf, E::EnsembleFluctuator) =
-    product_distribution([construct_distribution(tf, x) for x in E.f])
+construct_distribution(E::EnsembleFluctuator) =
+    product_distribution([construct_distribution(x) for x in E.f])
 
 Base.length(E::EnsembleFluctuator) = Base.length(E.f)
 Base.show(io::IO, ::MIME"text/plain", E::EnsembleFluctuator) =
     print(io, "Fluctuator ensemble with ", length(E), " fluctuators")
 Base.show(io::IO, E::EnsembleFluctuator) =
     print(io, "Fluctuator ensemble with ", length(E), " fluctuators")
+
+function build_fluctuator(coupling::AbstractCouplings, bath::EnsembleFluctuator)
+    num = length(coupling)
+    dist = construct_distribution(bath)
+    b0 = [x.b for x in bath.f] .* rand([-1, 1], length(dist), num)
+    next_τ, next_idx = findmin(rand(dist, num))
+    Fluctuators(coupling, dist, b0, next_idx, next_τ, sum(b0, dims = 1)[:])
+end

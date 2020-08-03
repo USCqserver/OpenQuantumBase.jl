@@ -8,15 +8,12 @@ u = [1.0 + 0.0im, 1] / sqrt(2)
 
 H_sparse = SparseHamiltonian([A, B], [spσx, spσz])
 
-@test H_sparse(2.0, 0.5) == 2π*(spσx + spσz)
-@test H_sparse(UnitTime(2.0), 1.0) == π*(spσx + spσz)
-
 H_real = real(H_sparse)
 @test eltype(H_real) <: Real
 @test H_sparse(0.0) ≈ H_real(0.0)
 
 @test size(H_sparse) == (2,2)
-@test is_sparse(H_sparse)
+@test issparse(H_sparse)
 @test H_sparse(0) ≈ 2π * spσx
 @test evaluate(H_sparse, 0) == spσx
 @test H_sparse(0.5) ≈ π * (spσx + spσz)
@@ -30,16 +27,11 @@ H_sparse(du, ρ, 1.0, 0.5)
 # update_cache method
 C = similar(spσz)
 update_cache!(C, H_sparse, 10, 0.5)
-@test C == -10im * π * (spσx + spσz)
-update_cache!(C, H_sparse, UnitTime(10), 5)
 @test C == -1im * π * (spσx + spσz)
 
 # update_vectorized_cache method
-C = get_cache(H_sparse, true)
+C = C⊗C
 update_vectorized_cache!(C, H_sparse, 10, 0.5)
-temp = -10im * π * (spσx + spσz)
-@test C == spσi⊗temp - transpose(temp)⊗spσi
-update_vectorized_cache!(C, H_sparse, UnitTime(10), 5)
 temp = -1im * π * (spσx + spσz)
 @test C == spσi⊗temp - transpose(temp)⊗spσi
 
@@ -50,8 +42,3 @@ vf = [0, 0, 0, 1.0]
 @test w ≈ [-1.1, -0.9]
 @test abs(v[end, 1]) ≈ 1
 @test abs(v[1, 2]) ≈ 1
-
-# test for ode_eigen_decomp
-#w, v = QTBase.ode_eigen_decomp(H_sparse, 1.0, 3, 1e-6, zeros((0,)))
-#@test w ≈ [-1.1, -0.9, 0.9] * 2π
-#@test abs.(v[:, 1]) ≈ vf atol=1e-6 rtol=1e-6

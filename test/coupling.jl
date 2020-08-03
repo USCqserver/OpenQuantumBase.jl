@@ -2,25 +2,25 @@ using QTBase, Test
 
 c = ConstantCouplings(["ZI", "IZ"])
 @test isequal(c.mats[1], 2π*σz⊗σi)
-@test c.mats[2](0) == 2π*σi⊗σz
+@test c.mats[2] == 2π*σi⊗σz
 res = c(0.2)
 @test isequal(res[1], 2π*σz⊗σi)
-@test res[2](0) == 2π*σi⊗σz
+@test res[2] == 2π*σi⊗σz
 
 c = ConstantCouplings(["ZI", "IZ"], unit=:ħ)
 @test isequal(c.mats[1], σz⊗σi)
 @test isequal(c.mats[2], σi⊗σz)
 res = c(0.2)
-@test res[1](0) == σz⊗σi
-@test res[2](0) == σi⊗σz
+@test res[1] == σz⊗σi
+@test res[2] == σi⊗σz
 @test [op(0) for op in c] == [σz⊗σi, σi⊗σz]
 
 c = ConstantCouplings([σz⊗σi, σi⊗σz], unit=:ħ)
 @test isequal(c.mats[1], σz⊗σi)
 @test isequal(c.mats[2], σi⊗σz)
 res = c(0.2)
-@test res[1](0) == σz⊗σi
-@test res[2](0) == σi⊗σz
+@test res[1] == σz⊗σi
+@test res[2] == σi⊗σz
 @test [op(0) for op in c] == [σz⊗σi, σi⊗σz]
 
 c = ConstantCouplings(["ZI", "IZ"], sp=true)

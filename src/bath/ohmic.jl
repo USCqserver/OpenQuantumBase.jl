@@ -23,7 +23,7 @@ Construct OhmicBath from parameters with physical unit: `η`--unitless interacti
 """
 function Ohmic(η, fc, T)
     ωc = 2 * π * fc
-    β = temperature_2_beta(T)
+    β =  temperature_2_β(T)
     OhmicBath(η, ωc, β)
 end
 
@@ -38,7 +38,7 @@ function Base.show(io::IO, ::MIME"text/plain", m::OhmicBath)
         m.ωc / pi / 2,
         "\n",
         "T (mK): ",
-        beta_2_temperature(m.β),
+        β_2_temperature(m.β),
     )
 end
 
@@ -88,5 +88,5 @@ end
 
 function info_freq(bath::OhmicBath)
     println("ωc (GHz): ", bath.ωc / pi / 2)
-    println("T (GHz): ", temperature_2_freq(beta_2_temperature(bath.β)))
+    println("T (GHz): ", temperature_2_freq(β_2_temperature(bath.β)))
 end

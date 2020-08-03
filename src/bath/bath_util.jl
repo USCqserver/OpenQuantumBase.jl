@@ -1,6 +1,4 @@
-build_correlation(bath::AbstractBath, tf::Real) =
-    (s) -> correlation(s * tf, bath)
-build_correlation(bath::AbstractBath, ::UnitTime) = (τ) -> correlation(τ, bath)
+build_correlation(bath::AbstractBath) = (τ) -> correlation(τ, bath)
 build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
 
 """
@@ -55,19 +53,18 @@ function build_redfield(
     coupling::AbstractCouplings,
     bath::AbstractBath,
     unitary,
-    tf::Union{Real,UnitTime},
     Ta;
     atol = 1e-8,
     rtol = 1e-6,
 )
-    cfun = build_correlation(bath, tf)
-    Redfield(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
+    cfun = build_correlation(bath)
+    RedfieldGenerator(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
 end
 
 function build_davies(
     coupling::AbstractCouplings,
     bath::AbstractBath,
-    ω_range,
+    ω_range::AbstractVector,
     lambshift::Bool,
 )
     if lambshift == true
@@ -83,16 +80,16 @@ function build_davies(
     DaviesGenerator(coupling, build_spectrum(bath), S_loc)
 end
 
-function build_CGME(
+function build_CGG(
     coupling::AbstractCouplings,
+    bath::AbstractBath,
     unitary,
-    tf::Union{Real,UnitTime},
-    bath::AbstractBath;
+    tf;
     atol = 1e-8,
     rtol = 1e-6,
     Ta = nothing,
 )
     Ta = Ta == nothing ? coarse_grain_timescale(bath, tf)[1] : Ta
-    cfun = build_correlation(bath, tf)
-    CGOP(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
+    cfun = build_correlation(bath)
+    CGGenerator(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
 end

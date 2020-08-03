@@ -1,4 +1,4 @@
-using QTBase, Test
+using QTBase, Test, Random
 import LinearAlgebra: Diagonal
 
 
@@ -77,7 +77,7 @@ H = DenseHamiltonian(
     [-standard_driver(2), (0.1 * σz ⊗ σi + 0.5 * σz ⊗ σz)],
 )
 coupling = ConstantCouplings(["ZI+IZ"])
-davies_gen = DaviesGenerator(coupling, γ, S)
+davies = DaviesGenerator(coupling, γ, S)
 op = 2π * (σz ⊗ σi + σi ⊗ σz)
 
 w, v = eigen_decomp(H, 0.5, lvl = 4)
@@ -97,35 +97,33 @@ QTBase.davies_update!(du, u, A_ij, gm, sm)
 @test v * du * v' ≈ drho atol = 1e-6 rtol = 1e-6
 
 du = zeros(ComplexF64, (4, 4))
-davies_gen(du, u, w_ab, v, 1.0, 0.5)
-@test v * du * v' ≈ drho atol = 1e-6 rtol = 1e-6
-du = zeros(ComplexF64, (4, 4))
-davies_gen(du, u, w_ab, v, UnitTime(1.0), 5)
+davies(du, u, w_ab, v, 0.5)
 @test v * du * v' ≈ drho atol = 1e-6 rtol = 1e-6
 
-ame_op = AMETrajectoryOperator(H, davies_gen, 4)
+cache = zeros(ComplexF64, (4, 4))
+exp_effective_H = ame_trajectory_update_term(op, w, v, γ, S)
+update_cache!(cache, davies, w_ab, v, 0.5)
+@test v * cache * v' ≈ exp_effective_H atol = 1e-6 rtol = 1e-6
+
+# test for AMEOperator
+ame_op = AMEOperator(H, davies, 4)
+p = ODEParams(H, 2.0, (tf, t)->t/tf)
 exp_effective_H = ame_trajectory_update_term(op, w, v, γ, S) - 1.0im * H(0.5)
 cache = zeros(ComplexF64, 4, 4)
-update_cache!(cache, ame_op, 1.0, 0.5)
+update_cache!(cache, ame_op, p, 1)
 @test cache ≈ exp_effective_H atol = 1e-6 rtol = 1e-6
 
-
-#TODO: Add test for the operator itself
-jump_op = ame_jump(ame_op, state, 1.0, 0.5)
-@test size(jump_op) == (4, 4)
-
-# test for AMEDiffEqOperator
-ame_op = AMEDiffEqOperator(H, davies_gen, 4)
 hmat = H(0.5)
 expected_drho = drho - 1.0im * (hmat * rho - rho * hmat)
-
 du = zeros(ComplexF64, (4, 4))
-ame_op(du, rho, ODEParams(2.0), 0.5)
-@test du ≈ 2.0 * expected_drho atol = 1e-6 rtol = 1e-6
-
-du = zeros(ComplexF64, (4, 4))
-ame_op(du, rho, ODEParams(UnitTime(5)), 2.5)
+ame_op(du, rho, p, 1)
 @test du ≈ expected_drho atol = 1e-6 rtol = 1e-6
+
+Random.seed!(1234)
+jump_op = ame_jump(ame_op, state, p, 1)
+exp_res = Complex{Float64}[6.672340269678421 + 0.0im 0.37611761184098264 + 0.0im 0.30757886113480604 + 0.0im -7.009918137704409 + 0.0im; 8.329733374366892 + 0.0im 0.46954431240210126 + 0.0im 0.38398070261603034 + 0.0im -8.751164764267996 + 0.0im; 9.465353222476072 + 0.0im 0.5335588272449766 + 0.0im 0.4363300501381911 + 0.0im -9.944239734825716 + 0.0im; 7.213269209357397 + 0.0im 0.4066095970732551 + 0.0im 0.33251438607759143 + 0.0im -7.578214632218711 + 0.0im]
+@test size(jump_op) == (4, 4)
+@test jump_op ≈ exp_res
 
 # Sparse Hamiltonian test
 Hd = standard_driver(4; sp = true)
@@ -133,7 +131,7 @@ Hp = q_translate("-0.9ZZII+IZZI-0.9IIZZ"; sp = true)
 H = SparseHamiltonian([(s) -> 1 - s, (s) -> s], [Hd, Hp])
 op = 2π * q_translate("ZIII+IZII+IIZI+IIIZ")
 coupling = ConstantCouplings(["ZIII+IZII+IIZI+IIIZ"])
-davies_gen = DaviesGenerator(coupling, γ, S)
+davies = DaviesGenerator(coupling, γ, S)
 w, v = eigen_decomp(H, 0.5, lvl = 4)
 w = 2π * real(w)
 
@@ -144,10 +142,9 @@ drho, = ame_update_term(op, w, v, γ, S)
 exp_effective_H =
     ame_trajectory_update_term(op, w, v, γ, S) - 1.0im * v * Diagonal(w) * v'
 
-
-ame_op = AMEDiffEqOperator(H, davies_gen, 4)
+ame_op = AMEOperator(H, davies, 4)
 du = zeros(ComplexF64, (16, 16))
-ame_op(du, rho, ODEParams(1.0), 0.5)
+ame_op(du, rho, p, 1)
 hmat = H(0.5)
 @test isapprox(
     du,
@@ -156,7 +153,6 @@ hmat = H(0.5)
     rtol = 1e-6,
 )
 
-ame_op = AMETrajectoryOperator(H, davies_gen, 4)
 cache = zeros(ComplexF64, 16, 16)
-update_cache!(cache, ame_op, 1.0, 0.5)
+update_cache!(cache, ame_op, p, 1)
 @test cache ≈ exp_effective_H atol = 1e-6 rtol = 1e-6

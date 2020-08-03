@@ -28,46 +28,25 @@ InteractionSet(inters::Interaction...) = InteractionSet(inters)
 Base.length(inters::InteractionSet) = Base.length(inters.interactions)
 Base.getindex(inters::InteractionSet, key...) =
     Base.getindex(inters.interactions, key...)
+Base.iterate(iters::InteractionSet, state = 1) =
+    Base.iterate(iters.interactions, state)
 
-function build_redfield(iset::InteractionSet, U, tf, Ta,; atol = 1e-8, rtol = 1e-6)
-    if length(iset) == 1
-        build_redfield(iset[1], U, tf, Ta, atol = atol, rtol = rtol)
-    else
-        RedfieldSet([
-            build_redfield(i, U, tf, Ta, atol = atol, rtol = rtol)
-            for i in iset.interactions
-        ]...)
-    end
-end
+build_redfield(iset::InteractionSet, U, Ta; atol = 1e-8, rtol = 1e-6) =
+    [build_redfield(i, U, Ta, atol = atol, rtol = rtol) for i in iset]
+build_redfield(i::Interaction, U, Ta; atol = 1e-8, rtol = 1e-6) =
+    build_redfield(i.coupling, i.bath, U, Ta, atol = atol, rtol = rtol)
 
-build_redfield(i::Interaction, U, tf, Ta; atol = 1e-8, rtol = 1e-6) =
-    build_redfield(i.coupling, i.bath, U, tf, Ta, atol = atol, rtol = rtol)
+build_CGG(iset::InteractionSet, U, tf; atol = 1e-8, rtol = 1e-6, Ta = nothing) =
+    [build_CGG(i, U, tf, atol = atol, rtol = rtol, Ta = Ta) for i in iset]
+build_CGG(i::Interaction, U, tf; atol = 1e-8, rtol = 1e-6, Ta = nothing) =
+    build_CGG(i.coupling, i.bath, U, tf, atol = atol, rtol = rtol, Ta = Ta)
 
-function build_CGME(
-    iset::InteractionSet,
-    U,
-    tf;
-    atol = 1e-8,
-    rtol = 1e-6,
-    Ta = nothing,
-)
-    if length(iset) == 1
-        build_CGME(iset[1], U, tf, atol = atol, rtol = rtol, Ta = Ta)
-    else
-        throw(ArgumentError("InteractionSet is not supported for CGME for now."))
-    end
-end
-
-build_CGME(i::Interaction, U, tf; atol = 1e-8, rtol = 1e-6, Ta = nothing) =
-    build_CGME(i.coupling, U, tf, i.bath, atol = atol, rtol = rtol, Ta = Ta)
-
-function build_davies(iset::InteractionSet, ω_range, lambshift::Bool)
-    if length(iset) == 1
-        build_davies(iset[1], ω_range, lambshift)
-    else
-        throw(ArgumentError("Multiple interactions is not yet supported for adiabatic master equation solver."))
-    end
-end
-
+build_davies(iset::InteractionSet, ω_range, lambshift::Bool) =
+    [build_davies(i, ω_range, lambshift) for i in iset]
 build_davies(inter::Interaction, ω_hint, lambshift) =
     build_davies(inter.coupling, inter.bath, ω_hint, lambshift)
+
+build_fluctuator(iset::InteractionSet) =
+    [build_fluctuator(i.coupling, i.bath) for i in iset]
+build_fluctuator(inter::Interaction) =
+    build_fluctuator(inter.coupling, inter.bath)
