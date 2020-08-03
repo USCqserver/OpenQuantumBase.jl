@@ -3,12 +3,10 @@ struct DiagonalOperator{T<:Real}
     u_cache::Vector{T}
 end
 
-
 struct GeometricOperator{T<:Number}
     funcs::Tuple
     u_cache::Matrix{T}
 end
-
 
 """
 $(TYPEDEF)
@@ -25,7 +23,7 @@ struct AdiabaticFrameHamiltonian{T} <: AbstractDenseHamiltonian{T}
     """Adiabatic part"""
     diagonal::DiagonalOperator
     """Size of the Hamiltonian"""
-    size
+    size::Any
 end
 
 
@@ -42,31 +40,20 @@ function AdiabaticFrameHamiltonian(ωfuns, geofuns)
     AdiabaticFrameHamiltonian{T}(geo_op, diag_op, op_size)
 end
 
+function (H::AdiabaticFrameHamiltonian)(tf::Real, s::Real)
+    ω = 2π * H.diagonal(s)
+    off = H.geometric(s) / tf
+    ω + off
+end
 
 function update_cache!(cache, H::AdiabaticFrameHamiltonian, tf, t::Real)
     hmat = H(tf, t)
     cache .= -1.0im * hmat
 end
 
-
-function get_cache(H::AdiabaticFrameHamiltonian{T}) where T
+function get_cache(H::AdiabaticFrameHamiltonian{T}) where {T}
     zeros(T, size(H))
 end
-
-
-function (H::AdiabaticFrameHamiltonian)(tf::Real, t::Real)
-    ω = 2π * tf * H.diagonal(t)
-    off = H.geometric(t)
-    ω + off
-end
-
-
-function (H::AdiabaticFrameHamiltonian)(tf::UnitTime, t::Real)
-    ω = 2π * H.diagonal(t / tf)
-    off = H.geometric(t / tf) / tf
-    ω + off
-end
-
 
 """
     function evaluate(H::AdiabaticFrameHamiltonian, s, tf)
@@ -79,39 +66,22 @@ function evaluate(H::AdiabaticFrameHamiltonian, s, tf)
     ω + off
 end
 
-
 function (h::AdiabaticFrameHamiltonian)(
     du::Matrix{T},
     u::Matrix{T},
     tf::Real,
-    t::Real
-) where T <: Number
-    ω = h.diagonal(t)
-    du .= -2.0im * π * tf * (ω * u - u * ω)
-    G = h.geometric(t)
-    du .+= -1.0im * (G * u - u * G)
-end
-
-
-function (h::AdiabaticFrameHamiltonian)(
-    du::Matrix{T},
-    u::Matrix{T},
-    tf::UnitTime,
-    t::Real
-) where T <: Number
-    s = t / tf
+    s::Real,
+) where {T<:Number}
     ω = h.diagonal(s)
     du .= -2.0im * π * (ω * u - u * ω)
     G = h.geometric(s)
     du .+= -1.0im * (G * u - u * G) / tf
 end
 
-
 function ω_matrix(H::AdiabaticFrameHamiltonian, lvl)
     ω = 2π * H.diagonal.u_cache[1:lvl]
     ω' .- ω
 end
-
 
 function ω_matrix_RWA(H::AdiabaticFrameHamiltonian, tf, t, lvl)
     ω = 2π * H.diagonal(t)
@@ -120,14 +90,13 @@ function ω_matrix_RWA(H::AdiabaticFrameHamiltonian, tf, t, lvl)
     eigen!(Hermitian(ω + off), 1:lvl)
 end
 
-
 function DiagonalOperator(funcs...)
     num_type = typeof(funcs[1](0.0))
     DiagonalOperator{num_type}(funcs, zeros(num_type, length(funcs)))
 end
 
 
-function DiagonalOperator(funcs::Vector{T}) where T
+function DiagonalOperator(funcs::Vector{T}) where {T}
     DiagonalOperator(funcs...)
 end
 
@@ -152,7 +121,7 @@ function GeometricOperator(funcs...)
 end
 
 
-function GeometricOperator(funcs::Vector{T}) where T
+function GeometricOperator(funcs::Vector{T}) where {T}
     GeometricOperator(funcs...)
 end
 
@@ -165,31 +134,4 @@ function (G::GeometricOperator)(t)
         end
     end
     Hermitian(G.u_cache, :L)
-end
-
-
-#TODO The following functions will be deprecated
-function (h::AdiabaticFrameHamiltonian)(
-    du::Vector{T},
-    u::Vector{T},
-    tf::Real,
-    t::Real
-) where T
-    ω = h.diagonal(t)
-    du .= -2.0im * π * tf * ω * u
-    G = h.geometric(t)
-    du .+= -1.0im * G * u
-end
-
-
-function (h::AdiabaticFrameHamiltonian)(
-    du::Vector{T},
-    u::Vector{T},
-    tf::UnitTime,
-    t::Real
-) where T <: Number
-    ω = h.diagonal(t / tf)
-    du .= -2.0im * π * ω * u
-    G = h.geometric(t / tf)
-    du .+= -1.0im / tf * G * u
 end

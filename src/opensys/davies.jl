@@ -1,4 +1,5 @@
 import StatsBase: sample, Weights
+AMEOperator(H::AbstractHamiltonian, D, lvl::Int) = OpenSysOp(H, D, lvl, true)
 
 """
 $(TYPEDEF)
@@ -9,7 +10,7 @@ Defines Davies generator
 
 $(FIELDS)
 """
-struct DaviesGenerator <: AbstractOpenSys
+struct DaviesGenerator <: AbstractLiouvillian
     """System bath coupling operators"""
     coupling::AbstractCouplings
     """Spectrum density"""
@@ -18,32 +19,22 @@ struct DaviesGenerator <: AbstractOpenSys
     S::Any
 end
 
-
-function (D::DaviesGenerator)(du, ρ, ω_ba, v, tf::Real, t::Real)
-    γm = tf * D.γ.(ω_ba)
-    sm = tf * D.S.(ω_ba)
-    for op in D.coupling(t)
-        A = v' * (op * v)
+function (D::DaviesGenerator)(du, ρ, ω_ba, v, s::Real)
+    γm = D.γ.(ω_ba)
+    sm = D.S.(ω_ba)
+    for op in D.coupling(s)
+        A = v' * op * v
         davies_update!(du, ρ, A, γm, sm)
     end
 end
 
-(D::DaviesGenerator)(du, ρ, ω_ba, v, tf::UnitTime, t::Real) =
-    D(du, ρ, ω_ba, v, 1.0, t / tf)
-
-
-function (D::DaviesGenerator)(du, u, ω_ba, tf::Real, t::Real)
-    γm = tf * D.γ.(ω_ba)
-    sm = tf * D.S.(ω_ba)
-    for op in D.coupling(t)
-        davies_update!(du, u, op, γm, sm)
+function (D::DaviesGenerator)(du, ρ, ω_ba, s::Real)
+    γm = D.γ.(ω_ba)
+    sm = D.S.(ω_ba)
+    for op in D.coupling(s)
+        davies_update!(du, ρ, op, γm, sm)
     end
 end
-
-
-(D::DaviesGenerator)(du, u, ω_ba, tf::UnitTime, t::Real) =
-    D(du, u, ω_ba, 1.0, t / tf)
-
 
 function davies_update!(du, u, A, γ, S)
     A2 = abs2.(A)
@@ -68,183 +59,35 @@ function davies_update!(du, u, A, γ, S)
     axpy!(-1.0im, H_ls * u - u * H_ls, du)
 end
 
-
-"""
-$(TYPEDEF)
-
-Defines an adiabatic master equation differential equation operator.
-
-# Fields
-
-$(FIELDS)
-"""
-struct AMEDiffEqOperator{is_sparse,is_adiabatic_frame}
-    """Hamiltonian"""
-    H::AbstractHamiltonian
-    """Davies generator"""
-    Davies::DaviesGenerator
-    """Number of levels to keep"""
-    lvl::Int
-    """Internal cache"""
-    u_cache::Matrix{ComplexF64}
-    """Eigen decomposition function"""
-    _eig::Any
-end
-
-eigen_decomp(A::AMEDiffEqOperator, t) = A._eig(A.H, t, A.lvl)
-
-function AMEDiffEqOperator(
-    H::AbstractHamiltonian,
-    davies,
-    lvl::Int,
-    eig_init = EIGEN_DEFAULT;
-    kwargs...,
-)
-    # initialze the internal cache
-    # the internal cache will also be dense for current version
-    u_cache = Matrix{eltype(H)}(undef, lvl, lvl)
-    # check if the Hamiltonian is sparse
-    is_sparse = typeof(H) <: AbstractSparseHamiltonian
-    # check if the Hamiltonian is defined in adiabatic frames
-    is_adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
-    # initialze the eigen decomposition method
-    eig = eig_init(H)
-    # return AMEDiffEqOperator
-    AMEDiffEqOperator{is_sparse,is_adiabatic_frame}(
-        H,
-        davies,
-        lvl,
-        u_cache,
-        eig,
-    )
-end
-
-(A::AMEDiffEqOperator{S,false})(
-    du,
-    u,
-    p::ODEParams{T},
-    t,
-) where {S,T<:AbstractFloat} = ame_update!(du, u, p.tf, t, A)
-
-(A::AMEDiffEqOperator{S,false})(
-    du,
-    u,
-    p::ODEParams{T},
-    t,
-) where {S,T<:UnitTime} = ame_update!(du, u, 1.0, t / p.tf, A)
-
-
-function ame_update!(du, u, tf, t, A)
-    w, v = eigen_decomp(A, t)
-    ρ = v' * u * v
-    H = Diagonal(w)
-    A.u_cache .= -1.0im * tf * (H * ρ - ρ * H)
-    ω_ba = transpose(w) .- w
-    A.Davies(A.u_cache, ρ, ω_ba, v, tf, t)
-    mul!(du, v, A.u_cache * v')
-end
-
-
-function (A::AMEDiffEqOperator{S,true})(du, u, p, t) where {S}
-    A.H(du, u, p.tf, t)
-    ω_ba = ω_matrix(A.H, A.lvl)
-    A.Davies(du, u, ω_ba, p.tf, t)
-end
-
-"""
-$(TYPEDEF)
-
-Defines an adiabatic master equation trajectory operator. The object is used to update the cache for `DiffEqArrayOperator`.
-
-# Fields
-
-$(FIELDS)
-"""
-struct AMETrajectoryOperator{is_sparse,is_adiabatic_frame} <:
-       AbstractAnnealingControl
-    """Hamiltonian"""
-    H::Any
-    """Davies generator"""
-    Davies::DaviesGenerator
-    """Number of levels to keep"""
-    lvl::Int
-    """Internal cache"""
-    u_cache::Vector{ComplexF64}
-    """Eigen decomposition function"""
-    _eig::Any
-end
-
-eigen_decomp(A::AMETrajectoryOperator, t) = A._eig(A.H, t, A.lvl)
-
-function AMETrajectoryOperator(
-    H,
-    davies,
-    lvl::Int,
-    eig_init = EIGEN_DEFAULT;
-    kwargs...,
-)
-    # initialze the internal cache
-    # the internal cache will also be dense for current version
-    u_cache = Vector{eltype(H)}(undef, lvl)
-    # check if the Hamiltonian is sparse
-    is_sparse = typeof(H) <: AbstractSparseHamiltonian
-    # check if the Hamiltonian is defined in adiabatic frames
-    is_adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
-    # initialze the eigen decomposition method
-    eig = eig_init(H)
-    AMETrajectoryOperator{is_sparse,is_adiabatic_frame}(
-        H,
-        davies,
-        lvl,
-        u_cache,
-        eig,
-    )
-end
-
-
-function update_cache!(cache, A::AMETrajectoryOperator, tf::Real, s::Real)
-    w, v = eigen_decomp(A, s)
-    ω_ba = transpose(w) .- w
-    internal_cache = mul!(A.u_cache, -1.0im * tf, w)
-    γm = tf * A.Davies.γ.(ω_ba)
-    sm = tf * A.Davies.S.(ω_ba)
-    for op in A.Davies.coupling(s)
+function update_cache!(cache, D::DaviesGenerator, ω_ba, v, s::Real)
+    len = size(ω_ba, 1)
+    γm = D.γ.(ω_ba)
+    sm = D.S.(ω_ba)
+    for op in D.coupling(s)
         A2 = abs2.(v' * op * v)
-        for b = 1:A.lvl
-            for a = 1:A.lvl
-                @inbounds internal_cache[b] -=
+        for b = 1:len
+            for a = 1:len
+                @inbounds cache[b, b] -=
                     A2[a, b] * (0.5 * γm[a, b] + 1.0im * sm[a, b])
             end
         end
     end
-    cache .= v * Diagonal(internal_cache) * v'
 end
 
-
-update_cache!(cache, A::AMETrajectoryOperator, tf::UnitTime, t::Real) =
-    update_cache!(cache, A, 1.0, t / tf)
-
-"""
-    ame_jump(A::AMETrajectoryOperator, u, tf, s::Real)
-
-Calculate the jump operator for the AMETrajectoryOperator at time `s`.
-"""
-function ame_jump(A::AMETrajectoryOperator, u, tf::Real, s::Real)
-    w, v = eigen_decomp(A, s)
-    # calculate all dimensions
-    sys_dim = size(A.H, 1)
-    num_noise = length(A.Davies.coupling)
-    prob_dim = (A.lvl * (A.lvl - 1) + 1) * num_noise
-    ω_ba = transpose(w) .- w
-    γm = A.Davies.γ.(ω_ba)
+function ame_jump(D::DaviesGenerator, u, ω_ba, v, s)
+    lvl = size(ω_ba, 1)
+    sys_dim = size(v, 1)
+    num_noise = length(D.coupling)
+    prob_dim = (lvl * (lvl - 1) + 1) * num_noise
+    γm = D.γ.(ω_ba)
     prob = Array{Float64,1}(undef, prob_dim)
     tag = Array{Tuple{Int,Int,Int},1}(undef, prob_dim)
     idx = 1
     ϕb = abs2.(v' * u)
-    σab = [v' * op * v for op in A.Davies.coupling(s)]
+    σab = [v' * op * v for op in D.coupling(s)]
     for i = 1:num_noise
         γA = γm .* abs2.(σab[i])
-        for b = 1:A.lvl
+        for b = 1:lvl
             for a = 1:b-1
                 prob[idx] = γA[a, b] * ϕb[b]
                 tag[idx] = (i, a, b)
@@ -274,6 +117,23 @@ function ame_jump(A::AMETrajectoryOperator, u, tf::Real, s::Real)
     res
 end
 
+#TODO: Better implemention of ame_jump function
+"""
+    ame_jump(A::OpenSysOp, u, p, t::Real)
 
-@inline ame_jump(A::AMETrajectoryOperator, u, tf::UnitTime, t::Real) =
-    ame_jump(A, u, 1.0, t / tf)
+Calculate the jump operator for the `OpenSysOp` at time `t`.
+"""
+function ame_jump(Op::OpenSysOp{true,false}, u, p, t::Real)
+    s = p(t)
+    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    ω_ba = transpose(w) .- w
+    sum((x) -> ame_jump(x, u, ω_ba, v, s), Op.opensys)
+end
+
+function ame_jump(Op::OpenSysOpHybrid{false}, u, p, t::Real)
+    s = p(t)
+    hmat = Op.H(s)
+    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    ω_ba = transpose(w) .- w
+    sum((x) -> ame_jump(x, u, ω_ba, v, s), Op.opensys_eig)
+end

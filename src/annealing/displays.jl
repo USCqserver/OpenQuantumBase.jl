@@ -14,19 +14,8 @@ Base.summary(annealing::AbstractAnnealing) = string(
 
 function Base.show(io::IO, A::AbstractAnnealing)
     println(io, summary(A))
-    print(io, "s parameter span: ")
-    show(io, A.sspan)
-    println(io)
     print(io, "u0 with size: ")
     show(io, size(A.u0))
-    #    if A.interactions != nothing
-    #        println(io)
-    #        print(io, "custom system bath interactions")
-    #    else
-    #        println(io)
-    #        print(io, "bath: ")
-    #        show(io, A.bath)
-    #    end
 end
 
 Base.summary(interaction::Interaction) = string(

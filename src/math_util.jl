@@ -45,7 +45,7 @@ julia> σx⊗σz
 ⊗ = kron
 
 """
-    matrix_decompose(mat::Matrix{T}, basis::Array{Matrix{T},1})
+$(SIGNATURES)
 
 Decompse matrix `mat` onto matrix basis `basis`
 
@@ -58,10 +58,7 @@ julia> matrix_decompose(1.0*σx+2.0*σy+3.0*σz, [σx,σy,σz])
  3.0 + 0.0im
 ```
 """
-function matrix_decompose(
-    mat::Matrix{T},
-    basis::Array{Matrix{T},1},
-) where {T<:Number}
+function matrix_decompose(mat::AbstractMatrix, basis::Vector{<:AbstractMatrix})
     dim = size(basis[1])[1]
     [tr(mat * b) / dim for b in basis]
 end
@@ -71,7 +68,7 @@ end
 
 Check if matrix `m` is positive. Return `true` is the minimum eigenvalue of `m` is greater than or equal to 0.
 """
-function check_positivity(m::Matrix{T}) where {T<:Number}
+function check_positivity(m::AbstractMatrix)
     if !ishermitian(m)
         @warn "Input fails the numerical test for Hermitian matrix. Use the upper triangle to construct a new Hermitian matrix."
         d = Hermitian(m)
@@ -96,7 +93,7 @@ julia> gibbs_state(σz, 10)
 ```
 """
 function gibbs_state(h, T)
-    β = temperature_2_beta(T)
+    β = temperature_2_β(T)
     Z = 0.0
     w, v = eigen(Hermitian(h))
     res = zeros(eltype(v), size(h))
@@ -141,7 +138,7 @@ end
 
 
 """
-    check_unitary(𝐔; rtol=1e-6, atol=1e-8)
+$(SIGNATURES)
 
 Test if `𝐔` is a unitary matrix. The function checks how close both `` 𝐔𝐔^† `` and `` 𝐔^†𝐔 `` are to `` I ``, with relative and absolute error given by `rtol`, `atol`.
 
@@ -151,7 +148,7 @@ julia> check_unitary(exp(-1.0im*5*0.5*σx))
 true
 ```
 """
-function check_unitary(𝐔::Matrix{T}; rtol = 1e-6, atol = 1e-8) where {T<:Number}
+function check_unitary(𝐔::AbstractMatrix; rtol = 1e-6, atol = 1e-8)
     a1 = isapprox(
         𝐔 * 𝐔',
         Matrix{eltype(𝐔)}(I, size(𝐔)),

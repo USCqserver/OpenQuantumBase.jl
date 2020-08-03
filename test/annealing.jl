@@ -1,6 +1,6 @@
 using QTBase, Test
 
-struct T_OPENSYS <: AbstractOpenSys end
+struct T_OPENSYS <: AbstractLiouvillian end
 struct T_COUPLINGS <: AbstractCouplings end
 struct T_BATH <: AbstractBath end
 
@@ -9,15 +9,13 @@ u0 = PauliVec[1][1]
 
 annealing = Annealing(H, u0)
 @test annealing.H == H
+@test annealing.annealing_parameter(10, 5) == 0.5
 
 
-ode_params = ODEParams(10)
-@test ode_params.H == nothing
+ode_params = ODEParams(T_OPENSYS(), 10, (tf, t)->t / tf)
+@test typeof(ode_params.L) == T_OPENSYS
 @test ode_params.tf == 10
-ode_params = ODEParams(H, UnitTime(10), opensys = T_OPENSYS())
-@test ode_params.H == H
-@test ode_params.tf.t == 10
-@test typeof(ode_params.opensys) == T_OPENSYS
+@test ode_params(5) == 0.5
 
 coupling = ConstantCouplings(["Z"])
 inter = Interaction(coupling, T_BATH())

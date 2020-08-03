@@ -19,10 +19,7 @@ spectrum(ω, bath::CustomBath) = bath.γ(ω)
 γ(ω, bath::CustomBath) = bath.γ(ω)
 S(w, bath::CustomBath; atol = 1e-7) =
     lambshift(w, (ω) -> spectrum(ω, bath), atol = atol)
-build_correlation(bath::CustomBath, tf::Real) =
-    bath.cfun == nothing ? error("Correlation function is not specified.") :
-    (s) -> bath.cfun(s * tf)
-build_correlation(bath::CustomBath, ::UnitTime) =
+build_correlation(bath::CustomBath) =
     bath.cfun == nothing ? error("Correlation function is not specified.") :
     bath.cfun
 build_spectrum(bath::CustomBath) =

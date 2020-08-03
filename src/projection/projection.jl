@@ -126,12 +126,10 @@ function project_to_lowlevel(
     coupling,
     s_axis::AbstractArray{S,1};
     lvl = 2,
-    eig_init = EIGEN_DEFAULT,
 ) where {T<:Real,S<:Real}
-    _eigs = eig_init(H)
     projected_system = ProjectedSystem(s_axis, size(H, 1), lvl)
     for s in s_axis
-        w, v = _eigs(H, s, lvl)
+        w, v = H.EIGS(H, s, lvl)
         push_params!(projected_system, w, v, dH(s), coupling(s))
     end
     projected_system
@@ -144,18 +142,10 @@ function project_to_lowlevel(
     coupling,
     s_axis::AbstractArray{S,1};
     lvl = 2,
-    eig_init = EIGEN_DEFAULT,
 ) where {T<:Complex,S<:Real}
     @warn "The projection method only works with real Hamitonians. Convert the complex Hamiltonian to real one."
     H_real = real(H)
-    project_to_lowlevel(
-        H_real,
-        dH,
-        coupling,
-        s_axis,
-        lvl = lvl,
-        eig_init = eig_init,
-    )
+    project_to_lowlevel(H_real, dH, coupling, s_axis, lvl = lvl)
 end
 
 

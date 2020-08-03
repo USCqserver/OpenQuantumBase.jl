@@ -1,16 +1,3 @@
-struct CallableMatrix
-    mat::AbstractArray
-end
-(M::CallableMatrix)(x) = M.mat
-Base.size(m::CallableMatrix) = size(m.mat)
-Base.size(m::CallableMatrix, d) = size(m.mat, d)
-Base.isequal(m::CallableMatrix, x) = Base.isequal(m.mat, x)
-Base.isequal(x, m::CallableMatrix) = Base.isequal(x, m.mat)
-for op in (:*, :+, :-, :/, :\)
-    @eval Base.$op(m::CallableMatrix, x) = $op(m.mat, x)
-    @eval Base.$op(x, m::CallableMatrix) = $op(x, m.mat)
-end
-
 """
 $(TYPEDEF)
 
@@ -22,13 +9,14 @@ $(FIELDS)
 """
 struct ConstantCouplings <: AbstractCouplings
     """1-D array for independent coupling operators"""
-    mats::Vector{CallableMatrix}
+    mats::Vector{AbstractMatrix}
     """String representation for the coupling (for display purpose)"""
-    str_rep::Union{Vector{String}, Nothing}
+    str_rep::Union{Vector{String},Nothing}
 end
 
 (c::ConstantCouplings)(t) = c.mats
-Base.iterate(c::ConstantCouplings, state = 1) = Base.iterate(c.mats, state)
+Base.iterate(c::ConstantCouplings, state = 1) =
+    state > length(c.mats) ? nothing : ((x) -> c.mats[state], state + 1)
 Base.length(c::ConstantCouplings) = length(c.mats)
 Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
 Base.size(c::ConstantCouplings) = size(c.mats[1])
@@ -41,20 +29,19 @@ Constructor of `ConstantCouplings` object. `mats` is 1-D array of matrices. `str
 """
 function ConstantCouplings(
     mats::Union{Vector{Matrix{T}},Vector{SparseMatrixCSC{T,Int}}};
-    str_rep = nothing,
     unit = :h,
 ) where {T<:Number}
-    if str_rep != nothing
-        for s in str_rep
-            if !(typeof(s) <: AbstractString)
-                throw(ArgumentError("String representation can only be strings."))
-            end
+    msize = size(mats[1])
+    if msize[1] <= 10
+        if issparse(mats[1])
+            @warn "For matrices smaller than 10×10, use StaticArrays by default."
+            mats = Array.(mats)
         end
+        mats = [SMatrix{msize[1],msize[2]}(unit_scale(unit) * m) for m in mats]
+    else
+        mats = unit_scale(unit) .* mats
     end
-    ConstantCouplings(
-        [CallableMatrix(m) for m in (unit_scale(unit) .* mats)],
-        str_rep,
-    )
+    ConstantCouplings(mats, nothing)
 end
 
 """
@@ -67,8 +54,18 @@ function ConstantCouplings(
     sp = false,
     unit = :h,
 ) where {T<:AbstractString}
-    mats = unit_scale(unit) * q_translate.(c, sp = sp)
-    ConstantCouplings([CallableMatrix(m) for m in mats], c)
+    mats = q_translate.(c, sp = sp)
+    msize = size(mats[1])
+    if msize[1] <= 10
+        if sp
+            @warn "For matrices smaller than 10×10, use StaticArrays by default."
+            mats = Array.(mats)
+        end
+        mats = [SMatrix{msize[1],msize[2]}(unit_scale(unit) * m) for m in mats]
+    else
+        mats = unit_scale(unit) .* mats
+    end
+    ConstantCouplings(mats, c)
 end
 
 

@@ -4,29 +4,7 @@ end
 
 const TYPE_COLOR = CSI"36"
 const NO_COLOR = CSI"0"
-is_sparse(H::AbstractHamiltonian) = typeof(H) <: AbstractSparseHamiltonian
-
-"""
-$(TYPEDEF)
-
-A internal object to inform the solver to use the physical time instead of the unitless time.
-
-# Fields
-$(FIELDS)
-"""
-struct UnitTime{T<:AbstractFloat}
-    """Time in physical unit"""
-    t::T
-end
-
-UnitTime(x::Real) = UnitTime(float(x))
-
-for op in (:*, :/, :\, :>, :<)
-    @eval Base.$op(t::UnitTime, x) = $op(t.t, x)
-    @eval Base.$op(x, t::UnitTime) = $op(x, t.t)
-end
-
-Base.convert(T::Type{Any}, x::UnitTime) = Base.convert(T, x.t)
+issparse(H::AbstractHamiltonian) = typeof(H) <: AbstractSparseHamiltonian
 
 """
     function unit_scale(u)

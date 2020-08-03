@@ -24,28 +24,6 @@ function evaluate(H::AbstractHamiltonian, s)
 end
 
 """
-    function to_dense(H::SparseHamiltonian)
-
-Convert SparseHamiltonian to DenseHamiltonian.
-"""
-function to_dense(H::SparseHamiltonian)
-    m_dense = [Array(x) for x in H.m]
-    DenseHamiltonian(H.f, m_dense, Array(H.u_cache), H.size)
-end
-
-"""
-    function to_sparse(H::DenseHamiltonian)
-
-Convert DenseHamiltonian to SparseHamiltonian.
-"""
-function to_sparse(H::DenseHamiltonian)
-    m_sparse = [sparse(x) for x in H.m]
-    cache = sum(m_sparse.m)
-    fill!(cache, 0.0 + 0.0im)
-    SparseHamiltonian(H.f, m_sparse, cache, H.size)
-end
-
-"""
     function to_real(H::AbstractHamiltonian{T}) where T<:Complex
 
 Convert a Hamiltonian with Complex type to a Hamiltonian with real type. The converted Hamiltonian is used for projection to low-level subspaces and should not be used for any ODE calculations.
@@ -72,41 +50,33 @@ end
 
 
 """
-    function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int = 2, eig_init = EIGEN_DEFAULT) -> (w, v)
+$(SIGNATURES)
 
 Calculate the eigen value decomposition of the Hamiltonian `H` at time `s`. Keyword argument `lvl` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`.
 
 `eig_init` is the initializer for eigen factorization routine. It returns a function of signature: `(H, s, lvl) -> (w, v)`. The default initializer `EIGEN_DEFAULT` will use `LAPACK` routine for both dense and sparse matrices.
 """
-function eigen_decomp(
-    H::AbstractHamiltonian,
-    s;
-    lvl::Int = 2,
-    eig_init = EIGEN_DEFAULT,
-)
-    _eigs = eig_init(H)
-    w, v = _eigs(H, s, lvl)
-    lmul!(1 / 2 / π, real(w)), v
+function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int = 2)
+    w, v = H.EIGS(H, s, lvl)
+    real(w)[1:lvl] / 2 / π, v[:, 1:lvl]
 end
 
 
 """
-    eigen_decomp(H::AbstractHamiltonian, s::AbstractArray{Float64,1}; lvl::Int = 2, eig_init = EIGEN_DEFAULT) -> (vals, vecs)
+$(SIGNATURES)
 
 Calculate the eigen value decomposition of the Hamiltonian `H` at an array of time points `s`. The output keeps the lowest `lvl` eigenstates and their corresponding eigenvalues. Output `(vals, vecs)` have the dimensions of `(lvl, length(s))` and `(size(H, 1), lvl, length(s))` respectively.
 """
 function eigen_decomp(
     H::AbstractHamiltonian,
     s::AbstractArray{Float64,1};
-    lvl::Int = 2,
-    eig_init = EIGEN_DEFAULT,
+    lvl::Int = 2
 )
     s_dim = length(s)
-    _eigs = eig_init(H)
     res_val = Array{eltype(H),2}(undef, (lvl, s_dim))
     res_vec = Array{eltype(H),3}(undef, (size(H, 1), lvl, s_dim))
     for (i, s_val) in enumerate(s)
-        val, vec = _eigs(H, s_val, lvl)
+        val, vec = H.EIGS(H, s_val, lvl)
         res_val[:, i] = val[1:lvl]
         res_vec[:, :, i] = vec[:, 1:lvl]
     end
@@ -115,25 +85,19 @@ end
 
 
 """
-    function inst_population(s, states, H::AbstractHamiltonian; lvl=1:1, eig_init = EIGEN_DEFAULT)
+$(SIGNATURES)
 
 For a time series quantum states given by `states`, whose time points are given by `s`, calculate the population of instantaneous eigenstates of `H`. The levels of the instantaneous eigenstates are specified by `lvl`, which can be any slice index.
 
 `eig_init` is the initializer for eigen factorization routine. It returns a function of signature: `(H, s, lvl) -> (w, v)`. The default initializer `EIGEN_DEFAULT` will use `LAPACK` routine for both dense and sparse matrices.
 """
-function inst_population(
-    s,
-    states,
-    H::AbstractHamiltonian;
-    lvl = 1:1,
-    eig_init = EIGEN_DEFAULT,
-)
+function inst_population(s, states, H::AbstractHamiltonian; lvl = 1:1)
     if typeof(lvl) <: Int
         lvl = lvl:lvl
     end
     pop = Array{Array{Float64,1},1}(undef, length(s))
     for (i, v) in enumerate(s)
-        w, v = eigen_decomp(H, v, lvl = maximum(lvl), eig_init = eig_init)
+        w, v = eigen_decomp(H, v, lvl = maximum(lvl))
         if ndims(states[i]) == 1
             inst_state = view(v, :, lvl)'
             pop[i] = abs2.(inst_state * states[i])
@@ -149,3 +113,21 @@ function inst_population(
     end
     pop
 end
+
+"""
+    function EIGEN_DEFAULT(u_cache)
+
+The default initializer for eigen factorization method. It returns a function of signature: `(H, s, lvl) -> (w, v)`. `u_cache` is the cache for Hamiltonian object, `s` is the time argument for the Hamiltonian and `lvl` is the energy levels to keep. This default initializer will use `LAPACK` routine for both dense and sparse matrices.
+"""
+function EIGEN_DEFAULT(u_cache)
+    lvl = size(u_cache, 1)
+    if lvl <= 10
+        EIGS = (H, t, lvl) -> eigen(Hermitian(H(t)))
+    else
+        EIGS = (H, t, lvl) -> eigen!(Hermitian(H(t)), 1:lvl)
+    end
+    EIGS
+end
+
+EIGEN_DEFAULT(u_cache::SparseMatrixCSC) =
+    (H, t, lvl) -> eigen!(Hermitian(Array(H(t))), 1:lvl)

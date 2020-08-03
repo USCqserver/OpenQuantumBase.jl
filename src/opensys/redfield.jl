@@ -4,13 +4,13 @@ import QuadGK: quadgk!
 """
 $(TYPEDEF)
 
-Defines Redfield operator.
+Defines RedfieldGenerator.
 
 # Fields
 
 $(FIELDS)
 """
-struct Redfield <: AbstractOpenSys
+struct RedfieldGenerator <: AbstractLiouvillian
     """system-bath coupling operator"""
     ops::AbstractCouplings
     """close system unitary"""
@@ -31,7 +31,7 @@ struct Redfield <: AbstractOpenSys
     Ta::Number
 end
 
-function Redfield(
+function RedfieldGenerator(
     ops::AbstractCouplings,
     U,
     cfun,
@@ -40,7 +40,7 @@ function Redfield(
     rtol = 1e-6,
 )
     m_size = size(ops)
-    if m_size[1] <= 1
+    if m_size[1] <= 10
         Λ = zeros(MMatrix{m_size[1],m_size[2],ComplexF64})
     else
         Λ = zeros(ComplexF64, m_size[1], m_size[2])
@@ -50,100 +50,67 @@ function Redfield(
     else
         unitary = (cache, t) -> cache .= U(t)
     end
-    Redfield(ops, unitary, cfun, atol, rtol, similar(Λ), similar(Λ), Λ, Ta)
+    RedfieldGenerator(
+        ops,
+        unitary,
+        cfun,
+        atol,
+        rtol,
+        similar(Λ),
+        similar(Λ),
+        Λ,
+        Ta,
+    )
 end
 
-function (R::Redfield)(du, u, tf::Real, t::Real)
+function (R::RedfieldGenerator)(du, u, p, t::Real)
+    s = p(t)
     for S in R.ops
         function integrand(cache, x)
             R.unitary(R.Ut, t)
             R.unitary(R.Uτ, x)
             R.Ut .= R.Ut * R.Uτ'
-            mul!(R.Uτ, S(t), R.Ut')
-            mul!(cache, R.Ut, R.Uτ, tf * R.cfun(t - x), 0)
-        end
-        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
-        𝐊₂ = S(t) * R.Λ * u - R.Λ * u * S(t)
-        𝐊₂ = 𝐊₂ + 𝐊₂'
-        axpy!(-tf, 𝐊₂, du)
-    end
-end
-
-function (R::Redfield)(du, u, tf::UnitTime, t::Real)
-    for S in R.ops
-        function integrand(cache, x)
-            R.unitary(R.Ut, t)
-            R.unitary(R.Uτ, x)
-            R.Ut .= R.Ut * R.Uτ'
-            mul!(R.Uτ, S(t / tf), R.Ut')
+            mul!(R.Uτ, S(s), R.Ut')
             mul!(cache, R.Ut, R.Uτ, R.cfun(t - x), 0)
         end
-        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
-        𝐊₂ = S(t / tf) * R.Λ * u - R.Λ * u * S(t / tf)
+        quadgk!(
+            integrand,
+            R.Λ,
+            max(0.0, t - R.Ta),
+            t,
+            rtol = R.rtol,
+            atol = R.atol,
+        )
+        𝐊₂ = S(s) * R.Λ * u - R.Λ * u * S(s)
         𝐊₂ = 𝐊₂ + 𝐊₂'
         axpy!(-1.0, 𝐊₂, du)
     end
 end
 
-update_ρ!(du, u, p::ODEParams, t::Real, R::Redfield) = R(du, u, p.tf, t)
-
-function update_vectorized_cache!(cache, R::Redfield, tf::Real, t::Real)
+function update_vectorized_cache!(cache, R::RedfieldGenerator, p, t::Real)
     iden = Matrix{eltype(cache)}(I, size(R.ops))
+    s = p(t)
     for S in R.ops
         function integrand(cache, x)
             R.unitary(R.Ut, t)
             R.unitary(R.Uτ, x)
             R.Ut .= R.Ut * R.Uτ'
-            mul!(R.Uτ, S(t), R.Ut')
-            mul!(cache, R.Ut, R.Uτ, tf * R.cfun(t - x), 0)
-        end
-        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
-        SS = S(t)
-        SΛ = SS * R.Λ
-        cache .-=
-            tf *
-            (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(SS) ⊗ R.Λ - conj(R.Λ) ⊗ SS)
-    end
-end
-
-function update_vectorized_cache!(cache, R::Redfield, tf::UnitTime, t::Real)
-    iden = Matrix{eltype(cache)}(I, size(R.ops))
-    for S in R.ops
-        function integrand(cache, x)
-            R.unitary(R.Ut, t)
-            R.unitary(R.Uτ, x)
-            R.Ut .= R.Ut * R.Uτ'
-            mul!(R.Uτ, S(t / tf), R.Ut')
+            mul!(R.Uτ, S(s), R.Ut')
             mul!(cache, R.Ut, R.Uτ, R.cfun(t - x), 0)
         end
-        quadgk!(integrand, R.Λ, max(0.0, t-R.Ta), t, rtol = R.rtol, atol = R.atol)
-        SS = S(t / tf)
+        quadgk!(
+            integrand,
+            R.Λ,
+            max(0.0, t - R.Ta),
+            t,
+            rtol = R.rtol,
+            atol = R.atol,
+        )
+        SS = S(s)
         SΛ = SS * R.Λ
         cache .-=
             (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(SS) ⊗ R.Λ - conj(R.Λ) ⊗ SS)
     end
 end
 
-update_vectorized_cache!(du, u, p::ODEParams, t::Real, R::Redfield) =
-    update_vectorized_cache!(du, R, p.tf, t)
-
-struct RedfieldSet{T<:Tuple} <: AbstractOpenSys
-    """Redfield operators"""
-    reds::T
-end
-
-RedfieldSet(red::Redfield...) = RedfieldSet(red)
-
-function (R::RedfieldSet)(du, u, tf, t)
-    for r in R.reds
-        r(du, u, tf, t)
-    end
-end
-
-function update_vectorized_cache!(cache, R::RedfieldSet, tf, t)
-    for r in R.reds
-        update_vectorized_cache!(cache, r, tf, t)
-    end
-end
-
-update_vectorized_cache!(cache, u, p::ODEParams, t::Real, R::RedfieldSet) = update_vectorized_cache!(cache, R, p.tf, t)
+RedfieldOperator(H, R) = OpenSysOp(H, R, size(H, 1))

@@ -14,32 +14,21 @@ H = DenseHamiltonian([A, B], [σx, σz])
 @test evaluate(H, 0.5) == (σx + σz) / 2
 @test get_cache(H) ≈ π * (σx + σz)
 
-
-# Float/UnitTime on H(tf, t)
-@test H(10, 0.5) == 10π * (σx + σz)
-@test H(UnitTime(10.0), 5) == π * (σx + σz)
-
 # update_cache method
 C = similar(σz)
 update_cache!(C, H, 10, 0.5)
-@test C == -10im * π * (σx + σz)
-update_cache!(C, H, UnitTime(10), 5)
 @test C == -1im * π * (σx + σz)
 
 # update_vectorized_cache method
-C = get_cache(H, true)
+C = get_cache(H)
+C = C⊗C
 update_vectorized_cache!(C, H, 10, 0.5)
-temp = -10im * π * (σx + σz)
-@test C == σi ⊗ temp - transpose(temp) ⊗ σi
-update_vectorized_cache!(C, H, UnitTime(10), 5)
 temp = -1im * π * (σx + σz)
 @test C == σi ⊗ temp - transpose(temp) ⊗ σi
 
 # in-place update for matrices
 du = [1.0 + 0.0im 0; 0 0]
-H(du, ρ, 2.0, 0.5)
-@test du ≈ -2.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
-H(du, ρ, UnitTime(2), 1.0)
+H(du, ρ, 2, 0.5)
 @test du ≈ -1.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
 
 # eigen-decomposition

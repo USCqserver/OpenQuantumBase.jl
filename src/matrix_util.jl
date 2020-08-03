@@ -111,13 +111,13 @@ end
 
 
 """
-    construct_hamming_weight_op(num_qubit::Int64, op::String; sp=false)
+    hamming_weight_operator(num_qubit::Int64, op::String; sp=false)
 
 Construct the Hamming weight operator for system of size `num_qubit`. The type of the Hamming weight operator is specified by op: "x", "y" or "z". Generate sparse matrix when `sp` is set to true.
 
 # Examples
 ```julia-repl
-julia> construct_hamming_weight_op(2,"z")
+julia> hamming_weight_operator(2,"z")
 4×4 Array{Complex{Float64},2}:
  0.0+0.0im  0.0+0.0im  0.0+0.0im  0.0+0.0im
  0.0+0.0im  1.0+0.0im  0.0+0.0im  0.0+0.0im
@@ -125,17 +125,9 @@ julia> construct_hamming_weight_op(2,"z")
  0.0+0.0im  0.0+0.0im  0.0+0.0im  2.0+0.0im
 ```
 """
-function construct_hamming_weight_op(num_qubit::Int64, op::String; sp = false)
+function hamming_weight_operator(num_qubit::Int64, op::String; sp = false)
     0.5 *
     (num_qubit * I - collective_operator(op, num_qubit = num_qubit, sp = sp))
-end
-
-function GHZ_entanglement_witness(num_qubit)
-    s = collective_operator("z", num_qubit)
-    for k = 2:num_qubit
-        s += single_clause(["z", "z"], [k - 1, k], 1.0, num_qubit)
-    end
-    (num_qubit - 1)I - s
 end
 
 """

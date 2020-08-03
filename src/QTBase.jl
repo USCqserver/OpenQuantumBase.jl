@@ -14,6 +14,7 @@ import LinearAlgebra:
     diag,
     lmul!,
     Diagonal
+import StaticArrays: SMatrix, MVector, @MMatrix
 import LinearAlgebra.BLAS: her!, gemm!
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import QuadGK: quadgk
@@ -83,7 +84,7 @@ abstract type AbstractBath end
 """
 $(TYPEDEF)
 """
-abstract type AbstractOpenSys end
+abstract type AbstractLiouvillian end
 
 include("base_util.jl")
 include("unit_util.jl")
@@ -112,97 +113,53 @@ include("hamiltonian/util.jl")
 include("annealing/annealing_type.jl")
 include("annealing/displays.jl")
 
+include("opensys/opensys_op.jl")
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
 include("opensys/cgme.jl")
-include("opensys/opensys_set.jl")
+include("opensys/stochastic.jl")
 
 include("projection/util.jl")
 include("projection/projection.jl")
 include("projection/gamma_matrix.jl")
 
+export AbstractHamiltonian, AbstractDenseHamiltonian, AbstractSparseHamiltonian
+export AbstractLiouvillian, AbstractCouplings, AbstractTimeDependentCouplings
+export AbstractAnnealing, AbstractBath
 
-
-export temperature_2_beta,
-    temperature_2_freq, beta_2_temperature, freq_2_temperature
-
+export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature
 export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy
 
 export q_translate,
-    construct_hamming_weight_op,
-    single_clause,
-    standard_driver,
-    collective_operator,
-    GHZ_entanglement_witness,
-    local_field_term,
-    two_local_term,
-    q_translate_state
+    standard_driver, local_field_term, two_local_term, single_clause
+export q_translate_state, collective_operator, hamming_weight_operator
 
-export matrix_decompose, check_positivity, check_unitary
-
-export construct_interpolations, gradient, log_uniform, partial_trace
-
+export matrix_decompose, check_positivity, check_unitary, partial_trace
 export inst_population, gibbs_state, low_level_matrix, ame_jump, update_ρ!
+export construct_interpolations, gradient, log_uniform
 
-export AbstractHamiltonian,
-    AbstractSparseHamiltonian,
-    SparseHamiltonian,
-    AbstractDenseHamiltonian,
-    DenseHamiltonian,
-    AdiabaticFrameHamiltonian,
-    InterpDenseHamiltonian,
-    InterpSparseHamiltonian,
-    CustomDenseHamiltonian,
-    hamiltonian_from_function,
-    evaluate,
-    to_dense,
-    to_sparse,
-    is_sparse,
-    get_cache,
-    update_cache!,
-    update_vectorized_cache!
+export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian
+export InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
+export hamiltonian_from_function,
+    evaluate, issparse, get_cache, update_cache!, update_vectorized_cache!
 
-export AbstractCouplings,
-    ConstantCouplings,
-    TimeDependentCoupling,
-    AbstractTimeDependentCouplings,
-    TimeDependentCouplings,
-    CustomCouplings,
-    collective_coupling
+export ConstantCouplings, TimeDependentCoupling
+export TimeDependentCouplings, CustomCouplings, collective_coupling
 
 export eigen_decomp, EIGEN_DEFAULT
 
-export AbstractAnnealing,
-    Annealing, ODEParams, AbstractAnnealingControl, Interaction, InteractionSet
+export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
 
-export AbstractBath,
-    AbstractOpenSys,
-    OpenSysSet,
-    Redfield,
-    CGOP,
-    RedfieldSet,
-    DaviesGenerator,
-    AMEDiffEqOperator,
-    AMETrajectoryOperator
+export RedfieldGenerator, DaviesGenerator, Fluctuators
+export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
 
-export τ_B,
-    τ_SB,
-    coarse_grain_timescale,
-    correlation,
-    γ,
-    S,
-    spectrum,
-    Ohmic,
-    OhmicBath,
-    CustomBath,
-    EnsembleFluctuator,
-    construct_distribution,
-    build_redfield,
-    build_davies,
-    build_CGME,
-    info_freq
+export correlation, γ, S, spectrum, info_freq
+export Ohmic, OhmicBath, CustomBath, EnsembleFluctuator
 
-export UnitTime, InplaceUnitary
+export τ_B, τ_SB, coarse_grain_timescale
+export build_redfield, build_davies, build_CGG, build_fluctuator
+
+export InplaceUnitary
 
 export ProjectedSystem,
     ProjectedTG,

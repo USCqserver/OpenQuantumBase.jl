@@ -30,10 +30,10 @@ using SafeTestsets
         include("coupling.jl")
     end
     @time @safetestset "Davies and AME" begin
-        include("davies.jl")
+        include("opensys/davies.jl")
     end
     @time @safetestset "Redfield" begin
-        include("redfield.jl")
+        include("opensys/redfield.jl")
     end
     @time @safetestset "Bath" begin
         include("bath.jl")

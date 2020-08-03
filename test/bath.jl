@@ -3,7 +3,7 @@ using QTBase, Test
 η = 1e-4
 ωc = 8 * pi
 β = 1 / 2.23
-bath = OhmicBath(η, ωc, β)
+bath = QTBase.OhmicBath(η, ωc, β)
 @test γ(0.0, bath) == 2 * pi * η / β
 @test spectrum(0.0, bath) == 2 * pi * η / β
 @test S(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
