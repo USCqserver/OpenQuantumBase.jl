@@ -43,7 +43,7 @@ update_vectorized_cache!(A, redfield, p, 2.5)
 
 
 # =============== CGME Test ===================
-cgop = CGGenerator(coupling, unitary, cfun, 1)
+cgop = QTBase.CGGenerator(coupling, unitary, cfun, 1)
 dρ = zero(ρ)
 function integrand(x)
     a1 = unitary(x[1])' * σz * unitary(x[1])
