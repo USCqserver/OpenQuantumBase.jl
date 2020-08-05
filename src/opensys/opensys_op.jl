@@ -124,7 +124,6 @@ end
 
 function update_cache!(cache, Op::OpenSysOpHybrid{false}, p, t::Real)
     s = p(t)
-    hmat = Op.H(s)
     w, v = Op.H.EIGS(Op.H, s, Op.lvl)
     ω_ba = transpose(w) .- w
     # initialze the cache as Hamiltonian in eigenbasis
