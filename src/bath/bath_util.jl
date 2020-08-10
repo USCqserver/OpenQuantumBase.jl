@@ -58,7 +58,7 @@ function build_redfield(
     rtol = 1e-6,
 )
     cfun = build_correlation(bath)
-    RedfieldGenerator(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
+    DiagRedfieldGenerator(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
 end
 
 function build_davies(

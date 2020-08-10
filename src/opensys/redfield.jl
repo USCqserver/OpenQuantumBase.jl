@@ -1,16 +1,18 @@
 import StaticArrays: MMatrix
 import QuadGK: quadgk!
 
+abstract type AbstractRedfield <: AbstractLiouvillian end
+
 """
 $(TYPEDEF)
 
-Defines RedfieldGenerator.
+Defines DiagRedfieldGenerator.
 
 # Fields
 
 $(FIELDS)
 """
-struct RedfieldGenerator <: AbstractLiouvillian
+struct DiagRedfieldGenerator <: AbstractRedfield
     """system-bath coupling operator"""
     ops::AbstractCouplings
     """close system unitary"""
@@ -31,7 +33,7 @@ struct RedfieldGenerator <: AbstractLiouvillian
     Ta::Number
 end
 
-function RedfieldGenerator(
+function DiagRedfieldGenerator(
     ops::AbstractCouplings,
     U,
     cfun,
@@ -50,7 +52,7 @@ function RedfieldGenerator(
     else
         unitary = (cache, t) -> cache .= U(t)
     end
-    RedfieldGenerator(
+    DiagRedfieldGenerator(
         ops,
         unitary,
         cfun,
@@ -63,7 +65,7 @@ function RedfieldGenerator(
     )
 end
 
-function (R::RedfieldGenerator)(du, u, p, t::Real)
+function (R::DiagRedfieldGenerator)(du, u, p, t::Real)
     s = p(t)
     for S in R.ops
         function integrand(cache, x)
@@ -87,7 +89,7 @@ function (R::RedfieldGenerator)(du, u, p, t::Real)
     end
 end
 
-function update_vectorized_cache!(cache, R::RedfieldGenerator, p, t::Real)
+function update_vectorized_cache!(cache, R::DiagRedfieldGenerator, p, t::Real)
     iden = Matrix{eltype(cache)}(I, size(R.ops))
     s = p(t)
     for S in R.ops
@@ -114,3 +116,33 @@ function update_vectorized_cache!(cache, R::RedfieldGenerator, p, t::Real)
 end
 
 RedfieldOperator(H, R) = OpenSysOp(H, R, size(H, 1))
+
+"""
+$(TYPEDEF)
+
+Defines BaseRedfieldGenerator.
+
+# Fields
+
+$(FIELDS)
+"""
+struct BaseRedfieldGenerator <: AbstractRedfield
+    """system-bath coupling operator"""
+    ops::AbstractCouplings
+    """close system unitary"""
+    unitary::Any
+    """bath correlation function"""
+    cfun::Any
+    """absolute error tolerance for integration"""
+    atol::Float64
+    """relative error tolerance for integration"""
+    rtol::Float64
+    """cache matrix for inplace unitary"""
+    Ut::Union{Matrix,MMatrix}
+    """cache matrix for inplace unitary"""
+    Uτ::Union{Matrix,MMatrix}
+    """cache matrix for integration"""
+    Λ::Union{Matrix,MMatrix}
+    """tf minus coarse grain time scale"""
+    Ta::Number
+end

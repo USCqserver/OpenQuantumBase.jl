@@ -150,7 +150,7 @@ export eigen_decomp, EIGEN_DEFAULT
 
 export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
 
-export RedfieldGenerator, DaviesGenerator, Fluctuators
+export DiagRedfieldGenerator, DaviesGenerator, Fluctuators
 export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
 
 export correlation, γ, S, spectrum, info_freq
