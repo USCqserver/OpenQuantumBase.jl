@@ -153,7 +153,7 @@ export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
 export DiagRedfieldGenerator, DaviesGenerator, Fluctuators
 export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
 
-export correlation, γ, S, spectrum, info_freq
+export correlation, polaron_correlation, γ, S, spectrum, info_freq
 export Ohmic, OhmicBath, CustomBath, EnsembleFluctuator
 
 export τ_B, τ_SB, coarse_grain_timescale

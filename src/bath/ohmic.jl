@@ -75,16 +75,18 @@ Calculate the two point correlation function ``C(t1, t2)`` of `bath`.
 """
 $(SIGNATURES)
 
-Calculate the polaron transformed correlation function of Ohmic bath. `a` is the effective system bath coupling strength. It is the Hamming distance of two energy levels with respect to the system bath coupling operator.
+Calculate the polaron transformed correlation function of `bath`.
 """
-function polaron_correlation(τ, a, params::OhmicBath)
-    res = (1 + 1.0im * params.ωc * τ)^(-a * params.η)
+function polaron_correlation(τ, bath::OhmicBath)
+    res = (1 + 1.0im * bath.ωc * τ)^(-4 * bath.η)
     if !isapprox(τ, 0, atol = 1e-9)
-        x = π * τ / params.β
-        res *= (x / sinh(x))^(a * params.η)
+        x = π * τ / bath.β
+        res *= (x / sinh(x))^(4 * bath.η)
     end
     res
 end
+
+@inline polaron_correlation(t1, t2, bath::OhmicBath) = polaron_correlation(t1 - t2, bath)
 
 function info_freq(bath::OhmicBath)
     println("ωc (GHz): ", bath.ωc / pi / 2)
