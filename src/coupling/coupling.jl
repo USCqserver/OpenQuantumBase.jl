@@ -17,7 +17,7 @@ end
 (c::ConstantCouplings)(t) = c.mats
 Base.iterate(c::ConstantCouplings, state = 1) =
     state > length(c.mats) ? nothing : ((x) -> c.mats[state], state + 1)
-Base.getindex(c::ConstantCouplings, inds...) = getindex(c.mats, inds...)
+Base.getindex(c::ConstantCouplings, inds...) = (x) -> getindex(c.mats, inds...)
 Base.length(c::ConstantCouplings) = length(c.mats)
 Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
 Base.size(c::ConstantCouplings) = size(c.mats[1])
