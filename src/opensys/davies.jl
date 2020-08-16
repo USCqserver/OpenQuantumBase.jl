@@ -132,7 +132,6 @@ end
 
 function ame_jump(Op::OpenSysOpHybrid{false}, u, p, t::Real)
     s = p(t)
-    hmat = Op.H(s)
     w, v = Op.H.EIGS(Op.H, s, Op.lvl)
     ω_ba = transpose(w) .- w
     sum((x) -> ame_jump(x, u, ω_ba, v, s), Op.opensys_eig)
