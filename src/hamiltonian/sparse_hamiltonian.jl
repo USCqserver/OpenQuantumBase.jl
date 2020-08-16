@@ -37,7 +37,7 @@ function SparseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
     cache = similar(sum(mats))
     fill!(cache, 0.0)
     mats = unit_scale(unit) * mats
-    EIGS = EIGEN_DEFAULT(cache)
+    EIGS = EIGS(cache)
     SparseHamiltonian(funcs, mats, cache, size(mats[1]), EIGS)
 end
 

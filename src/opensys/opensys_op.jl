@@ -59,7 +59,6 @@ end
 
 function (Op::OpenSysOp{true,false})(du, u, p, t)
     s = p(t)
-    hmat = Op.H(s)
     w, v = Op.H.EIGS(Op.H, s, Op.lvl)
     ω_ba = transpose(w) .- w
     ρ = v' * u * v

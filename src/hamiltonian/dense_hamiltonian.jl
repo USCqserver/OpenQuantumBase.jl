@@ -43,7 +43,7 @@ function DenseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
         mats = unit_scale(unit) * mats
     end
     cache = similar(mats[1])
-    EIGS = EIGEN_DEFAULT(cache)
+    EIGS = EIGS(cache)
     DenseHamiltonian{eltype(mats[1])}(funcs, mats, cache, hsize, EIGS)
 end
 

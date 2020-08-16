@@ -39,23 +39,23 @@ end
 function davies_update!(du, u, A, γ, S)
     A2 = abs2.(A)
     γA = γ .* A2
-    Γ = sum(γA, dims = 1)
+    Γ = sum(γA, dims=1)
     dim = size(du, 1)
     for a = 1:dim
-        for b = 1:a-1
-            du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] +=
+        for b = 1:a - 1
+            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
+            @inbounds du[a, b] +=
                 -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
                 γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
-        for b = a+1:dim
-            du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            du[a, b] +=
+        for b = a + 1:dim
+            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
+            @inbounds du[a, b] +=
                 -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
                 γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
         end
     end
-    H_ls = Diagonal(sum(S .* A2, dims = 1)[1, :])
+    H_ls = Diagonal(sum(S .* A2, dims=1)[1, :])
     axpy!(-1.0im, H_ls * u - u * H_ls, du)
 end
 
@@ -88,7 +88,7 @@ function ame_jump(D::DaviesGenerator, u, ω_ba, v, s)
     for i = 1:num_noise
         γA = γm .* abs2.(σab[i])
         for b = 1:lvl
-            for a = 1:b-1
+            for a = 1:b - 1
                 prob[idx] = γA[a, b] * ϕb[b]
                 tag[idx] = (i, a, b)
                 idx += 1
@@ -104,7 +104,7 @@ function ame_jump(D::DaviesGenerator, u, ω_ba, v, s)
     choice = sample(tag, Weights(prob))
     if choice[2] == 0
         res = zeros(ComplexF64, sys_dim, sys_dim)
-        for i in range(1, stop = sys_dim)
+        for i in range(1, stop=sys_dim)
             res += sqrt(γm[1, 1]) * σab[choice[1]][i, i] * v[:, i] * v[:, i]'
         end
     else
@@ -117,7 +117,7 @@ function ame_jump(D::DaviesGenerator, u, ω_ba, v, s)
     res
 end
 
-#TODO: Better implemention of ame_jump function
+# TODO: Better implemention of ame_jump function
 """
     ame_jump(A::OpenSysOp, u, p, t::Real)
 
