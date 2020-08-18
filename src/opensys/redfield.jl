@@ -1,24 +1,22 @@
 import StaticArrays: MMatrix
 import QuadGK: quadgk!
 
-abstract type AbstractRedfield <: AbstractLiouvillian end
+RedfieldOperator(H, R) = OpenSysOp(H, R, size(H, 1))
 
 """
 $(TYPEDEF)
 
-Defines DiagRedfieldGenerator.
+Defines RedfieldGenerator.
 
 # Fields
 
 $(FIELDS)
 """
-struct DiagRedfieldGenerator <: AbstractRedfield
-    """system-bath coupling operator"""
-    ops::AbstractCouplings
+struct RedfieldGenerator <: AbstractLiouvillian
+    """Redfield kernels"""
+    kernels::Any
     """close system unitary"""
     unitary::Any
-    """bath correlation function"""
-    cfun::Any
     """absolute error tolerance for integration"""
     atol::Float64
     """relative error tolerance for integration"""
@@ -30,32 +28,19 @@ struct DiagRedfieldGenerator <: AbstractRedfield
     """cache matrix for integration"""
     Λ::Union{Matrix,MMatrix}
     """tf minus coarse grain time scale"""
-    Ta::Number
+    Ta::Real
 end
 
-function DiagRedfieldGenerator(
-    ops::AbstractCouplings,
-    U,
-    cfun,
-    Ta;
-    atol = 1e-8,
-    rtol = 1e-6,
-)
-    m_size = size(ops)
-    if m_size[1] <= 10
-        Λ = zeros(MMatrix{m_size[1],m_size[2],ComplexF64})
-    else
-        Λ = zeros(ComplexF64, m_size[1], m_size[2])
-    end
-    if isinplace(U)
-        unitary = U.func
-    else
-        unitary = (cache, t) -> cache .= U(t)
-    end
-    DiagRedfieldGenerator(
-        ops,
+function RedfieldGenerator(kernels, U, Ta, atol, rtol)
+    m_size = size(kernels[1][2])
+    Λ = m_size[1] <= 10 ? zeros(MMatrix{m_size[1],m_size[2],ComplexF64}) :
+        zeros(ComplexF64, m_size[1], m_size[2])
+    # if the unitary does not in place operation, assign a pesudo inplace
+    # function
+    unitary = isinplace(U) ? U.func : (cache, t) -> cache .= U(t)
+    RedfieldGenerator(
+        kernels,
         unitary,
-        cfun,
         atol,
         rtol,
         similar(Λ),
@@ -65,84 +50,59 @@ function DiagRedfieldGenerator(
     )
 end
 
-function (R::DiagRedfieldGenerator)(du, u, p, t::Real)
+function (R::RedfieldGenerator)(du, u, p, t::Real)
     s = p(t)
-    for S in R.ops
-        function integrand(cache, x)
-            R.unitary(R.Ut, t)
-            R.unitary(R.Uτ, x)
-            R.Ut .= R.Ut * R.Uτ'
-            mul!(R.Uτ, S(s), R.Ut')
-            mul!(cache, R.Ut, R.Uτ, R.cfun(t - x), 0)
+    for (inds, coupling, cfun) in R.kernels
+        for (i, j) in inds
+            function integrand(cache, x)
+                R.unitary(R.Ut, t)
+                R.unitary(R.Uτ, x)
+                R.Ut .= R.Ut * R.Uτ'
+                mul!(R.Uτ, coupling[j](s), R.Ut')
+                mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
+            end
+            quadgk!(
+                integrand,
+                R.Λ,
+                max(0.0, t - R.Ta),
+                t,
+                rtol = R.rtol,
+                atol = R.atol,
+            )
+            SS = coupling[i](s)
+            𝐊₂ = SS * R.Λ * u - R.Λ * u * SS
+            𝐊₂ = 𝐊₂ + 𝐊₂'
+            axpy!(-1.0, 𝐊₂, du)
         end
-        quadgk!(
-            integrand,
-            R.Λ,
-            max(0.0, t - R.Ta),
-            t,
-            rtol = R.rtol,
-            atol = R.atol,
-        )
-        𝐊₂ = S(s) * R.Λ * u - R.Λ * u * S(s)
-        𝐊₂ = 𝐊₂ + 𝐊₂'
-        axpy!(-1.0, 𝐊₂, du)
     end
 end
 
-function update_vectorized_cache!(cache, R::DiagRedfieldGenerator, p, t::Real)
-    iden = Matrix{eltype(cache)}(I, size(R.ops))
+function update_vectorized_cache!(cache, R::RedfieldGenerator, p, t::Real)
+    iden = one(R.Λ)
     s = p(t)
-    for S in R.ops
-        function integrand(cache, x)
-            R.unitary(R.Ut, t)
-            R.unitary(R.Uτ, x)
-            R.Ut .= R.Ut * R.Uτ'
-            mul!(R.Uτ, S(s), R.Ut')
-            mul!(cache, R.Ut, R.Uτ, R.cfun(t - x), 0)
+    for (inds, coupling, cfun) in R.kernels
+        for (i, j) in inds
+            function integrand(cache, x)
+                R.unitary(R.Ut, t)
+                R.unitary(R.Uτ, x)
+                R.Ut .= R.Ut * R.Uτ'
+                mul!(R.Uτ, coupling[j](s), R.Ut')
+                mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
+            end
+            quadgk!(
+                integrand,
+                R.Λ,
+                max(0.0, t - R.Ta),
+                t,
+                rtol = R.rtol,
+                atol = R.atol,
+            )
+            SS = coupling[i](s)
+            SΛ = SS * R.Λ
+            cache .-= (
+                iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(SS) ⊗ R.Λ -
+                conj(R.Λ) ⊗ SS
+            )
         end
-        quadgk!(
-            integrand,
-            R.Λ,
-            max(0.0, t - R.Ta),
-            t,
-            rtol = R.rtol,
-            atol = R.atol,
-        )
-        SS = S(s)
-        SΛ = SS * R.Λ
-        cache .-=
-            (iden ⊗ SΛ + conj(SΛ) ⊗ iden - transpose(SS) ⊗ R.Λ - conj(R.Λ) ⊗ SS)
     end
-end
-
-RedfieldOperator(H, R) = OpenSysOp(H, R, size(H, 1))
-
-"""
-$(TYPEDEF)
-
-Defines BaseRedfieldGenerator.
-
-# Fields
-
-$(FIELDS)
-"""
-struct BaseRedfieldGenerator <: AbstractRedfield
-    """system-bath coupling operator"""
-    ops::AbstractCouplings
-    """close system unitary"""
-    unitary::Any
-    """bath correlation function"""
-    cfun::Any
-    """absolute error tolerance for integration"""
-    atol::Float64
-    """relative error tolerance for integration"""
-    rtol::Float64
-    """cache matrix for inplace unitary"""
-    Ut::Union{Matrix,MMatrix}
-    """cache matrix for inplace unitary"""
-    Uτ::Union{Matrix,MMatrix}
-    """cache matrix for integration"""
-    Λ::Union{Matrix,MMatrix}
-    """tf minus coarse grain time scale"""
-    Ta::Number
 end

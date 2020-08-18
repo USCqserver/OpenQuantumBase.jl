@@ -8,7 +8,7 @@ u = [1.0 + 0.0im, 1] / sqrt(2)
 
 H_sparse = SparseHamiltonian([A, B], [spσx, spσz])
 
-H_real = real(H_sparse)
+H_real = convert(Real, H_sparse)
 @test eltype(H_real) <: Real
 @test H_sparse(0.0) ≈ H_real(0.0)
 

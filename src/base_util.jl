@@ -54,3 +54,16 @@ function EIGEN_DEFAULT(H::AbstractSparseHamiltonian)
         eigen!(Hermitian(Array(hmat)), 1:lvl)
     end
 end
+
+function numargs(f)
+    numparam = maximum([num_types_in_tuple(m.sig) for m in methods(f)])
+    return (numparam - 1) #-1 in v0.5 since it adds f as the first parameter
+end
+
+function num_types_in_tuple(sig)
+    length(sig.parameters)
+end
+
+function num_types_in_tuple(sig::UnionAll)
+    length(Base.unwrap_unionall(sig).parameters)
+end

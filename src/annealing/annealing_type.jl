@@ -16,18 +16,20 @@ mutable struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
 end
 
 function Annealing(
-    H,
+    H::AbstractHamiltonian{T},
     u0;
     coupling = nothing,
     bath = nothing,
     interactions = nothing,
     annealing_parameter = (tf, t) -> t / tf,
-)
+) where {T}
     if coupling != nothing && bath != nothing
         if interactions != nothing
             throw(ArgumentError("Both interactions and coupling/bath are specified. Please merge coupling/bath into interactions."))
         end
         interactions = InteractionSet(Interaction(coupling, bath))
+    end
+    if !(T<:Complex)
     end
     Annealing(H, u0, annealing_parameter, interactions)
 end
@@ -50,7 +52,7 @@ struct ODEParams
     """Function to convert physical time to annealing parameter"""
     annealing_parameter::Function
     """Annealing control object"""
-    control::Union{AbstractAnnealingControl,Nothing}
+    control::Any
 end
 
 ODEParams(L, tf::Real, annealing_param; control = nothing) =
