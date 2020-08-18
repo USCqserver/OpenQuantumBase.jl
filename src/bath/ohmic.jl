@@ -33,7 +33,7 @@ $(SIGNATURES)
 Calculate spectrum density ``γ(ω)`` of `bath`.
 """
 function γ(ω, bath::OhmicBath)
-    if isapprox(ω, 0.0, atol = 1e-9)
+    if isapprox(ω, 0.0, atol=1e-9)
         return 2 * pi * bath.η / bath.β
     else
         return 2 * pi * bath.η * ω * exp(-abs(ω) / bath.ωc) / (1 - exp(-bath.β * ω))
@@ -52,7 +52,7 @@ $(SIGNATURES)
 
 Calculate the Lamb shift of Ohmic spectrum. `atol` is the absolute tolerance for Cauchy principal value integral.
 """
-S(w, bath::OhmicBath; atol = 1e-7) = lambshift(w, (ω) -> γ(ω, bath), atol = atol)
+S(w, bath::OhmicBath; atol=1e-7) = lambshift(w, (ω) -> γ(ω, bath), atol=atol)
 
 """
 $(SIGNATURES)
@@ -68,18 +68,11 @@ end
 """
 $(SIGNATURES)
 
-Calculate the two point correlation function ``C(t1, t2)`` of `bath`.
-"""
-@inline correlation(t1, t2, bath::OhmicBath) = correlation(t1 - t2, bath)
-
-"""
-$(SIGNATURES)
-
 Calculate the polaron transformed correlation function of `bath`.
 """
 function polaron_correlation(τ, bath::OhmicBath)
     res = (1 + 1.0im * bath.ωc * τ)^(-4 * bath.η)
-    if !isapprox(τ, 0, atol = 1e-9)
+    if !isapprox(τ, 0, atol=1e-9)
         x = π * τ / bath.β
         res *= (x / sinh(x))^(4 * bath.η)
     end
