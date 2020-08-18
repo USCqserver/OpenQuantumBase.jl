@@ -144,7 +144,7 @@ function project_to_lowlevel(
     lvl = 2,
 ) where {T<:Complex,S<:Real}
     @warn "The projection method only works with real Hamitonians. Convert the complex Hamiltonian to real one."
-    H_real = real(H)
+    H_real = convert(Real, H)
     project_to_lowlevel(H_real, dH, coupling, s_axis, lvl = lvl)
 end
 
