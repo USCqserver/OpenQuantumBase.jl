@@ -56,14 +56,6 @@ Base for types defining quantum annealing process.
 """
 abstract type AbstractAnnealing{hType <: AbstractHamiltonian,uType <: Union{Vector,Matrix},} end
 
-
-"""
-$(TYPEDEF)
-
-Base for types defining bath correlation functions.
-"""
-abstract type Correlation end
-
 """
 $(TYPEDEF)
 
@@ -151,7 +143,7 @@ export RedfieldGenerator, DaviesGenerator, Fluctuators
 export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
 
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
-export Ohmic, OhmicBath, CustomBath, EnsembleFluctuator
+export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath
 
 export τ_B, τ_SB, coarse_grain_timescale
 export build_redfield, build_davies, build_CGG, build_fluctuator
