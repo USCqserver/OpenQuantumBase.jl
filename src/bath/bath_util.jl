@@ -102,5 +102,5 @@ function build_CGG(
 )
     Ta = Ta == nothing ? coarse_grain_timescale(bath, tf)[1] : Ta
     cfun = build_correlation(bath)
-    CGGenerator(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
+    CGGenerator(coupling, unitary, cfun.cfun, Ta, atol = atol, rtol = rtol)
 end
