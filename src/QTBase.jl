@@ -24,12 +24,12 @@ $(TYPEDEF)
 
 Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object should implement two interfaces: `H(t)` and `H(du, u, p, t)`.
 """
-abstract type AbstractHamiltonian{T<:Number} end
+abstract type AbstractHamiltonian{T <: Number} end
 
 
 Base.eltype(::AbstractHamiltonian{T}) where {T} = T
 Base.size(H::AbstractHamiltonian) = H.size
-Base.size(H::AbstractHamiltonian, dim::T) where {T<:Integer} = H.size[dim]
+Base.size(H::AbstractHamiltonian, dim::T) where {T <: Integer} = H.size[dim]
 get_cache(H::AbstractHamiltonian) = H.u_cache
 
 
@@ -38,7 +38,7 @@ $(TYPEDEF)
 
 Base for types defining Hamiltonians using dense matrices.
 """
-abstract type AbstractDenseHamiltonian{T<:Number} <: AbstractHamiltonian{T} end
+abstract type AbstractDenseHamiltonian{T <: Number} <: AbstractHamiltonian{T} end
 
 
 """
@@ -46,7 +46,7 @@ $(TYPEDEF)
 
 Base for types defining Hamiltonians using sparse matrices.
 """
-abstract type AbstractSparseHamiltonian{T<:Number} <: AbstractHamiltonian{T} end
+abstract type AbstractSparseHamiltonian{T <: Number} <: AbstractHamiltonian{T} end
 
 
 """
@@ -54,18 +54,7 @@ $(TYPEDEF)
 
 Base for types defining quantum annealing process.
 """
-abstract type AbstractAnnealing{
-    hType<:AbstractHamiltonian,
-    uType<:Union{Vector,Matrix},
-} end
-
-
-"""
-$(TYPEDEF)
-
-Base for types defining various control protocols in quantum annealing process.
-"""
-abstract type AbstractAnnealingControl end
+abstract type AbstractAnnealing{hType <: AbstractHamiltonian,uType <: Union{Vector,Matrix},} end
 
 """
 $(TYPEDEF)
@@ -103,12 +92,12 @@ include("bath/custom.jl")
 include("integration/cpvagk.jl")
 include("integration/ext_util.jl")
 
+include("hamiltonian/hamiltonian_base.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
 include("hamiltonian/interp_hamiltonian.jl")
 include("hamiltonian/custom_hamiltonian.jl")
-include("hamiltonian/util.jl")
 
 include("annealing/annealing_type.jl")
 include("annealing/displays.jl")
@@ -135,7 +124,7 @@ export q_translate,
 export q_translate_state, collective_operator, hamming_weight_operator
 
 export matrix_decompose, check_positivity, check_unitary, partial_trace
-export inst_population, gibbs_state, low_level_matrix, ame_jump, update_ρ!
+export inst_population, gibbs_state, low_level_matrix, ame_jump
 export construct_interpolations, gradient, log_uniform
 
 export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian
@@ -153,8 +142,8 @@ export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
 export RedfieldGenerator, DaviesGenerator, Fluctuators
 export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
 
-export correlation, γ, S, spectrum, info_freq
-export Ohmic, OhmicBath, CustomBath, EnsembleFluctuator
+export correlation, polaron_correlation, γ, S, spectrum, info_freq
+export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath
 
 export τ_B, τ_SB, coarse_grain_timescale
 export build_redfield, build_davies, build_CGG, build_fluctuator

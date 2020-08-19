@@ -82,18 +82,18 @@ function (h::DenseHamiltonian)(du, u::AbstractMatrix, p, s::Real)
     gemm!('N', 'N', 1.0im, u, H, 1.0 + 0.0im, du)
 end
 
-function Base.convert(S::Type{T}, H::DenseHamiltonian) where {T<:Complex}
+function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Complex,M}
     mats = [convert.(S, x) for x in H.m]
-    cache = similar(H.u_cache, S)
+    cache = similar(H.u_cache, complex{M})
     DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H), H.EIGS)
 end
 
-function Base.convert(S::Type{T}, H::DenseHamiltonian) where {T<:Real}
+function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
     f_val = sum((x) -> x(0.0), H.f)
     if !(typeof(f_val) <: Real)
         throw(TypeError(:convert, "H.f", Real, typeof(f_val)))
     end
     mats = [convert.(S, x) for x in H.m]
-    cache = similar(H.u_cache, S)
+    cache = similar(H.u_cache, real(M))
     DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H), H.EIGS)
 end

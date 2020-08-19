@@ -1,3 +1,14 @@
+"""
+$(SIGNATURES)
+
+Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`
+"""
+evaluate(H::AbstractHamiltonian, s::Real) = H.(s) / 2 / π
+"""Fallback `update_cache!` for `AbstractHamiltonian`."""
+update_cache!(cache, H::AbstractHamiltonian, p, s::Real) = cache .= -1.0im * H(p, s)
+"""Fallback two argument call for `AbstractHamiltonian`."""
+(H::AbstractHamiltonian)(::Any, s::Real) = H(s)
+
 Base.summary(H::AbstractHamiltonian) = string(
     TYPE_COLOR,
     nameof(typeof(H)),
@@ -15,52 +26,16 @@ function Base.show(io::IO, A::AbstractHamiltonian)
 end
 
 """
-    evaluate(H::AbstractHamiltonian, s)
-
-Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`
-"""
-function evaluate(H::AbstractHamiltonian, s)
-    H.(s) / 2 / π
-end
-
-"""
-    function to_real(H::AbstractHamiltonian{T}) where T<:Complex
-
-Convert a Hamiltonian with Complex type to a Hamiltonian with real type. The converted Hamiltonian is used for projection to low-level subspaces and should not be used for any ODE calculations.
-"""
-function to_real(H::DenseHamiltonian{T}) where {T<:Complex}
-    m_real = [real(x) for x in H.m]
-    DenseHamiltonian(H.f, m_real)
-end
-
-
-function Base.real(H::AbstractHamiltonian{T}) where {T}
-    S = real(T)
-    convert(S, H)
-end
-
-
-function is_complex(f_list, m_list)
-    any(m_list) do m
-        eltype(m) <: Complex
-    end || any(f_list) do f
-        typeof(f(0)) <: Complex
-    end
-end
-
-
-"""
 $(SIGNATURES)
 
 Calculate the eigen value decomposition of the Hamiltonian `H` at time `s`. Keyword argument `lvl` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`.
 
 `eig_init` is the initializer for eigen factorization routine. It returns a function of signature: `(H, s, lvl) -> (w, v)`. The default initializer `EIGEN_DEFAULT` will use `LAPACK` routine for both dense and sparse matrices.
 """
-function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int = 2)
+function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int=2)
     w, v = H.EIGS(H, s, lvl)
     real(w)[1:lvl] / 2 / π, v[:, 1:lvl]
 end
-
 
 """
 $(SIGNATURES)
@@ -70,7 +45,7 @@ Calculate the eigen value decomposition of the Hamiltonian `H` at an array of ti
 function eigen_decomp(
     H::AbstractHamiltonian,
     s::AbstractArray{Float64,1};
-    lvl::Int = 2
+    lvl::Int=2
 )
     s_dim = length(s)
     res_val = Array{eltype(H),2}(undef, (lvl, s_dim))
@@ -83,7 +58,6 @@ function eigen_decomp(
     res_val, res_vec
 end
 
-
 """
 $(SIGNATURES)
 
@@ -91,20 +65,20 @@ For a time series quantum states given by `states`, whose time points are given 
 
 `eig_init` is the initializer for eigen factorization routine. It returns a function of signature: `(H, s, lvl) -> (w, v)`. The default initializer `EIGEN_DEFAULT` will use `LAPACK` routine for both dense and sparse matrices.
 """
-function inst_population(s, states, H::AbstractHamiltonian; lvl = 1:1)
+function inst_population(s, states, H::AbstractHamiltonian; lvl=1:1)
     if typeof(lvl) <: Int
         lvl = lvl:lvl
     end
     pop = Array{Array{Float64,1},1}(undef, length(s))
     for (i, v) in enumerate(s)
-        w, v = eigen_decomp(H, v, lvl = maximum(lvl))
+        w, v = eigen_decomp(H, v, lvl=maximum(lvl))
         if ndims(states[i]) == 1
             inst_state = view(v, :, lvl)'
             pop[i] = abs2.(inst_state * states[i])
         elseif ndims(states[i]) == 2
             l = length(lvl)
             temp = Array{Float64,1}(undef, l)
-            for j in range(1, length = l)
+            for j in range(1, length=l)
                 inst_state = view(v, :, j)
                 temp[j] = real(inst_state' * states[i] * inst_state)
             end
@@ -129,5 +103,13 @@ function EIGEN_DEFAULT(u_cache)
     EIGS
 end
 
-EIGEN_DEFAULT(u_cache::SparseMatrixCSC) =
+EIGEN_DEFAULT(::SparseMatrixCSC) =
     (H, t, lvl) -> eigen!(Hermitian(Array(H(t))), 1:lvl)
+
+function is_complex(f_list, m_list)
+    any(m_list) do m
+        eltype(m) <: Complex
+    end || any(f_list) do f
+        typeof(f(0)) <: Complex
+    end
+end

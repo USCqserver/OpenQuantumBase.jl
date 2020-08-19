@@ -1,5 +1,18 @@
-build_correlation(bath::AbstractBath) = (τ) -> correlation(τ, bath)
+# this is a quick solution for the single correlation case
+struct SingleCorrelation
+    cfun::Any
+end
+@inline Base.getindex(C::SingleCorrelation, ind...) = C.cfun
+build_correlation(bath::AbstractBath) =
+    SingleCorrelation((t₁, t₂) -> correlation(t₁ - t₂, bath))
 build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
+
+"""
+$(SIGNATURES)
+
+Calculate the two point correlation function ``C(t1, t2)`` of `bath`. Fall back to `correlation(t1-t2, bath)` unless otherwise defined.
+"""
+@inline correlation(t1, t2, bath::AbstractBath) = correlation(t1 - t2, bath)
 
 """
 $(SIGNATURES)
@@ -11,19 +24,29 @@ function τ_SB(cfun; lim = Inf, rtol = sqrt(eps()), atol = 0)
     1 / res, err / abs2(res)
 end
 
+"""
+$(SIGNATURES)
+
+Calculate ``τ_{SB}`` from `bath`.
+"""
 τ_SB(bath::AbstractBath; lim = Inf, rtol = sqrt(eps()), atol = 0) =
     τ_SB((t) -> correlation(t, bath), lim = lim, rtol = rtol, atol = atol)
 
 """
 $(SIGNATURES)
 
-Calculate the bath correlation time ``τ_B``. The upper limit `lim` and `τsb` need to be manually specified. `atol` and `rtol` are the absolute and relative error for the integration.
+Calculate the bath correlation time ``τ_B`` from the bath correlation function `cfun`. The upper limit `lim` and `τsb` need to be manually specified. `atol` and `rtol` are the absolute and relative error for the integration.
 """
 function τ_B(cfun, lim, τsb; rtol = sqrt(eps()), atol = 0)
     res, err = quadgk((x) -> x * abs(cfun(x)), 0, lim, rtol = rtol, atol = atol)
     res * τsb, err * τsb
 end
 
+"""
+$(SIGNATURES)
+
+Calculate the bath correlation time ``τ_B`` from `bath`.
+"""
 τ_B(bath::AbstractBath, lim, τsb; rtol = sqrt(eps()), atol = 0) =
     τ_B((t) -> correlation(t, bath), lim, τsb; rtol = rtol, atol = atol)
 
@@ -47,18 +70,6 @@ function coarse_grain_timescale(
     τsb, err_sb = τ_SB(bath, rtol = rtol, atol = atol)
     τb, err_b = τ_B(bath, lim, τsb, rtol = rtol, atol = atol)
     sqrt(τsb * τb / 5), (err_sb * τb + τsb * err_b) / 10 / sqrt(τsb * τb / 5)
-end
-
-function build_redfield(
-    coupling::AbstractCouplings,
-    bath::AbstractBath,
-    unitary,
-    Ta;
-    atol = 1e-8,
-    rtol = 1e-6,
-)
-    cfun = build_correlation(bath)
-    RedfieldGenerator(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
 end
 
 function build_davies(
@@ -91,5 +102,5 @@ function build_CGG(
 )
     Ta = Ta == nothing ? coarse_grain_timescale(bath, tf)[1] : Ta
     cfun = build_correlation(bath)
-    CGGenerator(coupling, unitary, cfun, Ta, atol = atol, rtol = rtol)
+    CGGenerator(coupling, unitary, cfun.cfun, Ta, atol = atol, rtol = rtol)
 end

@@ -3,6 +3,7 @@ using QTBase, Test
 c = ConstantCouplings(["ZI", "IZ"])
 @test isequal(c.mats[1], 2π*σz⊗σi)
 @test c.mats[2] == 2π*σi⊗σz
+@test c[2](2.0) == 2π*σi⊗σz
 res = c(0.2)
 @test isequal(res[1], 2π*σz⊗σi)
 @test res[2] == 2π*σi⊗σz

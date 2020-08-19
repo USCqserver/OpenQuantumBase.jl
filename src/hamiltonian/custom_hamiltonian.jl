@@ -24,6 +24,3 @@ end
 
 get_cache(H::CustomDenseHamiltonian) = zeros(eltype(H), size(H))
 (H::CustomDenseHamiltonian)(s) = H.f(s)
-
-update_cache!(cache, H::CustomDenseHamiltonian, tf, s) =
-    cache .= -1.0im * H(s)

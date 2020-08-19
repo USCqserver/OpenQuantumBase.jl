@@ -79,18 +79,18 @@ function (h::SparseHamiltonian)(
     du .= -1.0im * (H * u - u * H)
 end
 
-function Base.convert(S::Type{T}, H::SparseHamiltonian) where {T<:Complex}
+function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Complex, M}
     mats = [convert.(S, x) for x in H.m]
-    cache = similar(H.u_cache, S)
+    cache = similar(H.u_cache, complex{M})
     SparseHamiltonian(H.f, mats, cache, size(H))
 end
 
-function Base.convert(S::Type{T}, H::SparseHamiltonian) where {T<:Real}
+function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Real, M}
     f_val = sum((x) -> x(0.0), H.f)
     if !(typeof(f_val) <: Real)
         throw(TypeError(:convert, "H.f", Real, typeof(f_val)))
     end
     mats = [convert.(S, x) for x in H.m]
-    cache = similar(H.u_cache, S)
+    cache = similar(H.u_cache, real(M))
     SparseHamiltonian(H.f, mats, cache, size(H), H.EIGS)
 end
