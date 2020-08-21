@@ -12,12 +12,23 @@ struct Interaction
     bath::AbstractBath
 end
 
-function build_redfield(i::Interaction, Ta, atol, rtol)
+function build_redfield_kernel(i::Interaction)
     coupling = i.coupling
     cfun = build_correlation(i.bath)
     rinds = typeof(cfun) == SingleCorrelation ?
         ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
+    # the kernels is current set as a tuple
     (rinds, coupling, cfun)
+end
+
+function build_CG_kernel(i::Interaction, tf, Ta)
+    coupling = i.coupling
+    cfun = build_correlation(i.bath)
+    Ta = Ta === nothing ? coarse_grain_timescale(i.bath, tf)[1] : Ta
+    rinds = typeof(cfun) == SingleCorrelation ?
+        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
+    # the kernels is current set as a tuple
+    (rinds, coupling, cfun, Ta)
 end
 
 """
@@ -27,7 +38,7 @@ An container for different system-bath interactions.
 
 $(FIELDS)
 """
-struct InteractionSet{T<:Tuple}
+struct InteractionSet{T <: Tuple}
     """A tuple of Interaction"""
     interactions::T
 end
@@ -36,18 +47,25 @@ InteractionSet(inters::Interaction...) = InteractionSet(inters)
 Base.length(inters::InteractionSet) = Base.length(inters.interactions)
 Base.getindex(inters::InteractionSet, key...) =
     Base.getindex(inters.interactions, key...)
-Base.iterate(iters::InteractionSet, state = 1) =
+Base.iterate(iters::InteractionSet, state=1) =
     Base.iterate(iters.interactions, state)
 
 function build_redfield(iset::InteractionSet, U, Ta, atol, rtol)
-    kernels = [build_redfield(i, Ta, atol, rtol) for i in iset]
+    kernels = [build_redfield_kernel(i) for i in iset]
     RedfieldGenerator(kernels, U, Ta, atol, rtol)
 end
 
-build_CGG(iset::InteractionSet, U, tf; atol = 1e-8, rtol = 1e-6, Ta = nothing) =
-    [build_CGG(i, U, tf, atol = atol, rtol = rtol, Ta = Ta) for i in iset]
-build_CGG(i::Interaction, U, tf; atol = 1e-8, rtol = 1e-6, Ta = nothing) =
-    build_CGG(i.coupling, i.bath, U, tf, atol = atol, rtol = rtol, Ta = Ta)
+function build_CGG(iset::InteractionSet, U, tf, Ta, atol, rtol)
+    if Ta === nothing || ndims(Ta) == 0
+        kernels = [build_CG_kernel(i, tf, Ta) for i in iset]
+    else
+        if length(Ta) != length(iset)
+            throw(ArgumentError("Ta should have the same length as the interaction sets."))
+        end
+        kernels = [build_CG_kernel(i, tf, t) for (i, t) in zip(iset, Ta)]
+    end
+    CGGenerator(kernels, U, atol, rtol)
+end
 
 build_davies(iset::InteractionSet, ω_range, lambshift::Bool) =
     [build_davies(i, ω_range, lambshift) for i in iset]
