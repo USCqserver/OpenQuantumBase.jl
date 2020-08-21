@@ -1,10 +1,10 @@
 using QTBase, Test
 
-coupling = ConstantCouplings(["Z"], unit = :ħ)
+coupling = ConstantCouplings(["Z"], unit=:ħ)
 cfun(t₁, t₂) = 1.0
 cfun(τ) = 1.0
-#TODO: add test for unitary using StaticArrays
-#const Sx = SMatrix{2,2}(σx)
+# TODO: add test for unitary using StaticArrays
+# const Sx = SMatrix{2,2}(σx)
 unitary(t) = exp(-1.0im * t * σx)
 tf = 5.0
 u0 = PauliVec[1][1]
@@ -21,7 +21,7 @@ redfield(dρ, ρ, p, 5.0)
 
 A = zero(ρ ⊗ σi)
 update_vectorized_cache!(A, redfield, p, 5.0)
-@test A * ρ[:] ≈ -(σz*(Λ*ρ-ρ*Λ')-(Λ*ρ-ρ*Λ')*σz)[:]
+@test A * ρ[:] ≈ -(σz * (Λ * ρ - ρ * Λ') - (Λ * ρ - ρ * Λ') * σz)[:]
 
 
 # Λ = QTBase.quadgk((x) -> unitary(x)' * σz * unitary(x), 0, 2.5)[1]
@@ -29,25 +29,26 @@ update_vectorized_cache!(A, redfield, p, 5.0)
 # redfield(dρ, ρ, p, 2.5)
 # @test dρ ≈ -(σz * (Λ * ρ - ρ * Λ') - (Λ * ρ - ρ * Λ') * σz) atol = 1e-6 rtol =
 #     1e-6
-#
+# 
 # A = zero(ρ ⊗ σi)
 # update_vectorized_cache!(A, redfield, UnitTime(5.0), 2.5)
 # @test A * ρ[:] ≈ -(σz*(Λ*ρ-ρ*Λ')-(Λ*ρ-ρ*Λ')*σz)[:]
 
 # test for CustomCouplings
-coupling = CustomCouplings([(s) -> σz], unit = :ħ)
-bath = CustomBath(correlation = (τ)->1.0)
+coupling = CustomCouplings([(s) -> σz], unit=:ħ)
+bath = CustomBath(correlation=(τ) -> 1.0)
 interactions = InteractionSet(Interaction(coupling, bath))
 redfield = build_redfield(interactions, unitary, tf, 1e-8, 1e-6)
 
 A = zero(ρ ⊗ σi)
 Λ = QTBase.quadgk((x) -> unitary(x)' * σz * unitary(x), 0, 2.5)[1]
 update_vectorized_cache!(A, redfield, p, 2.5)
-@test A * ρ[:] ≈ -(σz*(Λ*ρ-ρ*Λ')-(Λ*ρ-ρ*Λ')*σz)[:]
+@test A * ρ[:] ≈ -(σz * (Λ * ρ - ρ * Λ') - (Λ * ρ - ρ * Λ') * σz)[:]
 
 
 # =============== CGME Test ===================
-cgop = QTBase.CGGenerator(coupling, unitary, cfun, 1)
+kernels = [(((1, 1),), coupling, QTBase.SingleCorrelation(cfun), 1)]
+cgop = QTBase.CGGenerator(kernels, unitary, 1e-8, 1e-6)
 dρ = zero(ρ)
 function integrand(x)
     a1 = unitary(x[1])' * σz * unitary(x[1])
