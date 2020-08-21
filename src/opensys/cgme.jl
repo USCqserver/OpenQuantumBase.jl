@@ -10,46 +10,56 @@ Defines CGME operator.
 $(FIELDS)
 """
 struct CGGenerator <: AbstractLiouvillian
-    """system-bath coupling operator"""
-    ops::Any
+    """CGME kernels"""
+    kernels::Any
     """close system unitary"""
     unitary::Any
-    """bath correlation function"""
-    cfun::Any
-    """coarse grain timescale"""
-    Ta::Any
     """absolute error tolerance for integration"""
     atol::Float64
     """relative error tolerance for integration"""
     rtol::Float64
+    """cache matrix for inplace unitary"""
+    Ut1::Union{Matrix,MMatrix}
+    """cache matrix for inplace unitary"""
+    Ut2::Union{Matrix,MMatrix}
+    """cache matrix for integration"""
+    Ut::Union{Matrix,MMatrix}
 end
 
-CGGenerator(ops::AbstractCouplings, unitary, cfun, Ta; atol=1e-8, rtol=1e-6) =
-    CGGenerator(ops, unitary, cfun, Ta, atol, rtol)
+function CGGenerator(kernels, U, atol, rtol)
+    m_size = size(kernels[1][2])
+    Λ = m_size[1] <= 10 ? zeros(MMatrix{m_size[1],m_size[2],ComplexF64}) :
+        zeros(ComplexF64, m_size[1], m_size[2])
+    unitary = isinplace(U) ? U.func : (cache, t) -> cache .= U(t)
+    CGGenerator(kernels, unitary, atol, rtol, similar(Λ), similar(Λ), Λ)
+end
 
 function (CG::CGGenerator)(du, u, p, t::Real)
     tf = p.tf
-    # in this case, time in physical unit is t * tf
-    # Ta is also in physical unit
-    lower_bound = t < CG.Ta / 2 ? [-t, -t] : [-CG.Ta, -CG.Ta] / 2
-    upper_bound = t + CG.Ta / 2 > tf ? [tf, tf] .- t : [CG.Ta, CG.Ta] / 2
-    Ut = CG.unitary(t)
-    for S in CG.ops
-        function integrand(x)
-            Ut2 = CG.unitary(t + x[2]) / Ut
-            Ut1 = CG.unitary(t + x[1]) / Ut
-            At1 = Ut1' * S(p(t + x[1])) * Ut1
-            At2 = Ut2' * S(p(t + x[2])) * Ut2
-            CG.cfun(x[2], x[1]) *
-            (At1 * u * At2 - 0.5 * (At2 * At1 * u + u * At2 * At1)) / CG.Ta
+    for (inds, coupling, cfun, Ta) in CG.kernels
+        lower_bound = t < Ta / 2 ? [-t, -t] : [-Ta, -Ta] / 2
+        upper_bound = t + Ta / 2 > tf ? [tf, tf] .- t : [Ta, Ta] / 2
+        for (i, j) in inds
+            function integrand(x)
+                Ut = CG.Ut
+                Ut1 = CG.Ut1
+                Ut2 = CG.Ut2
+                CG.unitary(Ut, t)
+                Ut2 .= CG.unitary(Ut2, t + x[2]) * Ut'
+                Ut1 .= CG.unitary(Ut1, t + x[1]) * Ut'
+                At1 = Ut .= Ut1' * coupling[i](p(t + x[1])) * Ut1
+                At2 = Ut1 .= Ut2' * coupling[j](p(t + x[2])) * Ut2
+                cfun[i, j](t + x[2], t + x[1]) *
+                (At1 * u * At2 - 0.5 * (At2 * At1 * u + u * At2 * At1)) / Ta
+            end
+            cg_res, err = hcubature(
+                integrand,
+                lower_bound,
+                upper_bound,
+                rtol=CG.rtol,
+                atol=CG.atol,
+            )
+            axpy!(1.0, cg_res, du)
         end
-        cg_res, err = hcubature(
-            integrand,
-            lower_bound,
-            upper_bound,
-            rtol=CG.rtol,
-            atol=CG.atol,
-        )
-        axpy!(1.0, cg_res, du)
     end
 end

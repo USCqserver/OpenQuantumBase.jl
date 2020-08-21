@@ -38,16 +38,8 @@ function RedfieldGenerator(kernels, U, Ta, atol, rtol)
     # if the unitary does not in place operation, assign a pesudo inplace
     # function
     unitary = isinplace(U) ? U.func : (cache, t) -> cache .= U(t)
-    RedfieldGenerator(
-        kernels,
-        unitary,
-        atol,
-        rtol,
-        similar(Λ),
-        similar(Λ),
-        Λ,
-        Ta,
-    )
+    RedfieldGenerator(kernels, unitary, atol, rtol, similar(Λ),
+        similar(Λ), Λ, Ta)
 end
 
 function (R::RedfieldGenerator)(du, u, p, t::Real)
@@ -66,8 +58,8 @@ function (R::RedfieldGenerator)(du, u, p, t::Real)
                 R.Λ,
                 max(0.0, t - R.Ta),
                 t,
-                rtol = R.rtol,
-                atol = R.atol,
+                rtol=R.rtol,
+                atol=R.atol,
             )
             SS = coupling[i](s)
             𝐊₂ = SS * R.Λ * u - R.Λ * u * SS
@@ -94,8 +86,8 @@ function update_vectorized_cache!(cache, R::RedfieldGenerator, p, t::Real)
                 R.Λ,
                 max(0.0, t - R.Ta),
                 t,
-                rtol = R.rtol,
-                atol = R.atol,
+                rtol=R.rtol,
+                atol=R.atol,
             )
             SS = coupling[i](s)
             SΛ = SS * R.Λ
