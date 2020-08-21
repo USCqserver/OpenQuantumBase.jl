@@ -14,10 +14,10 @@ import LinearAlgebra:
     diag,
     lmul!,
     Diagonal
-import StaticArrays: SMatrix, MVector, @MMatrix
-import LinearAlgebra.BLAS: her!, gemm!
+import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
-import QuadGK: quadgk
+import LinearAlgebra.BLAS: her!, gemm!
+import QuadGK: quadgk!, quadgk
 
 """
 $(TYPEDEF)
@@ -106,6 +106,7 @@ include("opensys/opensys_op.jl")
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
 include("opensys/cgme.jl")
+include("opensys/lindblad.jl")
 include("opensys/stochastic.jl")
 
 include("projection/util.jl")
