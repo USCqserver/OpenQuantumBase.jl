@@ -34,6 +34,7 @@ c2 = TimeDependentCoupling([(s)->s], [σx], unit=:ħ)
 c = TimeDependentCouplings(c1, c2)
 @test size(c) == (2, 2)
 @test [op for op in c(0.5)] == [c1(0.5), c2(0.5)]
+@test [op(0.5) for op in c] == [c1(0.5), c2(0.5)]
 
 c = collective_coupling("Z", 2, unit=:ħ)
 @test isequal(c(0.1), [σz⊗σi, σi⊗σz])

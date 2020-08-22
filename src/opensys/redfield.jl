@@ -1,6 +1,3 @@
-import StaticArrays: MMatrix
-import QuadGK: quadgk!
-
 RedfieldOperator(H, R) = OpenSysOp(H, R, size(H, 1))
 
 """

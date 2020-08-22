@@ -11,7 +11,8 @@ import Interpolations:
     Gridded,
     NoInterp,
     Cubic,
-    Constant
+    Constant,
+    Flat
 
 """
     function construct_interpolations(x, y; method = "BSpline", order = 2, extrapolation = "line")
@@ -29,6 +30,8 @@ function construct_interpolations(
     itp = interpolate(y, method)
     if lowercase(extrapolation) == "line"
         itp = extrapolate(itp, Line())
+    elseif lowercase(extrapolation) == "flat"
+        itp = extrapolate(itp, Flat())
     end
     index = interp_index(x, size(y))
     scale(itp, index...)
