@@ -1,4 +1,4 @@
-struct ULindblad
+struct ULindblad <: AbstractLiouvillian
     """Lindblad kernels"""
     kernels::Any
     """close system unitary"""
@@ -23,8 +23,7 @@ function ULindblad(kernels, U, Ta, atol, rtol)
     m_size = size(kernels[1][2])
     Λ = m_size[1] <= 10 ? zeros(MMatrix{m_size[1],m_size[2],ComplexF64}) :
         zeros(ComplexF64, m_size[1], m_size[2])
-    # if the unitary does not in place operation, assign a pesudo inplace
-    # function
+
     unitary = isinplace(U) ? U.func : (cache, t) -> cache .= U(t)
     ULindblad(kernels, unitary, atol, rtol, similar(Λ),
         similar(Λ), similar(Λ), Λ, Ta)
@@ -50,11 +49,8 @@ function (L::ULindblad)(du, u, p, t)
                 rtol=L.rtol,
                 atol=L.atol,
             )
-#=             SS = coupling[i](s)
-            𝐊₂ = SS * L.Λ * u - L.Λ * u * SS
-            𝐊₂ = 𝐊₂ + 𝐊₂' =#
             axpy!(1.0, L.Λ, LO)
         end
     end
-    du .= LO * u * LO' - 0.5 * (LO' * LO * u + u * LO' * LO)
+    du .+= LO * u * LO' - 0.5 * (LO' * LO * u + u * LO' * LO)
 end

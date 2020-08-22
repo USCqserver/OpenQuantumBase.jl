@@ -51,3 +51,23 @@ end
 CorrelatedBath(inds; correlation=nothing, spectrum=nothing) = CorrelatedBath(correlation, spectrum, inds)
 build_correlation(bath::CorrelatedBath) = bath.cfun == nothing ? error("Correlation function is not specified.") : bath.cfun
 build_inds(bath::CorrelatedBath) = bath.inds
+
+"""
+$(TYPEDEF)
+
+A bath object to hold jump correlator of ULE.
+
+$(FIELDS)
+"""
+struct ULEBath <: AbstractBath
+    """correlation function"""
+    cfun::Any
+end
+
+function build_jump_correlation(bath::ULEBath)
+    if numargs(bath.cfun) == 1
+        SingleCorrelation((t₁, t₂) -> bath.cfun(t₁ - t₂))
+    else
+        SingleCorrelation(bath.cfun)
+    end 
+end

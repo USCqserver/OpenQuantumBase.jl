@@ -31,6 +31,15 @@ function build_CG_kernel(i::Interaction, tf, Ta)
     (rinds, coupling, cfun, Ta)
 end
 
+function build_ule_kernel(i::Interaction)
+    coupling = i.coupling
+    cfun = build_jump_correlation(i.bath)
+    rinds = typeof(cfun) == SingleCorrelation ?
+        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
+    # the kernels is current set as a tuple
+    (rinds, coupling, cfun)
+end
+
 """
 $(TYPEDEF)
 
@@ -65,6 +74,11 @@ function build_CGG(iset::InteractionSet, U, tf, Ta, atol, rtol)
         kernels = [build_CG_kernel(i, tf, t) for (i, t) in zip(iset, Ta)]
     end
     CGGenerator(kernels, U, atol, rtol)
+end
+
+function build_ule(iset::InteractionSet, U, Ta, atol, rtol)
+    kernels = [build_ule_kernel(i) for i in iset]
+    ULindblad(kernels, U, Ta, atol, rtol)
 end
 
 build_davies(iset::InteractionSet, ω_range, lambshift::Bool) =

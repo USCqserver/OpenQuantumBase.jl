@@ -144,10 +144,10 @@ export RedfieldGenerator, DaviesGenerator, Fluctuators
 export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
 
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
-export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath
+export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath, ULEBath
 
 export τ_B, τ_SB, coarse_grain_timescale
-export build_redfield, build_davies, build_CGG, build_fluctuator
+export build_redfield, build_davies, build_CGG, build_ule, build_fluctuator
 
 export InplaceUnitary
 
