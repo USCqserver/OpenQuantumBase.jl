@@ -25,8 +25,10 @@ end
 function (F::Fluctuators)(du, u, p, t)
     s = p(t)
     H = sum(F.n .* F.coupling(s))
-    gemm!('N', 'N', -1.0im, H, u, 1.0 + 0.0im, du)
-    gemm!('N', 'N', 1.0im, u, H, 1.0 + 0.0im, du)
+    du .= -1.0im * (H*u - u*H)
+    # gemm! does not work for static matrix
+    #gemm!('N', 'N', -1.0im, H, u, 1.0 + 0.0im, du)
+    #gemm!('N', 'N', 1.0im, u, H, 1.0 + 0.0im, du)
 end
 
 function update_cache!(cache, F::Fluctuators, p, t)
