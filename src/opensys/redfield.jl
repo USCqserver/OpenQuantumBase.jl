@@ -47,7 +47,7 @@ function (R::RedfieldGenerator)(du, u, p, t::Real)
                 R.unitary(R.Ut, t)
                 R.unitary(R.Uτ, x)
                 R.Ut .= R.Ut * R.Uτ'
-                mul!(R.Uτ, coupling[j](s), R.Ut')
+                mul!(R.Uτ, coupling[j](p(x)), R.Ut')
                 mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
             end
             quadgk!(
@@ -75,7 +75,7 @@ function update_vectorized_cache!(cache, R::RedfieldGenerator, p, t::Real)
                 R.unitary(R.Ut, t)
                 R.unitary(R.Uτ, x)
                 R.Ut .= R.Ut * R.Uτ'
-                mul!(R.Uτ, coupling[j](s), R.Ut')
+                mul!(R.Uτ, coupling[j](p(x)), R.Ut')
                 mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
             end
             quadgk!(
