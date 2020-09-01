@@ -208,3 +208,19 @@ function partial_trace(ρ::Matrix, qubit_2_keep)
     end
     mat
 end
+
+function find_degenerate(w)
+    dw = w[2:end] - w[1:end-1]
+    inds = findall((x)->isapprox(x, 0.0, atol=1e-9, rtol=1e-9), dw)
+    res = Array{Array{Int, 1}, 1}()
+    temp = Int[]
+    for i in eachindex(inds)
+        push!(temp, inds[i])
+        if (i==length(inds)) || !(inds[i]+1 == inds[i+1])
+            push!(temp, inds[i]+1)
+            push!(res, temp)
+            temp = Int[]
+        end
+    end
+    res
+end
