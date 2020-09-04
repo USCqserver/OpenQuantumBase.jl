@@ -24,7 +24,7 @@ Base.size(c::ConstantCouplings) = size(c.mats[1])
 Base.size(c::ConstantCouplings, d) = size(c.mats[1], d)
 
 """
-    function ConstantCouplings(mats; str_rep=nothing, unit=:h)
+    function ConstantCouplings(mats::Union{Vector{Matrix{T}},Vector{SparseMatrixCSC{T,Int}}}; unit=:h) where {T<:Number}
 
 Constructor of `ConstantCouplings` object. `mats` is 1-D array of matrices. `str_rep` is the optional string representation of the coupling terms. `unit` is the unit one -- `:h` or `:ħ`. The `mats` will be scaled by ``2π`` is unit is `:h`.
 """
@@ -71,9 +71,9 @@ end
 
 
 """
-    function collective_coupling(op, num_qubit; sp=false)
+    function collective_coupling(op, num_qubit; sp = false, unit = :h)
 
-Create `ConstantCouplings` object with operator `op` on each qubits. `op` is the string representation of one of the Pauli matrices. `num_qubit` is the total number of qubits. `sp` set whether to use sparse matrices. `unit` set the unit one -- ``h`` or ``ħ``.
+Create `ConstantCouplings` object with operator `op` on each qubits. `op` is the string representation of one of the Pauli matrices. `num_qubit` is the total number of qubits. `sp` set whether to use sparse matrices. `unit` set the unit one -- `:h` or `:ħ`.
 """
 function collective_coupling(op, num_qubit; sp = false, unit = :h)
     res = Vector{String}()
@@ -103,11 +103,16 @@ end
 """
 $(TYPEDEF)
 
-Defines a single time dependent system bath coupling operator. It is defined as ``S(s)=∑f(s)×M``.  Keyword argument `unit` set the unit one -- ``h`` or ``ħ``.
+Defines a single time dependent system bath coupling operator. It is defined as ``S(s)=∑f(s)×M``.  Keyword argument `unit` set the unit one -- `:h` or `:ħ`.
 
 # Fields
 
 $(FIELDS)
+
+# Examples
+```julia-repl
+julia> TimeDependentCoupling([(s)->s], [σz], unit=:ħ)
+```
 """
 struct TimeDependentCoupling
     """1-D array of time dependent functions"""

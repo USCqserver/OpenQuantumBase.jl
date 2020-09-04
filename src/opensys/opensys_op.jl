@@ -18,7 +18,7 @@ struct OpenSysOp{diagonalization,adiabatic_frame}
     u_cache::Any
 end
 
-function OpenSysOp(H, opensys, lvl, diagonalization::Bool = false)
+function OpenSysOp(H, opensys, lvl, diagonalization::Bool=false)
     # for DenseHamiltonian smaller than 10×10, do not truncate
     if !(typeof(H) <: AbstractSparseHamiltonian) && (size(H, 1) <= 10)
         lvl = size(H, 1)
@@ -32,7 +32,7 @@ function OpenSysOp(H, opensys, lvl, diagonalization::Bool = false)
     OpenSysOp{diagonalization,adiabatic_frame}(H, opensys, lvl, u_cache)
 end
 
-OpenSysOp(H, opensys::AbstractLiouvillian, lvl, diagonalization::Bool = false) =
+OpenSysOp(H, opensys::AbstractLiouvillian, lvl, diagonalization::Bool=false) =
     OpenSysOp(H, [opensys], lvl, diagonalization)
 
 function (Op::OpenSysOp{false,false})(du, u, p, t)
@@ -68,6 +68,17 @@ function (Op::OpenSysOp{true,false})(du, u, p, t)
         lv(Op.u_cache, ρ, ω_ba, v, s)
     end
     mul!(du, v, Op.u_cache * v')
+end
+
+function (Op::OpenSysOp{true,true})(du, u, p, t)
+    s = p(t)
+    H = Op.H(p.tf, s)
+    w = diag(H)
+    ω_ba = transpose(w) .- w
+    du .= -1.0im * (H * u - u * H)
+    for lv in Op.opensys
+        lv(du, u, ω_ba, s)
+    end
 end
 
 function update_cache!(cache, Op::OpenSysOp{true,false}, p, t::Real)
