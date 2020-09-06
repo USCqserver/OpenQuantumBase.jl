@@ -1,4 +1,5 @@
 using QTBase, Test
+import LinearAlgebra: Diagonal
 
 funcs = [(x) -> x, (x) -> 1 - x]
 test_diag_operator = QTBase.DiagonalOperator(funcs)
@@ -8,6 +9,12 @@ test_geometric_operator = QTBase.GeometricOperator(((x) -> -1.0im * x))
 @test test_geometric_operator(0.5) == [0 0.5im; -0.5im 0]
 @test_throws ArgumentError QTBase.GeometricOperator((x) -> x, (x) -> 1 - x)
 
+H = AdiabaticFrameHamiltonian(funcs, [])
+@test H(2, 0.5) ≈ Diagonal([π, π])
+H = AdiabaticFrameHamiltonian(funcs, nothing)
+@test H(2, 0.0) ≈ Diagonal([0, 2π])
+H = AdiabaticFrameHamiltonian((s)->[s, 1 - s], nothing)
+@test H(2, 0.5) ≈ Diagonal([π, π])
 
 dθ = (s) -> π / 2
 gap = (s) -> (cos(2 * π * s) + 1) / 2

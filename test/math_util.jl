@@ -24,37 +24,41 @@ u_res = exp(-1.0im * 5 * 0.5 * σx)
 @test QTBase.cpvagk((x) -> 1.0, 0, -1, 1)[1] == 0
 
 # == Hamiltonian analysis ===
-DH = DenseHamiltonian([(s) -> 1 - s, (s) -> s], [σx, σz], unit = :ħ)
-#hfun(s) = (1-s)*real(σx)+ s*real(σz)
-#dhfun(s) = -real(σx) + real(σz)
+DH = DenseHamiltonian([(s) -> 1 - s, (s) -> s], [σx, σz], unit=:ħ)
+# hfun(s) = (1-s)*real(σx)+ s*real(σz)
+# dhfun(s) = -real(σx) + real(σz)
 t = [0.0, 1.0]
 states = [PauliVec[1][2], PauliVec[1][1]]
-res = inst_population(t, states, DH, lvl = 1:2)
+res = inst_population(t, states, DH, lvl=1:2)
 @test isapprox(res, [[1.0, 0], [0.5, 0.5]])
 
 SH = SparseHamiltonian(
     [(s) -> -(1 - s), (s) -> s],
-    [standard_driver(2, sp = true), (0.1 * spσz ⊗ spσi + spσz ⊗ spσz)],
-    unit = :ħ,
+    [standard_driver(2, sp=true), (0.1 * spσz ⊗ spσi + spσz ⊗ spσz)],
+    unit=:ħ,
 )
 H_check = DenseHamiltonian(
     [(s) -> -(1 - s), (s) -> s],
     [standard_driver(2), (0.1 * σz ⊗ σi + σz ⊗ σz)],
-    unit = :ħ,
+    unit=:ħ,
 )
-#spdhfun(s) =
+# spdhfun(s) =
 #    real(standard_driver(2, sp = true) + (0.1 * spσz ⊗ spσi + spσz ⊗ spσz))
 interaction = [spσz ⊗ spσi, spσi ⊗ spσz]
 spw, spv = eigen_decomp(SH, [0.5])
 w, v = eigen_decomp(H_check, [0.5])
 @test w ≈ spw atol = 1e-4
-@test isapprox(spv[:, 1, 1], v[:, 1, 1], atol = 1e-4) ||
-      isapprox(spv[:, 1, 1], -v[:, 1, 1], atol = 1e-4)
-@test isapprox(spv[:, 2, 1], v[:, 2, 1], atol = 1e-4) ||
-      isapprox(spv[:, 2, 1], -v[:, 2, 1], atol = 1e-4)
+@test isapprox(spv[:, 1, 1], v[:, 1, 1], atol=1e-4) ||
+      isapprox(spv[:, 1, 1], -v[:, 1, 1], atol=1e-4)
+@test isapprox(spv[:, 2, 1], v[:, 2, 1], atol=1e-4) ||
+      isapprox(spv[:, 2, 1], -v[:, 2, 1], atol=1e-4)
 # == utilit math functions ==
 @test log_uniform(1, 10, 3) == [1, 10^0.5, 10]
 ρ1 = [0.4 0.5; 0.5 0.6]
 ρ2 = [0.5 0; 0 0.5]
-@test ρ1 == partial_trace(ρ1⊗ρ2⊗ρ2, [1])
-@test ρ2 == partial_trace(ρ1⊗ρ2⊗ρ2, [2])
+@test ρ1 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [1])
+@test ρ2 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [2])
+
+w = [1,1,1,2,3,4,4,5]
+@test QTBase.find_degenerate(w) == [[1,2,3],[6,7]]
+@test isempty(QTBase.find_degenerate([1,2,3]))

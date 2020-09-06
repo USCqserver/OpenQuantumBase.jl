@@ -1,10 +1,10 @@
 using QTBase, Test, Random
-import LinearAlgebra: Diagonal
+import LinearAlgebra: Diagonal, diag
 
 
 #================ Define  test functions ==================#
 # calculate the AME linblad term using the formula in reference paper
-function ame_update_term(op, w, v, γ, S)
+function ame_update_term(op, rho, w, v, γ, S)
     L_ij = Array{Array{Complex{Float64},2},2}(undef, (4, 4))
     A_ij = Array{Complex{Float64},2}(undef, (4, 4))
     for i = 1:4
@@ -90,7 +90,7 @@ gm = γ.(w_ab)
 sm = S.(w_ab)
 
 # expected result
-drho, A_ij = ame_update_term(op, w, v, γ, S)
+drho, A_ij = ame_update_term(op, rho, w, v, γ, S)
 
 du = zeros(ComplexF64, (4, 4))
 QTBase.davies_update!(du, u, A_ij, gm, sm)
@@ -138,7 +138,7 @@ w = 2π * real(w)
 state = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)
 rho = state * state'
 u = v' * rho * v
-drho, = ame_update_term(op, w, v, γ, S)
+drho, = ame_update_term(op, rho, w, v, γ, S)
 exp_effective_H =
     ame_trajectory_update_term(op, w, v, γ, S) - 1.0im * v * Diagonal(w) * v'
 
@@ -156,3 +156,28 @@ hmat = H(0.5)
 cache = zeros(ComplexF64, 16, 16)
 update_cache!(cache, ame_op, p, 1)
 @test cache ≈ exp_effective_H atol = 1e-6 rtol = 1e-6
+
+# test for adiabatc frame Hamiltonian
+H = AdiabaticFrameHamiltonian((s)->[0, s, 1 - s, 1], nothing)
+hmat =  H(2.0, 0.4)
+w = diag(hmat)
+v = collect(Diagonal(ones(4)))
+coupling = CustomCouplings([(s)->s*(σx⊗σi+σi⊗σx) + (1-s)*(σz⊗σi+σi⊗σz)])
+davies = DaviesGenerator(coupling, γ, S)
+
+state = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)
+#state = (v[:, 1] + v[:, 2]) / sqrt(2)
+rho = state * state'
+
+drho, = ame_update_term(coupling(0.4)[1], rho, w, v, γ, S)
+p = ODEParams(H, 2.0, (tf, t)->t/tf)
+ame_op = AMEOperator(H, davies, 4)
+du = zeros(ComplexF64, (4, 4))
+ame_op(du, rho, p, 0.4*2)
+
+@test isapprox(
+    du,
+    drho - 1.0im * (hmat * rho - rho * hmat),
+    atol = 1e-6,
+    rtol = 1e-6,
+)

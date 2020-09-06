@@ -208,3 +208,33 @@ function partial_trace(ρ::Matrix, qubit_2_keep)
     end
     mat
 end
+
+"""
+$(SIGNATURES)
+
+Calculate the indices of the degenerate values in list `w`. `w` must be sorted in ascending order.
+
+# Examples
+```julia-repl
+julia> w = [1,1,1,2,3,4,4,5]
+julia> find_degenerate(w)
+2-element Array{Array{Int64,1},1}:
+ [1, 2, 3]
+ [6, 7]
+```
+"""
+function find_degenerate(w; atol::Real=1e-6, rtol::Real=0)
+    dw = w[2:end] - w[1:end-1]
+    inds = findall((x)->isapprox(x, 0.0, atol=atol, rtol=rtol), dw)
+    res = Array{Array{Int, 1}, 1}()
+    temp = Int[]
+    for i in eachindex(inds)
+        push!(temp, inds[i])
+        if (i==length(inds)) || !(inds[i]+1 == inds[i+1])
+            push!(temp, inds[i]+1)
+            push!(res, temp)
+            temp = Int[]
+        end
+    end
+    res
+end

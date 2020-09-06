@@ -5,7 +5,7 @@ H = DenseHamiltonian([(s) -> 1 - s, (s) -> s], [σx, σz])
 dH(s) = (-real(σx) + real(σz))
 coupling = ConstantCouplings(["Z"])
 
-t_obj = project_to_lowlevel(H, dH, coupling, [0.0, 0.5, 1.0])
+t_obj = project_to_lowlevel(H, [0.0, 0.5, 1.0], coupling, dH)
 
 @test t_obj.ev ≈ [[-1.0, 1.0], [-0.707107, 0.707107], [-1.0, 1.0]] atol = 1e-6
 @test t_obj.dθ ≈ [[0.5], [1.0], [0.5]]
@@ -19,12 +19,12 @@ t_obj = project_to_lowlevel(H, dH, coupling, [0.0, 0.5, 1.0])
 
 H = SparseHamiltonian(
     [(s) -> 1 - s, (s) -> s],
-    [-standard_driver(2, sp = true) / 2, (spσz ⊗ spσi - 0.1spσz ⊗ spσz) / 2],
+    [-standard_driver(2, sp=true) / 2, (spσz ⊗ spσi - 0.1spσz ⊗ spσz) / 2],
 )
-dH(s) = standard_driver(2, sp = true) / 2 + (spσz ⊗ spσi - 0.1spσz ⊗ spσz) / 2
+dH(s) = standard_driver(2, sp=true) / 2 + (spσz ⊗ spσi - 0.1spσz ⊗ spσz) / 2
 coupling = ConstantCouplings(["ZI", "IZ"])
 
-t_obj = project_to_lowlevel(H, dH, coupling, [0.0, 0.5, 1.0])
+t_obj = project_to_lowlevel(H, [0.0, 0.5, 1.0], coupling, dH)
 
 @test t_obj.ev ≈ [
     [-1.0, 0.0],
