@@ -1,9 +1,9 @@
 import LinearAlgebra: normalize
 
 """
-    q_translate(h::String)
+    q_translate(h::String; sp = false)
 
-Convert a string `h` representing multi-qubits Pauli matrices summation into its numerical form.
+Convert a string `h` representing multi-qubits Pauli matrices summation into its numerical form. Generate sparse matrix when `sp` is set to true.
 
 # Examples
 ```julia-repl
