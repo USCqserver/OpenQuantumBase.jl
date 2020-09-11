@@ -215,7 +215,6 @@ function push_params!(sys::ProjectedSystem, w, v, dH, interaction, d_inds)
     end
     push!(sys.dθ, dθ)
     # update projected interaction operators
-    # parenthsis ensure sparse matrix multiplication is performed first
     op = [sys.ref' * x * sys.ref for x in interaction]
     push!(sys.op, op)
 end
