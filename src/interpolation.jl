@@ -15,17 +15,17 @@ import Interpolations:
     Flat
 
 """
-    function construct_interpolations(x, y; method = "BSpline", order = 2, extrapolation = "line")
+$(SIGNATURES)
 
 Construct interpolation of N-D array `y` along its last dimension on grid `x`. `method` specifies the interpolation algorithm, which can be either "BSpline" or "Gridded". If `x` is an `AbstractRange`, the default method is "BSpline", otherwise the default `method` is "Gridded". `order` is the interpolation order. If `x` is `AbstractRange`, the default order is 2, otherwise the default order is 1. `extrapolation` specifies the extrapolation methods.
 """
 function construct_interpolations(
     x::AbstractRange{S},
     y::AbstractArray{T,N};
-    method = "BSpline",
-    order = 2,
-    extrapolation = "line",
-) where {S<:Real,T<:Number,N}
+    method="BSpline",
+    order=2,
+    extrapolation="line",
+) where {S <: Real,T <: Number,N}
     method = interp_tuple(N, method, order)
     itp = interpolate(y, method)
     if lowercase(extrapolation) == "line"
@@ -41,20 +41,20 @@ end
 function construct_interpolations(
     x::AbstractArray{S},
     y::AbstractArray{T,N};
-    method = "Gridded",
-    order = 1,
-    extrapolation = "line",
-) where {S<:Real,T<:Number,N}
+    method="Gridded",
+    order=1,
+    extrapolation="line",
+) where {S <: Real,T <: Number,N}
     if lowercase(method) == "bspline"
         Δ = diff(x)
         if allequal(Δ)
-            x = range(x[1], x[end], length = length(x))
+            x = range(x[1], x[end], length=length(x))
             return construct_interpolations(
                 x,
                 y,
-                method = method,
-                order = order,
-                extrapolation = extrapolation,
+                method=method,
+                order=order,
+                extrapolation=extrapolation,
             )
         else
             @warn "The grid is not uniform. Using grided linear interpolation."
@@ -66,6 +66,8 @@ function construct_interpolations(
     itp = interpolate(index, y, method)
     if lowercase(extrapolation) == "line"
         itp = extrapolate(itp, Line())
+    elseif lowercase(extrapolation) == "flat"
+        itp = extrapolate(itp, Flat())
     end
     itp
 end
@@ -74,31 +76,37 @@ end
 function construct_interpolations(
     x::AbstractRange{S},
     y::AbstractArray{W,1};
-    method = "BSpline",
-    order = 2,
-    extrapolation = "line",
-) where {S<:Real,W<:AbstractArray}
-    y = cat(y...; dims = ndims(y[1]) + 1)
+    method="BSpline",
+    order=2,
+    extrapolation="line",
+) where {S <: Real,W <: AbstractArray}
+    y = cat(y...; dims=ndims(y[1]) + 1)
     construct_interpolations(
         x,
         y,
-        method = method,
-        order = order,
-        extrapolation = extrapolation,
+        method=method,
+        order=order,
+        extrapolation=extrapolation,
     )
 end
 
+"""
+$(SIGNATURES)
 
+Construct interpolation of a nested array. If `x` is an `AbstractRange`, the nested array will be converted into multi-dimensional array for interpolation. Otherwise only "Gridded" method and `order` 1 is supported.
+"""
 function construct_interpolations(
     x::AbstractArray{S,1},
     y::AbstractArray{W,1};
-    method = "Gridded",
-    order = 1,
-    extrapolation = "line",
-) where {S<:Real,W<:AbstractArray}
+    method="Gridded",
+    order=1,
+    extrapolation="line",
+) where {S <: Real,W <: AbstractArray}
     itp = interpolate((x,), y, interp_method(method, order))
     if lowercase(extrapolation) == "line"
         itp = extrapolate(itp, Line())
+    elseif lowercase(extrapolation) == "flat"
+        itp = extrapolate(itp, Flat())
     end
     itp
 end
@@ -106,7 +114,7 @@ end
 
 function interp_index(x, s)
     res = []
-    for i = 1:(length(s)-1)
+    for i = 1:(length(s) - 1)
         push!(res, 1:s[i])
     end
     push!(res, x)
@@ -116,7 +124,7 @@ end
 
 function interp_tuple(N, method, order)
     res = []
-    for i = 1:(N-1)
+    for i = 1:(N - 1)
         push!(res, NoInterp())
     end
     interp_term = interp_method(method, order)
@@ -125,7 +133,7 @@ function interp_tuple(N, method, order)
 end
 
 
-function interp_method(method, order::Integer; boundary = Line(OnGrid()))
+function interp_method(method, order::Integer; boundary=Line(OnGrid()))
     if lowercase(method) == "bspline"
         if order == 0
             res = BSpline(Constant())
@@ -156,7 +164,7 @@ end
 
 
 """
-    function gradient(itp, s)
+$(SIGNATURES)
 
 Calculate the gradient of `itp` at `s`.
 """

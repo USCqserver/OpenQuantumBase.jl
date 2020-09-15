@@ -69,7 +69,6 @@ function ConstantCouplings(
     ConstantCouplings(mats, c)
 end
 
-
 """
     function collective_coupling(op, num_qubit; sp = false, unit = :h)
 
@@ -169,6 +168,11 @@ struct CustomCouplings <: AbstractTimeDependentCouplings
     size::Any
 end
 
+"""
+$(SIGNATURES)
+
+Create a `CustomCouplings` object from a list of functions `funcs`.
+"""
 function CustomCouplings(funcs; unit = :h)
     mat = funcs[1](0.0)
     if unit == :h
