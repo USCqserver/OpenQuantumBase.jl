@@ -43,7 +43,3 @@ t_obj = project_to_lowlevel(H, [0.0, 0.5, 1.0], coupling, dH)
     [-0.6044361719689455, -0.10443617196894575],
     [-0.55, -0.45],
 ] atol = 1e-6
-
-symmetric_matrix = QTBase.LinearIdxLowerTriangular(ComplexF64, 10, 2)
-symmetric_matrix[:, 1, 2] = 1:10
-@test symmetric_matrix[:, 2, 1] == 1:10

@@ -39,4 +39,3 @@ du = [1.0 + 0.0im 0; 0 0]
 hres = π * σx / 20 - 2π * σz
 H(du, ρ, 10, 0.0)
 @test du ≈ -1.0im * (hres * ρ - ρ * hres)
-@test QTBase.ω_matrix(H, 2) ≈ [0 2; -2 0] * 2 * π

@@ -47,7 +47,4 @@ using SafeTestsets
     @time @safetestset "Projections" begin
         include("projection.jl")
     end
-    @time @safetestset "Γ Matrices" begin
-        include("gamma_matrix.jl")
-    end
 end
