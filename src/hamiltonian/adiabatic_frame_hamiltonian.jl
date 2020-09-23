@@ -152,8 +152,3 @@ function (h::AdiabaticFrameHamiltonian)(
     G = h.geometric(s)
     du .+= -1.0im * (G * u - u * G) / tf
 end
-
-function ω_matrix(H::AdiabaticFrameHamiltonian, lvl)
-    ω = 2π * H.diagonal.u_cache[1:lvl]
-    ω' .- ω
-end
