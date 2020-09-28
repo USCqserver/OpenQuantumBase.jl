@@ -3,9 +3,27 @@ struct SingleCorrelation
     cfun::Any
 end
 @inline Base.getindex(C::SingleCorrelation, ind...) = C.cfun
+struct SingleSpectrum
+    sfun::Any
+end
+@inline Base.getindex(S::SingleSpectrum, ind...) = S.sfun
 build_correlation(bath::AbstractBath) =
     SingleCorrelation((t₁, t₂) -> correlation(t₁ - t₂, bath))
 build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
+
+function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath)
+    if turn_on == true
+        if isempty(ω_range)
+            S_loc = (ω) -> S(ω, bath)
+        else
+            s_list = [S(ω, bath) for ω in ω_range]
+            S_loc = construct_interpolations(ω_range, s_list)
+        end
+    else
+        S_loc = (ω) -> 0.0
+    end
+    S_loc
+end
 
 """
 $(SIGNATURES)
@@ -78,15 +96,24 @@ function build_davies(
     ω_range::AbstractVector,
     lambshift::Bool,
 )
-    if lambshift == true
-        if isempty(ω_range)
-            S_loc = (ω) -> S(ω, bath)
-        else
-            s_list = [S(ω, bath) for ω in ω_range]
-            S_loc = construct_interpolations(ω_range, s_list)
-        end
-    else
-        S_loc = (ω) -> 0.0
-    end
+    S_loc = build_lambshift(ω_range, lambshift, bath)
     DaviesGenerator(coupling, build_spectrum(bath), S_loc)
+end
+
+function build_onesided_ame(
+    coupling::AbstractCouplings,
+    bath::AbstractBath,
+    ω_range::AbstractVector,
+    lambshift::Bool,
+)
+    gamma = build_spectrum(bath)
+    S_loc = build_lambshift(ω_range, lambshift, bath)
+    if typeof(bath) <: CorrelatedBath
+        inds = build_inds(bath)
+    else
+        inds = ((i, i) for i in 1:length(coupling))
+        gamma = SingleSpectrum(gamma)
+        S_loc = SingleSpectrum(S_loc)
+    end
+    OneSidedAMEGenerator(coupling, gamma, S_loc, inds)
 end

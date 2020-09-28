@@ -86,6 +86,11 @@ build_davies(iset::InteractionSet, ω_range, lambshift::Bool) =
 build_davies(inter::Interaction, ω_hint, lambshift) =
     build_davies(inter.coupling, inter.bath, ω_hint, lambshift)
 
+build_onesided_ame(iset::InteractionSet, ω_range, lambshift::Bool) =
+    [build_onesided_ame(i, ω_range, lambshift) for i in iset]
+build_onesided_ame(inter::Interaction, ω_hint, lambshift) =
+    build_onesided_ame(inter.coupling, inter.bath, ω_hint, lambshift)
+
 build_fluctuator(iset::InteractionSet) =
     [build_fluctuator(i.coupling, i.bath) for i in iset]
 build_fluctuator(inter::Interaction) =

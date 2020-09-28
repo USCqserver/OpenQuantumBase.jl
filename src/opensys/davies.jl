@@ -136,3 +136,80 @@ function ame_jump(Op::OpenSysOpHybrid{false}, u, p, t::Real)
     ω_ba = transpose(w) .- w
     sum((x) -> ame_jump(x, u, ω_ba, v, s), Op.opensys_eig)
 end
+
+"""
+$(TYPEDEF)
+
+Defines correlated Davies generator
+
+# Fields
+
+$(FIELDS)
+"""
+struct CorrelatedDaviesGenerator <: AbstractLiouvillian
+    """System bath coupling operators"""
+    coupling::AbstractCouplings
+    """Spectrum density"""
+    γ::Any
+    """Lambshift spectrum density"""
+    S::Any
+    """Indices to iterate"""
+    inds::Any
+end
+
+function (D::CorrelatedDaviesGenerator)(du, ρ, ω_ba, s::Real)
+    for (α, β) in D.inds
+        γm = D.γ[α,β].(ω_ba)
+        sm = D.S[α,β].(ω_ba)
+        Aα = D.coupling[α](s)
+        Aβ = D.coupling[β](s)
+        correlated_davies_update!(du, ρ, Aα, Aβ, γm, sm)
+    end
+end
+
+function correlated_davies_update!(du, u, Aα, Aβ, γ, S)
+    A2 = transpose(Aα) .* Aβ
+    γA = γ .* A2
+    Γ = sum(γA, dims=1)
+    dim = size(du, 1)
+    for a = 1:dim
+        for b = 1:a - 1
+            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
+            @inbounds du[a, b] +=
+                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                γ[1, 1] * Aα[a, a] * Aβ[b, b] * u[a, b]
+        end
+        for b = a + 1:dim
+            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
+            @inbounds du[a, b] +=
+                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
+                γ[1, 1] * Aα[a, a] * Aβ[b, b] * u[a, b]
+        end
+    end
+    H_ls = Diagonal(sum(S .* A2, dims=1)[1, :])
+    axpy!(-1.0im, H_ls * u - u * H_ls, du)
+end
+
+struct OneSidedAMEGenerator <: AbstractLiouvillian
+    """System bath coupling operators"""
+    coupling::AbstractCouplings
+    """Spectrum density"""
+    γ::Any
+    """Lambshift spectrum density"""
+    S::Any
+    """Indices to iterate"""
+    inds::Any
+end
+
+function (A::OneSidedAMEGenerator)(du, u, ω_ba, s::Real)
+    for (α, β) in A.inds
+        γm = A.γ[α,β].(ω_ba)
+        sm = A.S[α,β].(ω_ba)
+        Aα = A.coupling[α](s)
+        Aβ = A.coupling[β](s)
+        Λ = (0.5 * γm + 1.0im * sm) .* Aα
+        𝐊₂ = Aβ * Λ * u - Λ * u * Aβ
+        𝐊₂ = 𝐊₂ + 𝐊₂'
+        axpy!(-1.0, 𝐊₂, du)
+    end
+end

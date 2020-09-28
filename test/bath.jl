@@ -32,3 +32,15 @@ ensemble_rtn = EnsembleFluctuator([1.0, 2.0], [2.0, 1.0])
 # T = 10
 #
 # bath = HybridOhmic(W, η, fc, T)
+
+# test for correlated bath
+coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)
+γfun(w) = w>=0 ? 1.0 : exp(-0.5)
+cbath = CorrelatedBath(((1,2),(2,1)),spectrum=[0 γfun; γfun 0])
+D = build_davies(coupling, cbath, 0:10, false)
+du = zeros(ComplexF64, 2, 2)
+ρ = [0.5 0;0 0.5]
+ω = [1, 2]
+ω =  ω' .- ω
+D(du, ρ, ω, 0.5)
+@test du ≈ [(1-exp(-0.5))*0.5 0; 0 -(1-exp(-0.5))*0.5]

@@ -86,6 +86,7 @@ include("coupling/interaction.jl")
 
 include("bath/bath_util.jl")
 include("bath/ohmic.jl")
+include("bath/hybrid_ohmic.jl")
 include("bath/spin_fluc.jl")
 include("bath/custom.jl")
 
@@ -119,6 +120,7 @@ export AbstractAnnealing, AbstractBath
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature
 export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy
+export σ₊, σ₋
 
 export q_translate,
     standard_driver, local_field_term, two_local_term, single_clause
@@ -144,10 +146,10 @@ export RedfieldGenerator, DaviesGenerator, Fluctuators
 export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
 
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
-export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath, ULEBath
+export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath, ULEBath, HybridOhmic
 
 export τ_B, τ_SB, coarse_grain_timescale
-export build_redfield, build_davies, build_CGG, build_ule, build_fluctuator
+export build_redfield, build_davies, build_CGG, build_ule, build_fluctuator, build_onesided_ame
 
 export InplaceUnitary
 
