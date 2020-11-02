@@ -59,6 +59,11 @@ w, v = eigen_decomp(H_check, [0.5])
 @test ρ1 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [1])
 @test ρ2 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [2])
 
+ρ = PauliVec[1][1]*PauliVec[1][1]'
+σ = PauliVec[3][1]*PauliVec[3][1]'
+@test fidelity(ρ, σ) ≈ 0.5
+@test fidelity(ρ, ρ) ≈ 1
+
 w = [1,1,1,2,3,4,4,5]
 @test QTBase.find_degenerate(w) == [[1,2,3],[6,7]]
 @test isempty(QTBase.find_degenerate([1,2,3]))
