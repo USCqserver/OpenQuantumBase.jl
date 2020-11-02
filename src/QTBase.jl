@@ -13,7 +13,8 @@ import LinearAlgebra:
     eigen!,
     diag,
     lmul!,
-    Diagonal
+    Diagonal,
+    tr
 import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
@@ -110,9 +111,9 @@ include("opensys/cgme.jl")
 include("opensys/lindblad.jl")
 include("opensys/stochastic.jl")
 
-#include("projection/util.jl")
+# include("projection/util.jl")
 include("projection/projection.jl")
-#include("projection/gamma_matrix.jl")
+# include("projection/gamma_matrix.jl")
 
 export AbstractHamiltonian, AbstractDenseHamiltonian, AbstractSparseHamiltonian
 export AbstractLiouvillian, AbstractCouplings, AbstractTimeDependentCouplings
@@ -126,7 +127,8 @@ export q_translate,
     standard_driver, local_field_term, two_local_term, single_clause
 export q_translate_state, collective_operator, hamming_weight_operator
 
-export matrix_decompose, check_positivity, check_unitary, partial_trace
+export matrix_decompose, check_positivity, check_unitary, partial_trace,
+    fidelity
 export inst_population, gibbs_state, low_level_matrix, ame_jump
 export construct_interpolations, gradient, log_uniform
 
