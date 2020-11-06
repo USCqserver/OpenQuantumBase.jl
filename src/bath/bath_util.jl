@@ -11,12 +11,19 @@ build_correlation(bath::AbstractBath) =
     SingleCorrelation((t₁, t₂) -> correlation(t₁ - t₂, bath))
 build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
 
+"""
+$(SIGNATURES)
+
+Calculate the Lamb shift of `bath`. `atol` is the absolute tolerance for Cauchy principal value integral.
+"""
+lambshift(w, bath::AbstractBath; atol=1e-7) = lambshift(w, (ω) -> spectrum(ω, bath), atol=atol)
+
 function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath)
     if turn_on == true
         if isempty(ω_range)
             S_loc = (ω) -> S(ω, bath)
         else
-            s_list = [S(ω, bath) for ω in ω_range]
+            s_list = [lambshift(ω, bath) for ω in ω_range]
             S_loc = construct_interpolations(ω_range, s_list)
         end
     else

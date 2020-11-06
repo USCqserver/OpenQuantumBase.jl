@@ -7,8 +7,9 @@ bath = QTBase.OhmicBath(η, ωc, β)
 @test correlation(0.02, 0.01, bath) == correlation(0.01, bath)
 @test γ(0.0, bath) == 2 * pi * η / β
 @test spectrum(0.0, bath) == 2 * pi * η / β
-@test S(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
+@test lambshift(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
 
+# test suite for CustomBath
 cfun = (t) -> exp(-t)
 bath = CustomBath(correlation = cfun)
 correlation(1, bath)
@@ -26,14 +27,12 @@ ensemble_rtn = EnsembleFluctuator([1.0, 2.0], [2.0, 1.0])
 #fluctuator_control = QuantumAnnealingTools.FluctuatorControl(2.0, 3, ensemble_rtn)
 #@test fluctuator_control() == sum(fluctuator_control.b0, dims=1)[:]
 
-# η = 0.25 / 8 / pi
-# W = 2
-# fc = 4
-# T = 10
-#
-# bath = HybridOhmic(W, η, fc, T)
+# test suite for HybridOhmic bath
+η = 0.01; W = 5; fc = 4; T = 12.5
+bath = HybridOhmic(W, η, fc, T)
+@test lambshift(0.0, bath) ≈ -0.2872777516270734
 
-# test for correlated bath
+# test suite for correlated bath
 coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)
 γfun(w) = w>=0 ? 1.0 : exp(-0.5)
 cbath = CorrelatedBath(((1,2),(2,1)),spectrum=[0 γfun; γfun 0])

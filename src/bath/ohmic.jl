@@ -50,13 +50,6 @@ spectrum(ω, bath::OhmicBath) = γ(ω, bath)
 """
 $(SIGNATURES)
 
-Calculate the Lamb shift of Ohmic spectrum. `atol` is the absolute tolerance for Cauchy principal value integral.
-"""
-S(w, bath::OhmicBath; atol=1e-7) = lambshift(w, (ω) -> γ(ω, bath), atol=atol)
-
-"""
-$(SIGNATURES)
-
 Calculate the two point correlation function ``C(τ)`` of `bath`.
 """
 function correlation(τ, bath::OhmicBath)
