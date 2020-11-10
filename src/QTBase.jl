@@ -111,9 +111,7 @@ include("opensys/cgme.jl")
 include("opensys/lindblad.jl")
 include("opensys/stochastic.jl")
 
-# include("projection/util.jl")
 include("projection/projection.jl")
-# include("projection/gamma_matrix.jl")
 
 export AbstractHamiltonian, AbstractDenseHamiltonian, AbstractSparseHamiltonian
 export AbstractLiouvillian, AbstractCouplings, AbstractTimeDependentCouplings
@@ -155,16 +153,6 @@ export build_redfield, build_davies, build_CGG, build_ule, build_fluctuator, bui
 
 export InplaceUnitary
 
-export ProjectedSystem,
-    ProjectedTG,
-    project_to_lowlevel,
-    get_dθ,
-    concatenate,
-    ProjectedCoupling,
-    construct_projected_coupling,
-    construct_projected_TG,
-    landau_zener_rotate_angle,
-    landau_zener_rotate,
-    ΓMatrix
+export ProjectedSystem, project_to_lowlevel, get_dθ, concatenate
 
 end  # module QTBase
