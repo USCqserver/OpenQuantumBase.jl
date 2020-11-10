@@ -7,7 +7,7 @@ bath = QTBase.OhmicBath(η, ωc, β)
 @test correlation(0.02, 0.01, bath) == correlation(0.01, bath)
 @test γ(0.0, bath) == 2 * pi * η / β
 @test spectrum(0.0, bath) == 2 * pi * η / β
-@test lambshift(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
+@test S(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
 
 # test suite for CustomBath
 cfun = (t) -> exp(-t)
@@ -30,7 +30,7 @@ ensemble_rtn = EnsembleFluctuator([1.0, 2.0], [2.0, 1.0])
 # test suite for HybridOhmic bath
 η = 0.01; W = 5; fc = 4; T = 12.5
 bath = HybridOhmic(W, η, fc, T)
-@test lambshift(0.0, bath) ≈ -0.2872777516270734
+@test S(0.0, bath) ≈ -0.2872777516270734
 
 # test suite for correlated bath
 coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)
