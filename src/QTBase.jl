@@ -14,7 +14,8 @@ import LinearAlgebra:
     diag,
     lmul!,
     Diagonal,
-    tr
+    tr,
+    norm
 import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
@@ -144,6 +145,7 @@ export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
 
 export RedfieldGenerator, DaviesGenerator, Fluctuators
 export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
+export Lindblad
 
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
 export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath, ULEBath, HybridOhmic
@@ -151,7 +153,7 @@ export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath, ULEBath
 export τ_B, τ_SB, coarse_grain_timescale
 export build_redfield, build_davies, build_CGG, build_ule, build_fluctuator, build_onesided_ame
 
-export InplaceUnitary
+export InplaceUnitary, EᵨEnsemble, sample_state_vector
 
 export ProjectedSystem, project_to_lowlevel, get_dθ, concatenate
 

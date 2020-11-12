@@ -24,9 +24,9 @@ end
 """
 $(SIGNATURES)
 
-Constructor of DenseHamiltonian object. `funcs` and `mats` are a list of time dependent functions and the corresponding matrices. `unit` is the unit one -- `:h` or `:ħ`. The `mats` will be scaled by ``2π`` if unit is `:h`.
+Constructor of the `DenseHamiltonian` type. `funcs` and `mats` are lists of time-dependent functions and the corresponding matrices. The Hamiltonian can be represented as ``∑ᵢfuncs[i](s)×mats[i]``. `unit` specifies wether `:h` or `:ħ` is set to one when defining `funcs` and `mats`. The `mats` will be scaled by ``2π`` if unit is `:h`.
 
-`EIGS` is the initializer for the eigen decomposition routine for the Hamiltonian. It should return a function of signature: `(H, s, lvl) -> (w, v)`. The default method `EIGEN_DEFAULT` will use `LAPACK` routine.
+`EIGS` is the initializer for the eigendecomposition routine for the Hamiltonian. It should return a function of the signature: `(H, s, lvl) -> (w, v)`. The default method `EIGEN_DEFAULT` will use `LAPACK` routine.
 """
 function DenseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
     if any((x) -> size(x) != size(mats[1]), mats)

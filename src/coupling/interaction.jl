@@ -1,11 +1,18 @@
 """
 $(TYPEDEF)
 
+Base for types defining system bath interactions in open quantum system models.
+"""
+abstract type AbstractInteraction end
+
+"""
+$(TYPEDEF)
+
 An object to hold system operator and the corresponding bath object.
 
 $(FIELDS)
 """
-struct Interaction
+struct Interaction <: AbstractInteraction
     """system operator"""
     coupling::AbstractCouplings
     """bath coupling to the system operator"""
@@ -52,7 +59,7 @@ struct InteractionSet{T <: Tuple}
     interactions::T
 end
 
-InteractionSet(inters::Interaction...) = InteractionSet(inters)
+InteractionSet(inters::AbstractInteraction...) = InteractionSet(inters)
 Base.length(inters::InteractionSet) = Base.length(inters.interactions)
 Base.getindex(inters::InteractionSet, key...) =
     Base.getindex(inters.interactions, key...)
@@ -95,3 +102,6 @@ build_fluctuator(iset::InteractionSet) =
     [build_fluctuator(i.coupling, i.bath) for i in iset]
 build_fluctuator(inter::Interaction) =
     build_fluctuator(inter.coupling, inter.bath)
+
+build_lindblad_set(iset::InteractionSet) = 
+    LindbladSet([i for i in iset if typeof(i)<:Lindblad])

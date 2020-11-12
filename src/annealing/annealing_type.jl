@@ -1,6 +1,7 @@
 """
 $(TYPEDEF)
-Defines a quantum annealing process.
+`Annealing` type defines the evolution of a time-dependent Hamiltonian in both closed-system and open-system settings. It is called `Annealing` because HOQST started as a toolbox for quantum annealing.
+
 # Fields
 $(FIELDS)
 """
