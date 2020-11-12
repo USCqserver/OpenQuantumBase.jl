@@ -26,12 +26,12 @@ end
 
 Check if all elements in `x` are equal upto an absolute error tolerance `atol` and relative error tolerance `rtol`.
 """
-@inline function allequal(x; rtol = 1e-6, atol = 1e-6)
+@inline function allequal(x; rtol=1e-6, atol=1e-6)
     length(x) < 2 && return true
     e1 = x[1]
     i = 2
     @inbounds for i = 2:length(x)
-        isapprox(x[i], e1, rtol = rtol, atol = atol) || return false
+        isapprox(x[i], e1, rtol=rtol, atol=atol) || return false
     end
     return true
 end
@@ -57,7 +57,7 @@ end
 
 function numargs(f)
     numparam = maximum([num_types_in_tuple(m.sig) for m in methods(f)])
-    return (numparam - 1) #-1 in v0.5 since it adds f as the first parameter
+    return (numparam - 1) # -1 in v0.5 since it adds f as the first parameter
 end
 
 function num_types_in_tuple(sig)
@@ -67,3 +67,30 @@ end
 function num_types_in_tuple(sig::UnionAll)
     length(Base.unwrap_unionall(sig).parameters)
 end
+
+"""
+$(TYPEDEF)
+
+A statistical ensemble that is equivalent to a density matrix ρ.
+
+# Fields
+
+$(FIELDS)
+"""
+struct EᵨEnsemble
+    """The weights for each state vector"""
+    ω::Vector
+    """The states vectors in the ensemble"""
+    vec::Vector
+    function EᵨEnsemble(ω::Vector, vec::Vector)
+        if !(eltype(ω) <: Number && all((x) -> x >= 0, ω))
+            throw(ArgumentError("Weights vector ω must be 1-d array of positive numbers."))
+        end
+        if !(eltype(vec) <: Vector)
+            throw(ArgumentError("vec must be 1-d array of vectors."))
+        end
+        new(ω, vec)
+    end
+end
+
+sample_state_vector(Eᵨ::EᵨEnsemble) = sample(Eᵨ.vec, Weights(Eᵨ.ω))
