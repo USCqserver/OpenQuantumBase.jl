@@ -3,13 +3,13 @@ RedfieldOperator(H, R) = OpenSysOp(H, R, size(H, 1))
 """
 $(TYPEDEF)
 
-Defines RedfieldGenerator.
+Defines RedfieldLiouvillian.
 
 # Fields
 
 $(FIELDS)
 """
-struct RedfieldGenerator <: AbstractLiouvillian
+struct RedfieldLiouvillian <: AbstractLiouvillian
     """Redfield kernels"""
     kernels::Any
     """close system unitary"""
@@ -28,18 +28,18 @@ struct RedfieldGenerator <: AbstractLiouvillian
     Ta::Real
 end
 
-function RedfieldGenerator(kernels, U, Ta, atol, rtol)
+function RedfieldLiouvillian(kernels, U, Ta, atol, rtol)
     m_size = size(kernels[1][2])
     Λ = m_size[1] <= 10 ? zeros(MMatrix{m_size[1],m_size[2],ComplexF64}) :
         zeros(ComplexF64, m_size[1], m_size[2])
     # if the unitary does not in place operation, assign a pesudo inplace
     # function
     unitary = isinplace(U) ? U.func : (cache, t) -> cache .= U(t)
-    RedfieldGenerator(kernels, unitary, atol, rtol, similar(Λ),
+    RedfieldLiouvillian(kernels, unitary, atol, rtol, similar(Λ),
         similar(Λ), Λ, Ta)
 end
 
-function (R::RedfieldGenerator)(du, u, p, t::Real)
+function (R::RedfieldLiouvillian)(du, u, p, t::Real)
     s = p(t)
     for (inds, coupling, cfun) in R.kernels
         for (i, j) in inds
@@ -66,7 +66,7 @@ function (R::RedfieldGenerator)(du, u, p, t::Real)
     end
 end
 
-function update_vectorized_cache!(cache, R::RedfieldGenerator, p, t::Real)
+function update_vectorized_cache!(cache, R::RedfieldLiouvillian, p, t::Real)
     iden = one(R.Λ)
     s = p(t)
     for (inds, coupling, cfun) in R.kernels

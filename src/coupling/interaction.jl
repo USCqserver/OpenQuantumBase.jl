@@ -66,9 +66,9 @@ Base.getindex(inters::InteractionSet, key...) =
 Base.iterate(iters::InteractionSet, state=1) =
     Base.iterate(iters.interactions, state)
 
-function build_redfield(iset::InteractionSet, U, Ta, atol, rtol)
+function redfield_from_interactions(iset::InteractionSet, U, Ta, atol, rtol)
     kernels = [build_redfield_kernel(i) for i in iset]
-    RedfieldGenerator(kernels, U, Ta, atol, rtol)
+    RedfieldLiouvillian(kernels, U, Ta, atol, rtol)
 end
 
 function build_CGG(iset::InteractionSet, U, tf, Ta, atol, rtol)
