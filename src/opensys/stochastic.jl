@@ -57,4 +57,4 @@ function reset!(F::Fluctuators, initializer)
     next_state!(F)
 end
 
-FluctuatorOperator(H, flist) = OpenSysOp(H, flist, size(H,1))
+FluctuatorOperator(H, flist) = DiffEqLiouvillian(H, flist, size(H,1))

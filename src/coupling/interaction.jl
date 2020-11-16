@@ -98,6 +98,8 @@ Base.getindex(inters::InteractionSet, key...) =
 Base.iterate(iters::InteractionSet, state=1) =
     Base.iterate(iters.interactions, state)
 
+# the following functions are used to build different Liouvillians
+# from the InteractionSet.
 function redfield_from_interactions(iset::InteractionSet, U, Ta, atol, rtol)
     kernels = [build_redfield_kernel(i) for i in iset]
     RedfieldLiouvillian(kernels, U, Ta, atol, rtol)
