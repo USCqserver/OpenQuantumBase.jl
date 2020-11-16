@@ -35,7 +35,7 @@ using SafeTestsets
     @time @safetestset "Redfield" begin
         include("opensys/redfield.jl")
     end
-    @time @safetestset "ULE" begin
+    @time @safetestset "Lindblad" begin
         include("opensys/lindblad.jl")
     end
     @time @safetestset "Bath" begin

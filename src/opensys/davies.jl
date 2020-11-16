@@ -1,5 +1,5 @@
 import StatsBase: sample, Weights
-AMEOperator(H::AbstractHamiltonian, D, lvl::Int) = OpenSysOp(H, D, lvl, true)
+AMEOperator(H::AbstractHamiltonian, D, lvl::Int) = DiffEqLiouvillian(H, D, lvl, true)
 
 """
 $(TYPEDEF)
@@ -119,18 +119,11 @@ end
 
 # TODO: Better implemention of ame_jump function
 """
-    ame_jump(A::OpenSysOp, u, p, t::Real)
+    ame_jump(A::DiffEqLiouvillian, u, p, t::Real)
 
-Calculate the jump operator for the `OpenSysOp` at time `t`.
+Calculate the jump operator for the `DiffEqLiouvillian` at time `t`.
 """
-function ame_jump(Op::OpenSysOp{true,false}, u, p, t::Real)
-    s = p(t)
-    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
-    ω_ba = transpose(w) .- w
-    sum((x) -> ame_jump(x, u, ω_ba, v, s), Op.opensys)
-end
-
-function ame_jump(Op::OpenSysOpHybrid{false}, u, p, t::Real)
+function ame_jump(Op::DiffEqLiouvillian{true,false}, u, p, t::Real)
     s = p(t)
     w, v = Op.H.EIGS(Op.H, s, Op.lvl)
     ω_ba = transpose(w) .- w

@@ -8,7 +8,7 @@ abstract type AbstractInteraction end
 """
 $(TYPEDEF)
 
-An object to hold system operator and the corresponding bath object.
+An object to hold coupling operator and the corresponding bath object.
 
 $(FIELDS)
 """
@@ -18,6 +18,38 @@ struct Interaction <: AbstractInteraction
     """bath coupling to the system operator"""
     bath::AbstractBath
 end
+
+"""
+$(TYPEDEF)
+
+A Lindblad operator, define by a rate ``γ`` and corresponding operator ``L```.
+
+$(FIELDS)
+"""
+struct Lindblad <: AbstractInteraction
+    """Lindblad rate"""
+    γ::Any
+    """Lindblad operator"""
+    L::Any
+    """size"""
+    size::Tuple
+end
+
+Lindblad(γ::Number, L::Matrix) = Lindblad((s) -> γ, (s) -> L, size(L))
+Lindblad(γ::Number, L) = Lindblad((s) -> γ, L, size(L(0)))
+Lindblad(γ, L::Matrix) = Lindblad(γ, (s) -> L, size(L))
+
+function Lindblad(γ, L)
+    if !(typeof(γ(0)) <: Number)
+        throw(ArgumentError("γ should return a number."))
+    end
+    if !(typeof(L(0)) <: Matrix)
+        throw(ArgumentError("L should return a matrix."))
+    end
+    Lindblad(γ, L, size(L(0)))
+end
+
+Base.size(lind::Lindblad) = lind.size
 
 function build_redfield_kernel(i::Interaction)
     coupling = i.coupling
@@ -66,9 +98,11 @@ Base.getindex(inters::InteractionSet, key...) =
 Base.iterate(iters::InteractionSet, state=1) =
     Base.iterate(iters.interactions, state)
 
-function build_redfield(iset::InteractionSet, U, Ta, atol, rtol)
+# the following functions are used to build different Liouvillians
+# from the InteractionSet.
+function redfield_from_interactions(iset::InteractionSet, U, Ta, atol, rtol)
     kernels = [build_redfield_kernel(i) for i in iset]
-    RedfieldGenerator(kernels, U, Ta, atol, rtol)
+    RedfieldLiouvillian(kernels, U, Ta, atol, rtol)
 end
 
 function build_CGG(iset::InteractionSet, U, tf, Ta, atol, rtol)
@@ -103,5 +137,5 @@ build_fluctuator(iset::InteractionSet) =
 build_fluctuator(inter::Interaction) =
     build_fluctuator(inter.coupling, inter.bath)
 
-build_lindblad_set(iset::InteractionSet) = 
-    LindbladSet([i for i in iset if typeof(i)<:Lindblad])
+build_lindblad(iset::InteractionSet) = 
+    LindbladLiouvillian([i for i in iset if typeof(i)<:Lindblad])

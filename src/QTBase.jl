@@ -105,7 +105,7 @@ include("hamiltonian/custom_hamiltonian.jl")
 include("annealing/annealing_type.jl")
 include("annealing/displays.jl")
 
-include("opensys/opensys_op.jl")
+include("opensys/diffeq_liouvillian.jl")
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
 include("opensys/cgme.jl")
@@ -143,15 +143,15 @@ export eigen_decomp, EIGEN_DEFAULT
 
 export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
 
-export RedfieldGenerator, DaviesGenerator, Fluctuators
-export OpenSysOp, AMEOperator, FluctuatorOperator, RedfieldOperator
+export RedfieldLiouvillian, DaviesGenerator, Fluctuators
+export DiffEqLiouvillian, AMEOperator, FluctuatorOperator
 export Lindblad
 
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
 export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath, ULEBath, HybridOhmic
 
 export τ_B, τ_SB, coarse_grain_timescale
-export build_redfield, build_davies, build_CGG, build_ule, build_fluctuator, build_onesided_ame
+export build_davies, build_CGG, build_ule, build_fluctuator, build_onesided_ame
 
 export InplaceUnitary, EᵨEnsemble, sample_state_vector
 
