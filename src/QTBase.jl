@@ -117,41 +117,37 @@ include("projection/projection.jl")
 export AbstractHamiltonian, AbstractDenseHamiltonian, AbstractSparseHamiltonian
 export AbstractLiouvillian, AbstractCouplings, AbstractTimeDependentCouplings
 export AbstractAnnealing, AbstractBath
+export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian
+export InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
+export eigen_decomp, EIGEN_DEFAULT
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature
-export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy
-export σ₊, σ₋
+export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy, σ₊, σ₋
 
-export q_translate,
-    standard_driver, local_field_term, two_local_term, single_clause
+export q_translate, standard_driver, local_field_term, two_local_term
+export single_clause
 export q_translate_state, collective_operator, hamming_weight_operator
 
-export matrix_decompose, check_positivity, check_unitary, partial_trace,
-    fidelity
+export matrix_decompose, check_positivity, check_unitary, partial_trace
+export fidelity
 export inst_population, gibbs_state, low_level_matrix, ame_jump
 export construct_interpolations, gradient, log_uniform
 
-export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian
-export InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
 export hamiltonian_from_function,
     evaluate, issparse, get_cache, update_cache!, update_vectorized_cache!
 
 export ConstantCouplings, TimeDependentCoupling
 export TimeDependentCouplings, CustomCouplings, collective_coupling
 
-export eigen_decomp, EIGEN_DEFAULT
-
 export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
 
-export RedfieldLiouvillian, DaviesGenerator, Fluctuators
-export DiffEqLiouvillian, AMEOperator, FluctuatorOperator
-export Lindblad
+export Lindblad, EnsembleFluctuator
+export DiffEqLiouvillian
 
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
-export Ohmic, OhmicBath, EnsembleFluctuator, CustomBath, CorrelatedBath, ULEBath, HybridOhmic
+export Ohmic, OhmicBath, CustomBath, CorrelatedBath, ULEBath, HybridOhmic
 
 export τ_B, τ_SB, coarse_grain_timescale
-export build_davies, build_CGG, build_ule, build_fluctuator, build_onesided_ame
 
 export InplaceUnitary, EᵨEnsemble, sample_state_vector
 

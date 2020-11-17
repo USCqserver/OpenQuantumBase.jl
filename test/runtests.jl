@@ -41,7 +41,7 @@ using SafeTestsets
     @time @safetestset "Bath" begin
         include("bath.jl")
     end
-    @time @safetestset "Annealing" begin
+    @time @safetestset "Annealing/Interactions" begin
         include("annealing.jl")
     end
     @time @safetestset "Projections" begin

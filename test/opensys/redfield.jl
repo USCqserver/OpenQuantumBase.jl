@@ -9,7 +9,7 @@ unitary(t) = exp(-1.0im * t * σx)
 tf = 5.0
 u0 = PauliVec[1][1]
 ρ = u0 * u0'
-kernels = [(((1, 1),), coupling, QTBase.SingleCorrelation(cfun))]
+kernels = [(((1, 1),), coupling, QTBase.SingleFunctionMatrix(cfun))]
 redfield = QTBase.RedfieldLiouvillian(kernels, unitary, tf, 1e-8, 1e-6)
 p = ODEParams(nothing, 5.0, (tf, t) -> t / tf)
 
@@ -38,7 +38,7 @@ update_vectorized_cache!(A, redfield, p, 5.0)
 coupling = CustomCouplings([(s) -> σz], unit=:ħ)
 bath = CustomBath(correlation=(τ) -> 1.0)
 interactions = InteractionSet(Interaction(coupling, bath))
-redfield = QTBase.redfield_from_interactions(interactions, unitary, tf, 1e-8, 1e-6)
+redfield = QTBase.redfield_from_interactions(interactions, unitary, tf, 1e-8, 1e-6)[1]
 
 A = zero(ρ ⊗ σi)
 Λ = QTBase.quadgk((x) -> unitary(x)' * σz * unitary(x), 0, 2.5)[1]
@@ -47,8 +47,8 @@ update_vectorized_cache!(A, redfield, p, 2.5)
 
 
 # =============== CGME Test ===================
-kernels = [(((1, 1),), coupling, QTBase.SingleCorrelation(cfun), 1)]
-cgop = QTBase.CGGenerator(kernels, unitary, 1e-8, 1e-6)
+kernels = [(((1, 1),), coupling, QTBase.SingleFunctionMatrix(cfun), 1)]
+cgop = QTBase.CGLiouvillian(kernels, unitary, 1e-8, 1e-6)
 dρ = zero(ρ)
 function integrand(x)
     a1 = unitary(x[1])' * σz * unitary(x[1])

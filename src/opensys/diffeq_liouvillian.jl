@@ -20,7 +20,12 @@ struct DiffEqLiouvillian{diagonalization,adiabatic_frame}
     u_cache::Any
 end
 
-function DiffEqLiouvillian(H, opensys_eig, opensys, lvl, diagonalization::Bool=false)
+"""
+$(SIGNATURES)
+
+The constructor of the `DiffEqLiouvillian` type. `opensys_eig` is a list of open-system Liouvillians that which require diagonalization of the Hamiltonian. `opensys` is a list of open-system Liouvillians which does not require diagonalization of the Hamiltonian. `lvl` is the truncation levels of the energy eigenbasis if the method supports the truncation.
+"""
+function DiffEqLiouvillian(H, opensys_eig, opensys, lvl)
     # for DenseHamiltonian smaller than 10×10, do not truncate
     if !(typeof(H) <: AbstractSparseHamiltonian) && (size(H, 1) <= 10)
         lvl = size(H, 1)
@@ -30,7 +35,7 @@ function DiffEqLiouvillian(H, opensys_eig, opensys, lvl, diagonalization::Bool=f
         # for the truncated subspace
         u_cache = Matrix{eltype(H)}(undef, lvl, lvl)
     end
-    opensys_eig = diagonalization == false ? Vector{AbstractLiouvillian}[] : opensys_eig
+    diagonalization = isempty(opensys_eig) ? false : true
     adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
     DiffEqLiouvillian{diagonalization,adiabatic_frame}(H, opensys_eig, opensys, lvl, u_cache)
 end

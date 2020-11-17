@@ -1,10 +1,9 @@
 import StatsBase: sample, Weights
-AMEOperator(H::AbstractHamiltonian, D, lvl::Int) = DiffEqLiouvillian(H, D, lvl, true)
 
 """
 $(TYPEDEF)
 
-Defines Davies generator
+`DaviesGenerator` defines a Davies generator.
 
 # Fields
 
@@ -183,7 +182,16 @@ function correlated_davies_update!(du, u, Aα, Aβ, γ, S)
     axpy!(-1.0im, H_ls * u - u * H_ls, du)
 end
 
-struct OneSidedAMEGenerator <: AbstractLiouvillian
+"""
+$(TYPEDEF)
+
+Defines the one-sided AME Liouvillian operator.
+
+# Fields
+
+$(FIELDS)
+"""
+struct OneSidedAMELiouvillian <: AbstractLiouvillian
     """System bath coupling operators"""
     coupling::AbstractCouplings
     """Spectrum density"""
@@ -194,7 +202,7 @@ struct OneSidedAMEGenerator <: AbstractLiouvillian
     inds::Any
 end
 
-function (A::OneSidedAMEGenerator)(du, u, ω_ba, s::Real)
+function (A::OneSidedAMELiouvillian)(du, u, ω_ba, s::Real)
     for (α, β) in A.inds
         γm = A.γ[α,β].(ω_ba)
         sm = A.S[α,β].(ω_ba)
