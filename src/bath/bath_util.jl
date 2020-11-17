@@ -1,14 +1,5 @@
-# this is a quick solution for the single correlation case
-struct SingleCorrelation
-    cfun::Any
-end
-@inline Base.getindex(C::SingleCorrelation, ind...) = C.cfun
-struct SingleSpectrum
-    sfun::Any
-end
-@inline Base.getindex(S::SingleSpectrum, ind...) = S.sfun
 build_correlation(bath::AbstractBath) =
-    SingleCorrelation((t₁, t₂) -> correlation(t₁ - t₂, bath))
+    SingleFunctionMatrix((t₁, t₂) -> correlation(t₁ - t₂, bath))
 build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
 
 """
@@ -18,13 +9,17 @@ Calculate the Lamb shift of `bath`. `atol` is the absolute tolerance for Cauchy 
 """
 S(w, bath::AbstractBath; atol=1e-7) = lambshift(w, (ω) -> spectrum(ω, bath), atol=atol)
 
-function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath)
+function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, lambshift_S)
     if turn_on == true
-        if isempty(ω_range)
-            S_loc = (ω) -> S(ω, bath)
+        if lambshift_S == nothing
+            if isempty(ω_range)
+                S_loc = (ω) -> S(ω, bath)
+            else
+                s_list = [S(ω, bath) for ω in ω_range]
+                S_loc = construct_interpolations(ω_range, s_list)
+            end
         else
-            s_list = [S(ω, bath) for ω in ω_range]
-            S_loc = construct_interpolations(ω_range, s_list)
+            S_loc = lambshift_S
         end
     else
         S_loc = (ω) -> 0.0
@@ -97,16 +92,6 @@ function coarse_grain_timescale(
     sqrt(τsb * τb / 5), (err_sb * τb + τsb * err_b) / 10 / sqrt(τsb * τb / 5)
 end
 
-function build_davies(
-    coupling::AbstractCouplings,
-    bath::AbstractBath,
-    ω_range::AbstractVector,
-    lambshift::Bool,
-)
-    S_loc = build_lambshift(ω_range, lambshift, bath)
-    DaviesGenerator(coupling, build_spectrum(bath), S_loc)
-end
-
 function build_onesided_ame(
     coupling::AbstractCouplings,
     bath::AbstractBath,
@@ -122,5 +107,5 @@ function build_onesided_ame(
         gamma = SingleSpectrum(gamma)
         S_loc = SingleSpectrum(S_loc)
     end
-    OneSidedAMEGenerator(coupling, gamma, S_loc, inds)
+    OneSidedAMELiouvillian(coupling, gamma, S_loc, inds)
 end
