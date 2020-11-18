@@ -132,9 +132,9 @@ end
 function fluctuator_from_interactions(iset::InteractionSet)
     f_list = []
     for i in iset
+        coupling = i.coupling
+        bath = i.bath
         if typeof(bath) <: EnsembleFluctuator
-            coupling = i.coupling
-            bath = i.bath
             num = length(coupling)
             dist = construct_distribution(bath)
             b0 = [x.b for x in bath.f] .* rand([-1, 1], length(dist), num)

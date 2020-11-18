@@ -1,4 +1,13 @@
-struct ULindblad <: AbstractLiouvillian
+"""
+$(TYPEDEF)
+
+`ULELiouvillian` defines the Liouvillian operator corresponding the universal Lindblad equation.
+
+# Fields
+
+$(FIELDS)
+"""
+struct ULELiouvillian <: AbstractLiouvillian
     """Lindblad kernels"""
     kernels::Any
     """close system unitary"""
@@ -19,17 +28,17 @@ struct ULindblad <: AbstractLiouvillian
     Ta::Real
 end
 
-function ULindblad(kernels, U, Ta, atol, rtol)
+function ULELiouvillian(kernels, U, Ta, atol, rtol)
     m_size = size(kernels[1][2])
     Λ = m_size[1] <= 10 ? zeros(MMatrix{m_size[1],m_size[2],ComplexF64}) :
         zeros(ComplexF64, m_size[1], m_size[2])
 
     unitary = isinplace(U) ? U.func : (cache, t) -> cache .= U(t)
-    ULindblad(kernels, unitary, atol, rtol, similar(Λ),
+    ULELiouvillian(kernels, unitary, atol, rtol, similar(Λ),
         similar(Λ), similar(Λ), Λ, Ta)
 end
 
-function (L::ULindblad)(du, u, p, t)
+function (L::ULELiouvillian)(du, u, p, t)
     s = p(t)
     LO = fill!(L.LO, 0.0)
     for (inds, coupling, cfun) in L.kernels
@@ -95,19 +104,3 @@ function update_cache!(cache, lind::LindbladLiouvillian, p, t::Real)
         cache .-= 0.5 * γ * L' * L
     end
 end
-
-function lind_jump(lind::LindbladLiouvillian, u, p, t::Real)
-    s = p(t)
-    l = length(lind)
-    prob = Float64[]
-    ops = Vector{Matrix{ComplexF64}}()
-    for (γfun, Lfun) in zip(lind.γ, lind.L)
-        L = Lfun(s)
-        γ = γfun(s)
-        push!(prob, γ * norm(L * u))
-        push!(ops, L)
-    end
-    sample(ops, Weights(prob))
-end
-
-lind_jump(Op::DiffEqLiouvillian{false,false}, u, p, t::Real) = lind_jump(Op.opensys[1], u, p, t)

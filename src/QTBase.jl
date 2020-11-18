@@ -127,8 +127,7 @@ export single_clause
 export q_translate_state, collective_operator, hamming_weight_operator
 
 export matrix_decompose, check_positivity, check_unitary, partial_trace
-export fidelity
-export inst_population, gibbs_state, low_level_matrix, ame_jump
+export fidelity, log_uniform, inst_population, gibbs_state, low_level_matrix
 export construct_interpolations, gradient, log_uniform
 
 export hamiltonian_from_function,
