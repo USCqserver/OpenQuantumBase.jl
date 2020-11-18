@@ -111,12 +111,10 @@ include("opensys/davies.jl")
 include("opensys/cgme.jl")
 include("opensys/lindblad.jl")
 include("opensys/stochastic.jl")
+include("opensys/trajectory_jump.jl")
 
 include("projection/projection.jl")
 
-export AbstractHamiltonian, AbstractDenseHamiltonian, AbstractSparseHamiltonian
-export AbstractLiouvillian, AbstractCouplings, AbstractTimeDependentCouplings
-export AbstractAnnealing, AbstractBath
 export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian
 export InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
 export eigen_decomp, EIGEN_DEFAULT
