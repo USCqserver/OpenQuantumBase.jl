@@ -151,7 +151,7 @@ function fluctuator_from_interactions(iset::InteractionSet)
 end
 
 lindblad_from_interactions(iset::InteractionSet) = 
-    LindbladLiouvillian([i for i in iset if typeof(i) <: Lindblad])
+    [LindbladLiouvillian([i for i in iset if typeof(i) <: Lindblad])]
 
 function build_redfield_kernel(i::Interaction)
     coupling = i.coupling
