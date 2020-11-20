@@ -3,13 +3,13 @@ import HCubature: hcubature
 """
 $(TYPEDEF)
 
-Defines CGME operator.
+`CGLiouvillian` defines the Liouvillian operator corresponding to the CGME.
 
 # Fields
 
 $(FIELDS)
 """
-struct CGGenerator <: AbstractLiouvillian
+struct CGLiouvillian <: AbstractLiouvillian
     """CGME kernels"""
     kernels::Any
     """close system unitary"""
@@ -26,15 +26,15 @@ struct CGGenerator <: AbstractLiouvillian
     Ut::Union{Matrix,MMatrix}
 end
 
-function CGGenerator(kernels, U, atol, rtol)
+function CGLiouvillian(kernels, U, atol, rtol)
     m_size = size(kernels[1][2])
     Λ = m_size[1] <= 10 ? zeros(MMatrix{m_size[1],m_size[2],ComplexF64}) :
         zeros(ComplexF64, m_size[1], m_size[2])
     unitary = isinplace(U) ? U.func : (cache, t) -> cache .= U(t)
-    CGGenerator(kernels, unitary, atol, rtol, similar(Λ), similar(Λ), Λ)
+    CGLiouvillian(kernels, unitary, atol, rtol, similar(Λ), similar(Λ), Λ)
 end
 
-function (CG::CGGenerator)(du, u, p, t::Real)
+function (CG::CGLiouvillian)(du, u, p, t::Real)
     tf = p.tf
     for (inds, coupling, cfun, Ta) in CG.kernels
         lower_bound = t < Ta / 2 ? [-t, -t] : [-Ta, -Ta] / 2

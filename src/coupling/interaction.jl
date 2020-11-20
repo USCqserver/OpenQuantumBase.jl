@@ -8,7 +8,7 @@ abstract type AbstractInteraction end
 """
 $(TYPEDEF)
 
-An object to hold system operator and the corresponding bath object.
+An object to hold coupling operator and the corresponding bath object.
 
 $(FIELDS)
 """
@@ -19,33 +19,37 @@ struct Interaction <: AbstractInteraction
     bath::AbstractBath
 end
 
-function build_redfield_kernel(i::Interaction)
-    coupling = i.coupling
-    cfun = build_correlation(i.bath)
-    rinds = typeof(cfun) == SingleCorrelation ?
-        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
-    # the kernels is current set as a tuple
-    (rinds, coupling, cfun)
+"""
+$(TYPEDEF)
+
+A Lindblad operator, define by a rate ``γ`` and corresponding operator ``L```.
+
+$(FIELDS)
+"""
+struct Lindblad <: AbstractInteraction
+    """Lindblad rate"""
+    γ::Any
+    """Lindblad operator"""
+    L::Any
+    """size"""
+    size::Tuple
 end
 
-function build_CG_kernel(i::Interaction, tf, Ta)
-    coupling = i.coupling
-    cfun = build_correlation(i.bath)
-    Ta = Ta === nothing ? coarse_grain_timescale(i.bath, tf)[1] : Ta
-    rinds = typeof(cfun) == SingleCorrelation ?
-        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
-    # the kernels is current set as a tuple
-    (rinds, coupling, cfun, Ta)
+Lindblad(γ::Number, L::Matrix) = Lindblad((s) -> γ, (s) -> L, size(L))
+Lindblad(γ::Number, L) = Lindblad((s) -> γ, L, size(L(0)))
+Lindblad(γ, L::Matrix) = Lindblad(γ, (s) -> L, size(L))
+
+function Lindblad(γ, L)
+    if !(typeof(γ(0)) <: Number)
+        throw(ArgumentError("γ should return a number."))
+    end
+    if !(typeof(L(0)) <: Matrix)
+        throw(ArgumentError("L should return a matrix."))
+    end
+    Lindblad(γ, L, size(L(0)))
 end
 
-function build_ule_kernel(i::Interaction)
-    coupling = i.coupling
-    cfun = build_jump_correlation(i.bath)
-    rinds = typeof(cfun) == SingleCorrelation ?
-        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
-    # the kernels is current set as a tuple
-    (rinds, coupling, cfun)
-end
+Base.size(lind::Lindblad) = lind.size
 
 """
 $(TYPEDEF)
@@ -66,42 +70,114 @@ Base.getindex(inters::InteractionSet, key...) =
 Base.iterate(iters::InteractionSet, state=1) =
     Base.iterate(iters.interactions, state)
 
-function build_redfield(iset::InteractionSet, U, Ta, atol, rtol)
-    kernels = [build_redfield_kernel(i) for i in iset]
-    RedfieldGenerator(kernels, U, Ta, atol, rtol)
+# The following functions are used to build different Liouvillians from
+# the `InteractionSet`. They are not publicly available in the current
+# release.
+function redfield_from_interactions(iset::InteractionSet, U, Ta, atol, rtol)
+    kernels = [build_redfield_kernel(i) for i in iset if !(typeof(i.bath) <: StochasticBath)]
+    [RedfieldLiouvillian(kernels, U, Ta, atol, rtol)]
 end
 
-function build_CGG(iset::InteractionSet, U, tf, Ta, atol, rtol)
+function cg_from_interactions(iset::InteractionSet, U, tf, Ta, atol, rtol)
     if Ta === nothing || ndims(Ta) == 0
-        kernels = [build_CG_kernel(i, tf, Ta) for i in iset]
+        kernels = [build_cg_kernel(i, tf, Ta) for i in iset if !(typeof(i.bath) <: StochasticBath)]
     else
         if length(Ta) != length(iset)
             throw(ArgumentError("Ta should have the same length as the interaction sets."))
         end
-        kernels = [build_CG_kernel(i, tf, t) for (i, t) in zip(iset, Ta)]
+        kernels = [build_cg_kernel(i, tf, t) for (i, t) in zip(iset, Ta) if !(typeof(i.bath) <: StochasticBath)]
     end
-    CGGenerator(kernels, U, atol, rtol)
+    [CGLiouvillian(kernels, U, atol, rtol)]
 end
 
-function build_ule(iset::InteractionSet, U, Ta, atol, rtol)
-    kernels = [build_ule_kernel(i) for i in iset]
-    ULindblad(kernels, U, Ta, atol, rtol)
+function ule_from_interactions(iset::InteractionSet, U, Ta, atol, rtol)
+    kernels = [build_ule_kernel(i) for i in iset if !(typeof(i.bath) <: StochasticBath)]
+    [ULELiouvillian(kernels, U, Ta, atol, rtol)]
 end
 
-build_davies(iset::InteractionSet, ω_range, lambshift::Bool) =
-    [build_davies(i, ω_range, lambshift) for i in iset]
-build_davies(inter::Interaction, ω_hint, lambshift) =
-    build_davies(inter.coupling, inter.bath, ω_hint, lambshift)
+function davies_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_S)
+    davies_list = []
+    for i in iset
+        coupling = i.coupling
+        bath = i.bath
+        if !(typeof(bath) <: StochasticBath)
+            γfun = build_spectrum(bath)
+            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_S)
+            if typeof(bath) <: CorrelatedBath
+                push!(davies_list, CorrelatedDaviesGenerator(coupling, γfun, Sfun, build_inds(bath)))
+            else
+                push!(davies_list, DaviesGenerator(coupling, γfun, Sfun))
+            end
+        end
+    end
+    davies_list
+end
 
-build_onesided_ame(iset::InteractionSet, ω_range, lambshift::Bool) =
-    [build_onesided_ame(i, ω_range, lambshift) for i in iset]
-build_onesided_ame(inter::Interaction, ω_hint, lambshift) =
-    build_onesided_ame(inter.coupling, inter.bath, ω_hint, lambshift)
+function onesided_ame_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_S)
+    l_list = []
+    for i in iset
+        coupling = i.coupling
+        bath = i.bath
+        if !(typeof(bath) <: StochasticBath)
+            γfun = build_spectrum(bath)
+            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_S)
+            if typeof(i.bath) <: CorrelatedBath
+                inds = build_inds(bath)
+            else
+                inds = ((i, i) for i in 1:length(coupling))
+                γfun = SingleFunctionMatrix(γfun)
+                Sfun = SingleFunctionMatrix(Sfun)
+            end
+            push!(l_list, OneSidedAMELiouvillian(coupling, γfun, Sfun, inds))
+        end
+    end
+    l_list
+end
 
-build_fluctuator(iset::InteractionSet) =
-    [build_fluctuator(i.coupling, i.bath) for i in iset]
-build_fluctuator(inter::Interaction) =
-    build_fluctuator(inter.coupling, inter.bath)
+function fluctuator_from_interactions(iset::InteractionSet)
+    f_list = []
+    for i in iset
+        coupling = i.coupling
+        bath = i.bath
+        if typeof(bath) <: EnsembleFluctuator
+            num = length(coupling)
+            dist = construct_distribution(bath)
+            b0 = [x.b for x in bath.f] .* rand([-1, 1], length(dist), num)
+            next_τ, next_idx = findmin(rand(dist, num))
+            push!(f_list, FluctuatorLiouvillian(coupling, dist, b0, next_idx, next_τ, sum(b0, dims=1)[:]))
+        end
+    end
+    f_list
+end
 
-build_lindblad_set(iset::InteractionSet) = 
-    LindbladSet([i for i in iset if typeof(i)<:Lindblad])
+lindblad_from_interactions(iset::InteractionSet) = 
+    LindbladLiouvillian([i for i in iset if typeof(i) <: Lindblad])
+
+function build_redfield_kernel(i::Interaction)
+    coupling = i.coupling
+    bath = i.bath
+    cfun = build_correlation(bath)
+    rinds = typeof(cfun) == SingleFunctionMatrix ?
+        ((i, i) for i = 1:length(coupling)) : build_inds(bath)
+    # the kernels is current set as a tuple
+    (rinds, coupling, cfun)
+end
+
+function build_cg_kernel(i::Interaction, tf, Ta)
+    coupling = i.coupling
+    cfun = build_correlation(i.bath)
+    Ta = Ta === nothing ? coarse_grain_timescale(i.bath, tf)[1] : Ta
+    rinds = typeof(cfun) == SingleFunctionMatrix ?
+        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
+    # the kernels is current set as a tuple
+    (rinds, coupling, cfun, Ta)
+end
+
+function build_ule_kernel(i::Interaction)
+    coupling = i.coupling
+    cfun = build_jump_correlation(i.bath)
+    rinds = typeof(cfun) == SingleFunctionMatrix ?
+        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
+    # the kernels is current set as a tuple
+    (rinds, coupling, cfun)
+end

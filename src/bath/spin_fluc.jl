@@ -25,12 +25,12 @@ An ensemble of random telegraph noise.
 
 $(FIELDS)
 """
-struct EnsembleFluctuator{T} <: AbstractBath
+struct EnsembleFluctuator{T} <: StochasticBath
     """A list of RTNs"""
     f::Vector{T}
 end
 
-EnsembleFluctuator(b::AbstractArray{T}, ω::AbstractArray{T}) where {T<:Number} =
+EnsembleFluctuator(b::AbstractArray{T}, ω::AbstractArray{T}) where {T <: Number} =
     EnsembleFluctuator([SymetricRTN(x, y) for (x, y) in zip(b, ω)])
 correlation(τ, E::EnsembleFluctuator) = sum((x) -> correlation(τ, x), E.f)
 spectrum(ω, E::EnsembleFluctuator) = sum((x) -> spectrum(ω, x), E.f)
@@ -42,11 +42,3 @@ Base.show(io::IO, ::MIME"text/plain", E::EnsembleFluctuator) =
     print(io, "Fluctuator ensemble with ", length(E), " fluctuators")
 Base.show(io::IO, E::EnsembleFluctuator) =
     print(io, "Fluctuator ensemble with ", length(E), " fluctuators")
-
-function build_fluctuator(coupling::AbstractCouplings, bath::EnsembleFluctuator)
-    num = length(coupling)
-    dist = construct_distribution(bath)
-    b0 = [x.b for x in bath.f] .* rand([-1, 1], length(dist), num)
-    next_τ, next_idx = findmin(rand(dist, num))
-    Fluctuators(coupling, dist, b0, next_idx, next_τ, sum(b0, dims = 1)[:])
-end

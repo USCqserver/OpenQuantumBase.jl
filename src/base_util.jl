@@ -94,3 +94,16 @@ struct EᵨEnsemble
 end
 
 sample_state_vector(Eᵨ::EᵨEnsemble) = sample(Eᵨ.vec, Weights(Eᵨ.ω))
+
+"""
+$(TYPEDEF)
+
+A container for a matrix whose elements are the same function. Getting any indices of this type returns the same function.
+
+$(FIELDS)
+"""
+struct SingleFunctionMatrix
+    """Internal function"""
+    fun::Any
+end
+@inline Base.getindex(F::SingleFunctionMatrix, ind...) = F.fun
