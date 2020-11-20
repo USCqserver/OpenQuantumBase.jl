@@ -56,7 +56,7 @@ end
 
 # TODO: Better implemention of ame_jump function
 """
-    lindblad_jump(A::DiffEqLiouvillian, u, p, t::Real)
+$(SIGNATURES)
 
 Calculate the jump operator for the `DiffEqLiouvillian` at time `t`.
 """

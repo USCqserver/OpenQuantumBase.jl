@@ -1,3 +1,10 @@
+"""
+$(TYPEDEF)
+
+Base for types defining stochastic bath object.
+"""
+abstract type StochasticBath <: AbstractBath end
+
 build_correlation(bath::AbstractBath) =
     SingleFunctionMatrix((t₁, t₂) -> correlation(t₁ - t₂, bath))
 build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
