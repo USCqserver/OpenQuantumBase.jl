@@ -25,7 +25,7 @@ Random.seed!(1234)
 
 Lz = Lindblad((s) -> 0.5, (s) -> σz)
 Lx = Lindblad((s) -> 0.2, (s) -> σx)
-Ł = QTBase.lindblad_from_interactions(InteractionSet(Lz))
+Ł = QTBase.lindblad_from_interactions(InteractionSet(Lz))[1]
 p = ODEParams(nothing, 5.0, (tf, t) -> t / tf)
 dρ = zero(ρ)
 Ł(dρ, ρ, p, 5.0)
@@ -36,7 +36,7 @@ update_cache!(cache, Ł, p, 5.0)
 @test cache == -0.25 * σz' * σz
 
 
-Ł = QTBase.lindblad_from_interactions(InteractionSet(Lz, Lx))
+Ł = QTBase.lindblad_from_interactions(InteractionSet(Lz, Lx))[1]
 p = ODEParams(nothing, 5.0, (tf, t) -> t / tf)
 dρ = zero(ρ)
 Ł(dρ, PauliVec[2][1] * PauliVec[2][1]', p, 5.0)
