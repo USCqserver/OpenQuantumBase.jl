@@ -11,6 +11,10 @@ annealing = Annealing(H, u0)
 @test annealing.H == H
 @test annealing.annealing_parameter(10, 5) == 0.5
 
+evo = Evolution(H, u0)
+@test evo.H == H
+@test evo.annealing_parameter(10, 5) == 0.5
+
 
 ode_params = ODEParams(T_OPENSYS(), 10, (tf, t)->t / tf)
 @test typeof(ode_params.L) == T_OPENSYS

@@ -2,20 +2,8 @@ module QTBase
 
 using DocStringExtensions
 
-import LinearAlgebra:
-    mul!,
-    axpy!,
-    I,
-    ishermitian,
-    Hermitian,
-    eigen,
-    tr,
-    eigen!,
-    diag,
-    lmul!,
-    Diagonal,
-    tr,
-    norm
+import LinearAlgebra: mul!, lmul!, axpy!, ishermitian, Hermitian, eigen, eigen!,
+       tr, diag, Diagonal, norm, I
 import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
@@ -115,34 +103,33 @@ include("opensys/trajectory_jump.jl")
 
 include("projection/projection.jl")
 
-export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian
-export InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
+export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian,
+       InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
 export eigen_decomp, EIGEN_DEFAULT
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature
 export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy, σ₊, σ₋
 
-export q_translate, standard_driver, local_field_term, two_local_term
-export single_clause
-export q_translate_state, collective_operator, hamming_weight_operator
+export q_translate, standard_driver, local_field_term, two_local_term,
+       single_clause, q_translate_state, collective_operator, hamming_weight_operator
 
-export matrix_decompose, check_positivity, check_unitary, partial_trace
-export fidelity, log_uniform, inst_population, gibbs_state, low_level_matrix
+export check_positivity, check_unitary, check_density_matrix, partial_trace,
+       matrix_decompose, low_level_matrix, fidelity, inst_population, gibbs_state
 export construct_interpolations, gradient, log_uniform
 
-export hamiltonian_from_function,
-    evaluate, issparse, get_cache, update_cache!, update_vectorized_cache!
+export hamiltonian_from_function, evaluate, issparse, get_cache, update_cache!,
+       update_vectorized_cache!
 
-export ConstantCouplings, TimeDependentCoupling
-export TimeDependentCouplings, CustomCouplings, collective_coupling
+export ConstantCouplings, TimeDependentCoupling, TimeDependentCouplings,
+       CustomCouplings, collective_coupling, Interaction, InteractionSet
 
-export Annealing, ODEParams, Interaction, InteractionSet, set_u0!
+export Annealing, ODEParams, set_u0!, Evolution
 
-export Lindblad, EnsembleFluctuator
-export DiffEqLiouvillian
+export Lindblad, EnsembleFluctuator, DiffEqLiouvillian
 
+export Ohmic, OhmicBath, CustomBath, CorrelatedBath, ULEBath, HybridOhmic,
+       HybridOhmicBath
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
-export Ohmic, OhmicBath, CustomBath, CorrelatedBath, ULEBath, HybridOhmic
 
 export τ_B, τ_SB, coarse_grain_timescale
 

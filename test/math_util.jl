@@ -52,7 +52,7 @@ w, v = eigen_decomp(H_check, [0.5])
       isapprox(spv[:, 1, 1], -v[:, 1, 1], atol=1e-4)
 @test isapprox(spv[:, 2, 1], v[:, 2, 1], atol=1e-4) ||
       isapprox(spv[:, 2, 1], -v[:, 2, 1], atol=1e-4)
-# == utilit math functions ==
+# == utility math functions ==
 @test log_uniform(1, 10, 3) == [1, 10^0.5, 10]
 ρ1 = [0.4 0.5; 0.5 0.6]
 ρ2 = [0.5 0; 0 0.5]
@@ -63,6 +63,8 @@ w, v = eigen_decomp(H_check, [0.5])
 σ = PauliVec[3][1]*PauliVec[3][1]'
 @test fidelity(ρ, σ) ≈ 0.5
 @test fidelity(ρ, ρ) ≈ 1
+@test check_density_matrix(ρ)
+@test !check_density_matrix(σx)
 
 w = [1,1,1,2,3,4,4,5]
 @test QTBase.find_degenerate(w) == [[1,2,3],[6,7]]

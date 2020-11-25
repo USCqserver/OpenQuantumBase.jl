@@ -19,7 +19,7 @@ const spσi = sparse(I, 2, 2)
 """
     PauliVec
 
-Constants for the eigenvectors of single qubit Pauli matrices. Indices 1, 2 and 3 corresponds to the eigenvectors of ``σ_x``, ``σ_y`` and ``σ_z``.
+A constant that holds the eigenvectors of the Pauli matrices. Indices 1, 2 and 3 corresponds to the eigenvectors of ``σ_x``, ``σ_y`` and ``σ_z``.
 
 # Examples
 ```julia-repl
@@ -184,11 +184,11 @@ Calculate the partial trace of the density matrix `ρ`. `qubit_2_keep` is an arr
 
 # Examples
 ```julia-repl
-julia> ρ1 = [0.4 0.5; 0.5 0.6]; ρ2 = [0.5 0; 0 0.5];
+julia> ρ1 = [0.4 0.2; 0.2 0.6]; ρ2 = [0.5 0; 0 0.5];
 julia> partial_trace(ρ1⊗ρ2, [1])
 2×2 Array{Float64,2}:
- 0.4  0.5
- 0.5  0.6
+ 0.4  0.2
+ 0.2  0.6
 ```
 """
 function partial_trace(ρ::Matrix, qubit_2_keep)
@@ -255,6 +255,26 @@ julia> fidelity(ρ, σ)
 ```
 """
 function fidelity(ρ, σ)
+    if !check_density_matrix(ρ) || !check_density_matrix(σ)
+        throw(ArgumentError("Inputs are not valid density matrices."))
+    end
     temp = sqrt(ρ)
     real(tr(sqrt(temp * σ * temp))^2)
+end
+
+"""
+$(SIGNATURES)
+
+Check whether matrix `ρ` is a valid density matrix. `atol` and `rtol` is the absolute and relative error tolerance to use when checking `ρ` ≈ 1.
+
+# Examples
+```julia-repl
+julia> check_density_matrix(σx)
+false
+julia> check_density_matrix(σi/2)
+true
+```
+"""
+function check_density_matrix(ρ; atol::Real=0, rtol::Real=atol>0 ? 0 : √eps())
+    ishermitian(ρ) && (eigmin(ρ) >= 0) && isapprox(tr(ρ), 1, atol=atol, rtol=rtol)
 end

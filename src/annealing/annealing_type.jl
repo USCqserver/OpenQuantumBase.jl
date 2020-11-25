@@ -16,6 +16,8 @@ mutable struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
     interactions::Union{InteractionSet,Nothing}
 end
 
+Evolution = Annealing
+
 function Annealing(
     H::AbstractHamiltonian{T},
     u0;

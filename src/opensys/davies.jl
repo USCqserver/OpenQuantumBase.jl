@@ -14,7 +14,7 @@ struct DaviesGenerator <: AbstractLiouvillian
     coupling::AbstractCouplings
     """Spectrum density"""
     γ::Any
-    """Lambshift spectrum density"""
+    """Lambshift spectral density"""
     S::Any
 end
 
@@ -87,7 +87,7 @@ struct CorrelatedDaviesGenerator <: AbstractLiouvillian
     coupling::AbstractCouplings
     """Spectrum density"""
     γ::Any
-    """Lambshift spectrum density"""
+    """Lambshift spectral density"""
     S::Any
     """Indices to iterate"""
     inds::Any
@@ -140,7 +140,7 @@ struct OneSidedAMELiouvillian <: AbstractLiouvillian
     coupling::AbstractCouplings
     """Spectrum density"""
     γ::Any
-    """Lambshift spectrum density"""
+    """Lambshift spectral density"""
     S::Any
     """Indices to iterate"""
     inds::Any
