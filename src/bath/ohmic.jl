@@ -30,7 +30,7 @@ end
 """
 $(SIGNATURES)
 
-Calculate spectrum density ``γ(ω)`` of `bath`.
+Calculate spectral density ``γ(ω)`` of `bath`.
 """
 function γ(ω, bath::OhmicBath)
     if isapprox(ω, 0.0, atol=1e-9)
@@ -43,7 +43,7 @@ end
 """
 $(SIGNATURES)
 
-Calculate spectrum density ``γ(ω)`` of `bath`.
+Calculate spectral density ``γ(ω)`` of `bath`.
 """
 spectrum(ω, bath::OhmicBath) = γ(ω, bath)
 

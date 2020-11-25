@@ -127,7 +127,8 @@ export Annealing, ODEParams, set_u0!, Evolution
 
 export Lindblad, EnsembleFluctuator, DiffEqLiouvillian
 
-export Ohmic, OhmicBath, CustomBath, CorrelatedBath, ULEBath, HybridOhmic
+export Ohmic, OhmicBath, CustomBath, CorrelatedBath, ULEBath, HybridOhmic,
+       HybridOhmicBath
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
 
 export τ_B, τ_SB, coarse_grain_timescale
