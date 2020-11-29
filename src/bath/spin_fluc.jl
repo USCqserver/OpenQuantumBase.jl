@@ -30,6 +30,17 @@ struct EnsembleFluctuator{T} <: StochasticBath
     f::Vector{T}
 end
 
+"""
+$(SIGNATURES)
+
+Build the `EnsembleFluctuator` object from a list of amplitudes `b` and a list of switch rates `ω`.
+
+# Examples
+```julia-repl
+julia> EnsembleFluctuator([1, 1], [1, 2])
+Fluctuator ensemble with 2 fluctuators
+```
+"""
 EnsembleFluctuator(b::AbstractArray{T}, ω::AbstractArray{T}) where {T <: Number} =
     EnsembleFluctuator([SymetricRTN(x, y) for (x, y) in zip(b, ω)])
 correlation(τ, E::EnsembleFluctuator) = sum((x) -> correlation(τ, x), E.f)

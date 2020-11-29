@@ -10,10 +10,12 @@ bath = QTBase.OhmicBath(η, ωc, β)
 @test S(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
 
 # test suite for CustomBath
-cfun = (t) -> exp(-t)
-bath = CustomBath(correlation=cfun)
-correlation(1, bath)
+cfun = (t) -> exp(-abs(t))
+sfun = (ω) -> 2/(1+ω^2)
+bath = CustomBath(correlation=cfun, spectrum=sfun)
+@test correlation(1, bath) ≈ exp(-1)
 @test correlation(2, 1, bath) == correlation(1, bath)
+@test spectrum(0, bath) ≈ 2
 
 # test suite for ensemble fluctuators
 rtn = QTBase.SymetricRTN(2.0, 2.0)
@@ -39,11 +41,3 @@ cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w) -> 0 γfun; γfun (w) -> 
 @test γm[2, 2](0.0) == 0
 @test γm[1, 2](0.5) == 1.0
 @test γm[2, 1](0.5) == 1.0
-
-D = QTBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, nothing)[1]
-du = zeros(ComplexF64, 2, 2)
-ρ = [0.5 0;0 0.5]
-ω = [1, 2]
-ω =  ω' .- ω
-D(du, ρ, ω, 0.5)
-@test du ≈ [(1 - exp(-0.5)) * 0.5 0; 0 -(1 - exp(-0.5)) * 0.5]

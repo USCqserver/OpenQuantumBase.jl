@@ -38,6 +38,9 @@ using SafeTestsets
     @time @safetestset "Lindblad" begin
         include("opensys/lindblad.jl")
     end
+    @time @safetestset "Stochastic" begin
+        include("opensys/stochastic.jl")
+    end
     @time @safetestset "Bath" begin
         include("bath.jl")
     end

@@ -56,5 +56,3 @@ function reset!(F::FluctuatorLiouvillian, initializer)
     F.n = sum(F.b0, dims = 1)[:]
     next_state!(F)
 end
-
-FluctuatorOperator(H, flist) = DiffEqLiouvillian(H, flist, size(H,1))
