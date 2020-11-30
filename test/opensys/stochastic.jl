@@ -16,12 +16,23 @@ update_vectorized_cache!(cache, fluct, p, 2.5)
 @test cache ≈ one(cache_exp)⊗cache_exp - transpose(cache_exp)⊗one(cache_exp)
 
 Random.seed!(1234)
+random_1 = rand([-1, 1], 2, 1)
+τ, idx = findmin(rand(fluct.dist, 1))
+Random.seed!(1234)
 QTBase.reset!(fluct, (x, y) -> rand([-1, 1], x, y))
-@test fluct.b0[1] == -1 && fluct.b0[2] == 1
-@test fluct.next_τ ≈ 0.34543049081993993
-@test fluct.next_idx == CartesianIndex(2, 1)
 
+random_1[idx] *= -1
+@test fluct.b0[1] == random_1[1] && fluct.b0[2] == random_1[2]
+@test fluct.next_τ ≈ τ
+@test fluct.next_idx == idx
+
+b0 = copy(fluct.b0)
+Random.seed!(1234)
+random_1 = rand(fluct.dist, 1)
+τ, idx = findmin(random_1)
+b0[idx] *= -1
+Random.seed!(1234)
 QTBase.next_state!(fluct)
-@test fluct.b0[1] == 1 && fluct.b0[2] == 1
-@test fluct.next_τ ≈ 1.3249941403673653
-@test fluct.next_idx == CartesianIndex(1, 1)
+@test fluct.b0[1] == b0[1] && fluct.b0[2] == b0[2]
+@test fluct.next_τ ≈ τ
+@test fluct.next_idx == idx
