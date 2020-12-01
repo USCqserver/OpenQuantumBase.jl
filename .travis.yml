@@ -18,4 +18,4 @@ notifications:
   
 after_success:
   # push coverage results to Codecov
-  - julia -e 'import Pkg; cd(Pkg.dir("QTBase")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'import Pkg; cd(Pkg.dir("OpenQuantumBase")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

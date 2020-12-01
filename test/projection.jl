@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
 
 H = DenseHamiltonian([(s) -> 1 - s, (s) -> s], [σx, σz])

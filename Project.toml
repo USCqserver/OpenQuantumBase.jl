@@ -1,4 +1,4 @@
-name = "QTBase"
+name = "OpenQuantumBase"
 uuid = "5dd19120-8766-11e9-1ef9-27094038a7db"
 authors = ["neversakura <neversakura@hotmail.com>"]
 version = "0.6.2"

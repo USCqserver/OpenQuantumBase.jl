@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
 x = range(0,stop=10,length=100)
 y1 = Array(x) + 1.0im*Array(x)

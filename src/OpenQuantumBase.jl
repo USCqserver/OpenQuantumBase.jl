@@ -1,4 +1,4 @@
-module QTBase
+module OpenQuantumBase
 
 using DocStringExtensions
 
@@ -137,4 +137,4 @@ export InplaceUnitary, EᵨEnsemble, sample_state_vector
 
 export ProjectedSystem, project_to_lowlevel, get_dθ, concatenate
 
-end  # module QTBase
+end  # module OpenQuantumBase

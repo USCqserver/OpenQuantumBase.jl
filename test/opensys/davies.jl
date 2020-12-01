@@ -1,4 +1,4 @@
-using QTBase, Test, Random
+using OpenQuantumBase, Test, Random
 import LinearAlgebra: Diagonal, diag
 
 
@@ -77,7 +77,7 @@ H = DenseHamiltonian(
     [-standard_driver(2), (0.1 * σz ⊗ σi + 0.5 * σz ⊗ σz)],
 )
 coupling = ConstantCouplings(["ZI+IZ"])
-davies = QTBase.DaviesGenerator(coupling, γ, S)
+davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
 op = 2π * (σz ⊗ σi + σi ⊗ σz)
 
 w, v = eigen_decomp(H, 0.5, lvl=4)
@@ -93,7 +93,7 @@ sm = S.(w_ab)
 dρ, A_ij = ame_update_term(op, ρ, w, v, γ, S)
 
 du = zeros(ComplexF64, (4, 4))
-QTBase.davies_update!(du, u, A_ij, gm, sm)
+OpenQuantumBase.davies_update!(du, u, A_ij, gm, sm)
 @test v * du * v' ≈ dρ atol = 1e-6 rtol = 1e-6
 
 du = zeros(ComplexF64, (4, 4))
@@ -120,7 +120,7 @@ ame_op(du, ρ, p, 1)
 @test du ≈ expected_drho atol = 1e-6 rtol = 1e-6
 
 Random.seed!(1234)
-jump_op = QTBase.lindblad_jump(ame_op, ψ, p, 1)
+jump_op = OpenQuantumBase.lindblad_jump(ame_op, ψ, p, 1)
 exp_res = Complex{Float64}[6.672340269678421 + 0.0im 0.37611761184098264 + 0.0im 0.30757886113480604 + 0.0im -7.009918137704409 + 0.0im; 8.329733374366892 + 0.0im 0.46954431240210126 + 0.0im 0.38398070261603034 + 0.0im -8.751164764267996 + 0.0im; 9.465353222476072 + 0.0im 0.5335588272449766 + 0.0im 0.4363300501381911 + 0.0im -9.944239734825716 + 0.0im; 7.213269209357397 + 0.0im 0.4066095970732551 + 0.0im 0.33251438607759143 + 0.0im -7.578214632218711 + 0.0im]
 @test size(jump_op) == (4, 4)
 @test jump_op ≈ exp_res
@@ -131,7 +131,7 @@ Hp = q_translate("-0.9ZZII+IZZI-0.9IIZZ"; sp=true)
 H = SparseHamiltonian([(s) -> 1 - s, (s) -> s], [Hd, Hp])
 op = 2π * q_translate("ZIII+IZII+IIZI+IIIZ")
 coupling = ConstantCouplings(["ZIII+IZII+IIZI+IIIZ"])
-davies = QTBase.DaviesGenerator(coupling, γ, S)
+davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
 w, v = eigen_decomp(H, 0.5, lvl=4)
 w = 2π * real(w)
 
@@ -163,7 +163,7 @@ hmat =  H(2.0, 0.4)
 w = diag(hmat)
 v = collect(Diagonal(ones(4)))
 coupling = CustomCouplings([(s) -> s * (σx ⊗ σi + σi ⊗ σx) + (1 - s) * (σz ⊗ σi + σi ⊗ σz)])
-davies = QTBase.DaviesGenerator(coupling, γ, S)
+davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
 
 ψ = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)
 # ψ = (v[:, 1] + v[:, 2]) / sqrt(2)
@@ -186,8 +186,8 @@ ame_op(du, ρ, p, 0.4 * 2)
 coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)
 γfun(w) = w >= 0 ? 1.0 : exp(-0.5)
 cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w) -> 0 γfun; γfun (w) -> 0])
-D = QTBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, nothing)[1]
-@test typeof(D) <: QTBase.CorrelatedDaviesGenerator
+D = OpenQuantumBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, nothing)[1]
+@test typeof(D) <: OpenQuantumBase.CorrelatedDaviesGenerator
 du = zeros(ComplexF64, 2, 2)
 ρ = [0.5 0;0 0.5]
 ω = [1, 2]

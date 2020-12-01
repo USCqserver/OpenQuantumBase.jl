@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
 c = ConstantCouplings(["ZI", "IZ"])
 @test isequal(c.mats[1], 2π*σz⊗σi)

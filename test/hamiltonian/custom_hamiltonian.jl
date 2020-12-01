@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
 f(s) = (1 - s) * σx + s * σz
 H = hamiltonian_from_function(f)

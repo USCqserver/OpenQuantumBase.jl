@@ -1,8 +1,8 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
-struct T_OPENSYS <: QTBase.AbstractLiouvillian end
-struct T_COUPLINGS <: QTBase.AbstractCouplings end
-struct T_BATH <: QTBase.AbstractBath end
+struct T_OPENSYS <: OpenQuantumBase.AbstractLiouvillian end
+struct T_COUPLINGS <: OpenQuantumBase.AbstractCouplings end
+struct T_BATH <: OpenQuantumBase.AbstractBath end
 
 H = DenseHamiltonian([(x) -> x], [σz])
 u0 = PauliVec[1][1]

@@ -1,4 +1,4 @@
-using QTBase, Test, Random
+using OpenQuantumBase, Test, Random
 
 coupling = ConstantCouplings(["Z"], unit=:ħ)
 jfun(t₁, t₂) = 1.0
@@ -9,10 +9,10 @@ unitary(t) = exp(-1.0im * t * σx)
 tf = 5.0
 u0 = PauliVec[1][1]
 ρ = u0 * u0'
-kernels = [(((1, 1),), coupling, QTBase.SingleFunctionMatrix(jfun))]
+kernels = [(((1, 1),), coupling, OpenQuantumBase.SingleFunctionMatrix(jfun))]
 
-L = QTBase.quadgk((x) -> unitary(x)' * σz * unitary(x), 0, 5)[1]
-ulind = QTBase.ULELiouvillian(kernels, unitary, tf, 1e-8, 1e-6)
+L = OpenQuantumBase.quadgk((x) -> unitary(x)' * σz * unitary(x), 0, 5)[1]
+ulind = OpenQuantumBase.ULELiouvillian(kernels, unitary, tf, 1e-8, 1e-6)
 p = ODEParams(nothing, 5.0, (tf, t) -> t / tf)
 dρ = zero(ρ)
 ulind(dρ, ρ, p, 5.0)
@@ -25,7 +25,7 @@ Random.seed!(1234)
 
 Lz = Lindblad((s) -> 0.5, (s) -> σz)
 Lx = Lindblad((s) -> 0.2, (s) -> σx)
-Ł = QTBase.lindblad_from_interactions(InteractionSet(Lz))[1]
+Ł = OpenQuantumBase.lindblad_from_interactions(InteractionSet(Lz))[1]
 p = ODEParams(nothing, 5.0, (tf, t) -> t / tf)
 dρ = zero(ρ)
 Ł(dρ, ρ, p, 5.0)
@@ -36,7 +36,7 @@ update_cache!(cache, Ł, p, 5.0)
 @test cache == -0.25 * σz' * σz
 
 
-Ł = QTBase.lindblad_from_interactions(InteractionSet(Lz, Lx))[1]
+Ł = OpenQuantumBase.lindblad_from_interactions(InteractionSet(Lz, Lx))[1]
 p = ODEParams(nothing, 5.0, (tf, t) -> t / tf)
 dρ = zero(ρ)
 Ł(dρ, PauliVec[2][1] * PauliVec[2][1]', p, 5.0)
@@ -47,7 +47,7 @@ update_cache!(cache, Ł, p, 5.0)
 @test cache == -0.25 * σz' * σz - 0.1 * σx' * σx
 
 Random.seed!(1234)
-sample_res = [QTBase.lind_jump(Ł, PauliVec[1][1], p, 0.5) for i in 1:4]
+sample_res = [OpenQuantumBase.lind_jump(Ł, PauliVec[1][1], p, 0.5) for i in 1:4]
 @test sample_res == [[1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im],
 [0.0 + 0.0im 1.0 + 0.0im; 1.0 + 0.0im 0.0 + 0.0im],
 [1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im],
