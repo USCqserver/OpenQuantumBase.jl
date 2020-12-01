@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
 A = (s)->(1 - s)
 B = (s)->s

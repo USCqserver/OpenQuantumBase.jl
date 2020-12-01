@@ -1,13 +1,13 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 import LinearAlgebra: Diagonal
 
 funcs = [(x) -> x, (x) -> 1 - x]
-test_diag_operator = QTBase.DiagonalOperator(funcs)
-@test test_diag_operator(0.5) == QTBase.Diagonal([0.5, 0.5])
+test_diag_operator = OpenQuantumBase.DiagonalOperator(funcs)
+@test test_diag_operator(0.5) == OpenQuantumBase.Diagonal([0.5, 0.5])
 
-test_geometric_operator = QTBase.GeometricOperator(((x) -> -1.0im * x))
+test_geometric_operator = OpenQuantumBase.GeometricOperator(((x) -> -1.0im * x))
 @test test_geometric_operator(0.5) == [0 0.5im; -0.5im 0]
-@test_throws ArgumentError QTBase.GeometricOperator((x) -> x, (x) -> 1 - x)
+@test_throws ArgumentError OpenQuantumBase.GeometricOperator((x) -> x, (x) -> 1 - x)
 
 H = AdiabaticFrameHamiltonian(funcs, [])
 @test H(2, 0.5) ≈ Diagonal([π, π])

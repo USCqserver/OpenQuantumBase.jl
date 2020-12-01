@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 import SparseArrays:spzeros
 
 A = (s)->(1 - s)

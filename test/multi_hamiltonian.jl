@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
 @test q_translate("ZZ+0.5ZI-XZ") == σz⊗σz + 0.5σz⊗σi - σx⊗σz
 @test single_clause(["x"], [2], 0.5, 2) == 0.5σi⊗σx

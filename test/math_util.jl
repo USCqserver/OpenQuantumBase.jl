@@ -1,4 +1,4 @@
-using QTBase, Test
+using OpenQuantumBase, Test
 
 # === matrix decomposition
 v = 1.0 * σx + 2.0 * σy + 3.0 * σz
@@ -21,7 +21,7 @@ u_res = exp(-1.0im * 5 * 0.5 * σx)
 @test check_unitary(u_res)
 @test !check_unitary([0 1; 0 0])
 # === integration test ===
-@test QTBase.cpvagk((x) -> 1.0, 0, -1, 1)[1] == 0
+@test OpenQuantumBase.cpvagk((x) -> 1.0, 0, -1, 1)[1] == 0
 
 # == Hamiltonian analysis ===
 DH = DenseHamiltonian([(s) -> 1 - s, (s) -> s], [σx, σz], unit=:ħ)
@@ -67,5 +67,5 @@ w, v = eigen_decomp(H_check, [0.5])
 @test !check_density_matrix(σx)
 
 w = [1,1,1,2,3,4,4,5]
-@test QTBase.find_degenerate(w) == [[1,2,3],[6,7]]
-@test isempty(QTBase.find_degenerate([1,2,3]))
+@test OpenQuantumBase.find_degenerate(w) == [[1,2,3],[6,7]]
+@test isempty(OpenQuantumBase.find_degenerate([1,2,3]))
