@@ -55,7 +55,9 @@ function (h::SparseHamiltonian)(t::Real)
     h.u_cache
 end
 
-# update_func interface for DiffEqOperators
+# The argument `p` is not essential for `SparseHamiltonian`
+# It exists to keep the `update_cache!` interface consistent across
+# all `AbstractHamiltonian` types
 function update_cache!(cache, H::SparseHamiltonian, tf, s::Real)
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
