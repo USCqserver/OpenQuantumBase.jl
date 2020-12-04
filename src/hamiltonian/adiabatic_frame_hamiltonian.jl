@@ -127,7 +127,6 @@ function (H::AdiabaticFrameHamiltonian)(tf::Real, s::Real)
     ω + off
 end
 
-update_cache!(cache, H::AdiabaticFrameHamiltonian, tf, t::Real) = cache .= -1.0im * H(tf, t)
 get_cache(H::AdiabaticFrameHamiltonian{T}) where {T} = zeros(T, size(H))
 
 """

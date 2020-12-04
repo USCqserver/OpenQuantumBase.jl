@@ -63,6 +63,9 @@ function (H::InterpDenseHamiltonian)(s)
     H.interp_obj(1:size(H, 1), 1:size(H, 1), s)
 end
 
+# The argument `p` is not essential for `InterpDenseHamiltonian`
+# It exists to keep the `update_cache!` interface consistent across
+# all `AbstractHamiltonian` types
 function update_cache!(cache, H::InterpDenseHamiltonian, tf, s::Real)
     for i = 1:size(H, 1)
         for j = 1:size(H, 1)
@@ -132,7 +135,10 @@ end
 
 get_cache(H::InterpSparseHamiltonian{T}) where {T} = spzeros(T, size(H)...)
 
-update_cache!(cache, H::InterpSparseHamiltonian, tf, s::Real) =
+# The argument `p` is not essential for `InterpSparseHamiltonian`
+# It exists to keep the `update_cache!` interface consistent across
+# all `AbstractHamiltonian` types
+update_cache!(cache, H::InterpSparseHamiltonian, p, s::Real) =
     cache .= -1.0im * H(s)
 
 function update_vectorized_cache!(

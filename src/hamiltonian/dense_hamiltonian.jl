@@ -51,7 +51,7 @@ end
 """
     function (h::DenseHamiltonian)(s::Real)
 
-Calling the Hamiltonian returns the value ``2πH(s)``. The argument `s` is in the unitless time. The returned matrix is in angular frequency.
+Calling the Hamiltonian returns the value ``2πH(s)``. The argument `s` is in the dimensionless time. The returned matrix is in the unit of angular frequency.
 """
 function (h::DenseHamiltonian)(s::Real)
     fill!(h.u_cache, 0.0)
@@ -61,7 +61,9 @@ function (h::DenseHamiltonian)(s::Real)
     h.u_cache
 end
 
-# update_func interface for DiffEqOperators
+# The argument `p` is not essential for `DenseHamiltonian`
+# It exists to keep the `update_cache!` interface consistent across
+# all `AbstractHamiltonian` types
 function update_cache!(cache, H::DenseHamiltonian, p, s::Real)
     fill!(cache, 0.0)
     for i = 1:length(H.m)

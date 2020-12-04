@@ -4,9 +4,22 @@ $(SIGNATURES)
 Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`
 """
 evaluate(H::AbstractHamiltonian, s::Real) = H.(s) / 2 / π
-"""Fallback `update_cache!` for `AbstractHamiltonian`."""
+
+"""
+$(SIGNATURES)
+
+Update the internal cache `cache` according to the value of the Hamiltonian `H` at given dimensionless time `s`: ``cache = -iH(p, s)``. The third argument, `p` is reserved for passing additional info to the `AbstractHamiltonian` object. Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total evolution time `tf`. To keep the interface consistent across all `AbstractHamiltonian` types, the `update_cache!` method for all subtypes of `AbstractHamiltonian` should keep the argument `p`.
+
+Fallback to `cache .= -1.0im * H(p, s)` for generic `AbstractHamiltonian` type.
+"""
 update_cache!(cache, H::AbstractHamiltonian, p, s::Real) = cache .= -1.0im * H(p, s)
-"""Fallback two argument call for `AbstractHamiltonian`."""
+
+"""
+$(SIGNATURES)
+The `AbstractHamiltonian` type can be called with two arguments. The first argument is reserved to pass additional info to the `AbstractHamiltonian` object. Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total evolution time `tf`.
+
+Fallback to `H(s)` for generic `AbstractHamiltonian` type.
+"""
 (H::AbstractHamiltonian)(::Any, s::Real) = H(s)
 
 Base.summary(H::AbstractHamiltonian) = string(
