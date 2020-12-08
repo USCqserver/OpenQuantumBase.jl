@@ -50,4 +50,7 @@ using SafeTestsets
     @time @safetestset "Projections" begin
         include("projection.jl")
     end
+    @time @safetestset "Displays" begin
+        include("display.jl")
+    end
 end
