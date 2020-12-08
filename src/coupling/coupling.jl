@@ -89,7 +89,7 @@ Base.summary(C::ConstantCouplings) = string(
     NO_COLOR,
     " with ",
     TYPE_COLOR,
-    typeof(C.mats).parameters[1],
+    eltype(C.mats[1]),
     NO_COLOR,
 )
 
