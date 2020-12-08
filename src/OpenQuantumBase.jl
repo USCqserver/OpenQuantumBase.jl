@@ -8,6 +8,7 @@ import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
 import QuadGK: quadgk!, quadgk
+import CUDA.CuArray
 
 """
 $(TYPEDEF)
@@ -44,7 +45,7 @@ $(TYPEDEF)
 
 Base for types defining quantum annealing process.
 """
-abstract type AbstractAnnealing{hType <: AbstractHamiltonian,uType <: Union{Vector,Matrix},} end
+abstract type AbstractAnnealing{hType <: AbstractHamiltonian,uType <: Union{Vector,Matrix,CuArray},} end
 
 """
 $(TYPEDEF)
