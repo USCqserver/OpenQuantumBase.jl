@@ -85,6 +85,7 @@ include("integration/cpvagk.jl")
 include("integration/ext_util.jl")
 
 include("hamiltonian/hamiltonian_base.jl")
+include("hamiltonian/cu_hamiltonian.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
@@ -104,7 +105,7 @@ include("opensys/trajectory_jump.jl")
 
 include("projection/projection.jl")
 
-export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian,
+export SparseHamiltonian, DenseHamiltonian, CuHamiltonian, AdiabaticFrameHamiltonian,
        InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
 export eigen_decomp, EIGEN_DEFAULT
 
