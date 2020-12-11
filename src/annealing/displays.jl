@@ -2,11 +2,11 @@ Base.summary(annealing::AbstractAnnealing) = string(
     TYPE_COLOR,
     nameof(typeof(annealing)),
     NO_COLOR,
-    " with hType ",
+    " with ",
     TYPE_COLOR,
     typeof(annealing.H),
     NO_COLOR,
-    " and uType ",
+    " and u0 ",
     TYPE_COLOR,
     typeof(annealing.u0),
     NO_COLOR,
@@ -14,7 +14,7 @@ Base.summary(annealing::AbstractAnnealing) = string(
 
 function Base.show(io::IO, A::AbstractAnnealing)
     println(io, summary(A))
-    print(io, "u0 with size: ")
+    print(io, "u0 size: ")
     show(io, size(A.u0))
 end
 
@@ -43,5 +43,5 @@ function Base.show(io::IO, I::InteractionSet)
     print(io, summary(I))
     print(io, " with ")
     show(io, length(I))
-    print(io, " interactions.")
+    print(io, " interactions")
 end
