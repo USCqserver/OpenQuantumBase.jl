@@ -45,7 +45,6 @@ function ame_update_term(op, ρ, w, v, γ, S)
     dρ, A_ij
 end
 
-
 # calculate the ame trajectory term
 function ame_trajectory_update_term(op, w, v, γ, S)
     A_ij = Array{Complex{Float64},2}(undef, (4, 4))
@@ -67,6 +66,14 @@ function ame_trajectory_update_term(op, w, v, γ, S)
     cache
 end
 
+# calculate the one sided AME term
+function onesided_ame_udpate(op, ρ, w, v, γ, S)
+    ω_ba = transpose(w) .- w
+    Γ =  0.5 * γ.(ω_ba) + 1.0im * S.(ω_ba)
+    L = v * (Γ .* (v' * op * v)) * v'
+    K = L * ρ * op - op * L * ρ
+    K + K'
+end
 
 γ(x) = x >= 0 ? x + 1 : (1 - x) * exp(x)
 S(x) = x + 0.1
@@ -78,6 +85,7 @@ H = DenseHamiltonian(
 )
 coupling = ConstantCouplings(["ZI+IZ"])
 davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
+onesided = OpenQuantumBase.OneSidedAMELiouvillian(coupling, OpenQuantumBase.SingleFunctionMatrix(γ), OpenQuantumBase.SingleFunctionMatrix(S), [(1, 1)])
 op = 2π * (σz ⊗ σi + σi ⊗ σz)
 
 w, v = eigen_decomp(H, 0.5, lvl=4)
@@ -99,6 +107,16 @@ OpenQuantumBase.davies_update!(du, u, A_ij, gm, sm)
 du = zeros(ComplexF64, (4, 4))
 davies(du, u, w_ab, v, 0.5)
 @test v * du * v' ≈ dρ atol = 1e-6 rtol = 1e-6
+
+onesided_dρ = onesided_ame_udpate(op, ρ, w, v, γ, S) 
+du = zeros(ComplexF64, (4, 4))
+onesided(du, u, w_ab, v, 0.5)
+@test v * du * v' ≈ onesided_dρ atol = 1e-6 rtol = 1e-6
+
+onesided_dρ = onesided_ame_udpate(v*op*v', ρ, w, v, γ, S) 
+du = zeros(ComplexF64, (4, 4))
+onesided(du, u, w_ab, 0.5)
+@test  du ≈ v' * onesided_dρ * v atol = 1e-6 rtol = 1e-6
 
 cache = zeros(ComplexF64, (4, 4))
 exp_effective_H = ame_trajectory_update_term(op, w, v, γ, S)
@@ -166,7 +184,6 @@ coupling = CustomCouplings([(s) -> s * (σx ⊗ σi + σi ⊗ σx) + (1 - s) * (
 davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
 
 ψ = (v[:, 1] + v[:, 2] + v[:, 3]) / sqrt(3)
-# ψ = (v[:, 1] + v[:, 2]) / sqrt(2)
 ρ = ψ * ψ'
 
 dρ, = ame_update_term(coupling(0.4)[1], ρ, w, v, γ, S)

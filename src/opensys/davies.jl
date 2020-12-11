@@ -146,7 +146,7 @@ struct OneSidedAMELiouvillian <: AbstractLiouvillian
     inds::Any
 end
 
-function (D::OneSidedAMELiouvillian)(dρ, ρ, ω_ba, v, s::Real)
+function (A::OneSidedAMELiouvillian)(dρ, ρ, ω_ba, v, s::Real)
     for (α, β) in A.inds
         γm = A.γ[α,β].(ω_ba)
         sm = A.S[α,β].(ω_ba)
