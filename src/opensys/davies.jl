@@ -146,6 +146,19 @@ struct OneSidedAMELiouvillian <: AbstractLiouvillian
     inds::Any
 end
 
+function (D::OneSidedAMELiouvillian)(dρ, ρ, ω_ba, v, s::Real)
+    for (α, β) in A.inds
+        γm = A.γ[α,β].(ω_ba)
+        sm = A.S[α,β].(ω_ba)
+        Aα = v' * A.coupling[α](s) * v
+        Λ = (0.5 * γm + 1.0im * sm) .* Aα
+        Aβ =  v' * A.coupling[β](s) * v
+        𝐊₂ = Aβ * Λ * ρ - Λ * ρ * Aβ
+        𝐊₂ = 𝐊₂ + 𝐊₂'
+        axpy!(-1.0, 𝐊₂, dρ)
+    end
+end
+
 function (A::OneSidedAMELiouvillian)(du, u, ω_ba, s::Real)
     for (α, β) in A.inds
         γm = A.γ[α,β].(ω_ba)
