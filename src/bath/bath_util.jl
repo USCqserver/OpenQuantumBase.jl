@@ -98,21 +98,3 @@ function coarse_grain_timescale(
     τb, err_b = τ_B(bath, lim, τsb, rtol=rtol, atol=atol)
     sqrt(τsb * τb / 5), (err_sb * τb + τsb * err_b) / 10 / sqrt(τsb * τb / 5)
 end
-
-function build_onesided_ame(
-    coupling::AbstractCouplings,
-    bath::AbstractBath,
-    ω_range::AbstractVector,
-    lambshift::Bool,
-)
-    gamma = build_spectrum(bath)
-    S_loc = build_lambshift(ω_range, lambshift, bath)
-    if typeof(bath) <: CorrelatedBath
-        inds = build_inds(bath)
-    else
-        inds = ((i, i) for i in 1:length(coupling))
-        gamma = SingleSpectrum(gamma)
-        S_loc = SingleSpectrum(S_loc)
-    end
-    OneSidedAMELiouvillian(coupling, gamma, S_loc, inds)
-end
