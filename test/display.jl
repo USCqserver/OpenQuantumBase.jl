@@ -19,9 +19,10 @@ coupling = ConstantCouplings(["Z"])
 @test replstr(coupling) == "\e[36mConstantCouplings\e[0m with \e[36mComplex{Float64}\e[0m\nand string representation: [\"Z\"]"
 @test replstr(ConstantCouplings([σz])) == "\e[36mConstantCouplings\e[0m with \e[36mComplex{Float64}\e[0m\nand string representation: nothing"
 
-η = 1e-4
-ωc = 4
-T = 12
+η = 0.01; W = 5; fc = 4; T = 12.5
+@test replstr(HybridOhmic(W, η, fc, T)) == "Hybrid Ohmic bath instance:\nW (mK): 5.0\nϵl (GHz): 0.02083661222512523\nη (unitless): 0.01\nωc (GHz): 4.0\nT (mK): 12.5"
+
+η = 1e-4; ωc = 4; T = 12
 bath = Ohmic(η, ωc, T)
 @test replstr(bath) == "Ohmic bath instance:\nη (unitless): 0.0001\nωc (GHz): 4.0\nT (mK): 12.0"
 
