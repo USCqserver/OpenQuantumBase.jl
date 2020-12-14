@@ -3,7 +3,10 @@ using SafeTestsets
 @time begin
 
     @time @safetestset "Math Utilities" begin
-        include("math_util.jl")
+        include("utilities/math_util.jl")
+    end
+    @time @safetestset "Displays" begin
+        include("utilities/display.jl")
     end
     @time @safetestset "Interpolations" begin
         include("interpolations.jl")
@@ -49,8 +52,5 @@ using SafeTestsets
     end
     @time @safetestset "Projections" begin
         include("projection.jl")
-    end
-    @time @safetestset "Displays" begin
-        include("display.jl")
     end
 end

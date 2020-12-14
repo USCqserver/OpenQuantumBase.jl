@@ -7,6 +7,7 @@ u = [1.0 + 0.0im, 1] / sqrt(2)
 
 H = DenseHamiltonian([A, B], [σx, σz])
 
+@test_throws ArgumentError DenseHamiltonian([A, B], [σx, σz], unit=:hh)
 @test size(H) == (2, 2)
 @test H(0) == 2π * σx
 @test evaluate(H, 0) == σx
