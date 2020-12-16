@@ -36,25 +36,6 @@ Check if all elements in `x` are equal upto an absolute error tolerance `atol` a
     return true
 end
 
-"""
-    function EIGEN_DEFAULT(H)
-
-The default initializer for eigen factorization method. It returns a function of signature: `(H, s, lvl) -> (w, v)`. `H` is the Hamiltonian object, `s` is the dimensionless time and `lvl` is the energy levels to keep. This default initializer will use `LAPACK` routine for both dense and sparse matrices.
-"""
-function EIGEN_DEFAULT(H::AbstractDenseHamiltonian)
-    function (H, t, lvl)
-        hmat = H(t)
-        eigen!(Hermitian(hmat), 1:lvl)
-    end
-end
-
-function EIGEN_DEFAULT(H::AbstractSparseHamiltonian)
-    function (H, t, lvl)
-        hmat = H(t)
-        eigen!(Hermitian(Array(hmat)), 1:lvl)
-    end
-end
-
 function numargs(f)
     numparam = maximum([num_types_in_tuple(m.sig) for m in methods(f)])
     return (numparam - 1) # -1 in v0.5 since it adds f as the first parameter
