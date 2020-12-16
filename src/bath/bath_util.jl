@@ -44,7 +44,7 @@ Calculate the two point correlation function ``C(t1, t2)`` of `bath`. Fall back 
 """
 $(SIGNATURES)
 
-Calculate ``τ_{SB}`` from the bath correlation function `cfun`. It is defined as the integration of the absolute value of bath correlation function from zero to `lim`. The default value of `lim` is `Inf`. `atol` and `rtol` are the absolute and relative error of the integration.
+Calculate the bath time scale ``τ_{SB}`` from the bath correlation function `cfun`. ``τ_{SB}`` is defined as ``1/τ_{SB}=∫_0^∞ |C(τ)|dτ``. The upper limit of the integration can be modified using keyword `lim`. `atol` and `rtol` are the absolute and relative error tolerance of the integration.
 """
 function τ_SB(cfun; lim=Inf, rtol=sqrt(eps()), atol=0)
     res, err = quadgk((x) -> abs(cfun(x)), 0, lim, rtol=rtol, atol=atol)
@@ -54,7 +54,7 @@ end
 """
 $(SIGNATURES)
 
-Calculate ``τ_{SB}`` from `bath`.
+Calculate the bath time scale ``τ_{SB}`` for the `bath` object.
 """
 τ_SB(bath::AbstractBath; lim=Inf, rtol=sqrt(eps()), atol=0) =
     τ_SB((t) -> correlation(t, bath), lim=lim, rtol=rtol, atol=atol)
@@ -62,7 +62,7 @@ Calculate ``τ_{SB}`` from `bath`.
 """
 $(SIGNATURES)
 
-Calculate the bath correlation time ``τ_B`` from the bath correlation function `cfun`. The upper limit `lim` and `τsb` need to be manually specified. `atol` and `rtol` are the absolute and relative error for the integration.
+Calculate the bath time scale ``τ_B`` from the correlation function `cfun`. ``τ_B`` is defined as ``τ_B/τ_{SB} = ∫_0^T τ|C(τ)|dτ``. The upper limit of the integration ``T`` is specified by `lim`. `τsb` is the other bath time scale ``1/τ_{SB}=∫_0^∞ |C(τ)|dτ``. `atol` and `rtol` are the absolute and relative error tolerance for the integration.
 """
 function τ_B(cfun, lim, τsb; rtol=sqrt(eps()), atol=0)
     res, err = quadgk((x) -> x * abs(cfun(x)), 0, lim, rtol=rtol, atol=atol)
@@ -72,7 +72,7 @@ end
 """
 $(SIGNATURES)
 
-Calculate the bath correlation time ``τ_B`` from `bath`.
+Calculate the bath time scale ``τ_B`` for the `bath` object.
 """
 τ_B(bath::AbstractBath, lim, τsb; rtol=sqrt(eps()), atol=0) =
     τ_B((t) -> correlation(t, bath), lim, τsb; rtol=rtol, atol=atol)
@@ -86,7 +86,7 @@ end
 """
 $(SIGNATURES)
 
-Calculate the optimal coarse grain time scale ``T_a`` for a total evolution time `lim`. `atol` and `rtol` are the absolute and relative error for the integration.
+Calculate the optimal coarse grain time scale ``T_a=√{τ_{SB}τ_B/5}`` for a total evolution time `lim`. `atol` and `rtol` are the absolute and relative error for the integration.
 """
 function coarse_grain_timescale(
     bath::AbstractBath,
