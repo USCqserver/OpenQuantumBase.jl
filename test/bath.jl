@@ -4,13 +4,13 @@ using OpenQuantumBase, Test
 ωc = 8 * pi
 β = 1 / 2.23
 bath = OpenQuantumBase.OhmicBath(η, ωc, β)
-cfun = OpenQuantumBase.build_correlation(bath)
-γfun = OpenQuantumBase.build_spectrum(bath)
+cfun_test = OpenQuantumBase.build_correlation(bath)
+γfun_test = OpenQuantumBase.build_spectrum(bath)
 
 @test correlation(0.02, 0.01, bath) == correlation(0.01, bath)
-@test cfun[1, 1](0.02, 0.01) == correlation(0.01, bath)
+@test cfun_test[1, 1](0.02, 0.01) == correlation(0.01, bath)
 @test γ(0.0, bath) == 2 * pi * η / β
-@test γfun(0.0) == 2 * pi * η / β
+@test γfun_test(0.0) == 2 * pi * η / β
 @test spectrum(0.0, bath) == 2 * pi * η / β
 @test S(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
 
@@ -21,7 +21,7 @@ bath = Ohmic(η, fc, T)
 @test τsb ≈ 284.61181493 atol = 1e-6 rtol = 1e-6
 @test τb ≈ 0.07638653 atol = 1e-6 rtol = 1e-6
 τc, err_τc = coarse_grain_timescale(bath, 100)
-@test τ ≈ sqrt(τsb * τb / 5) atol = 1e-6 rtol = 1e-6
+@test τc ≈ sqrt(τsb * τb / 5) atol = 1e-6 rtol = 1e-6
 
 # test suite for CustomBath
 cfun = (t) -> exp(-abs(t))
