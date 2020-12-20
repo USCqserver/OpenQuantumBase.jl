@@ -1,7 +1,9 @@
 using SafeTestsets
 
 @time begin
-
+    @time @safetestset "Base Utilities" begin
+        include("utilities/base_util.jl")
+    end
     @time @safetestset "Math Utilities" begin
         include("utilities/math_util.jl")
     end
