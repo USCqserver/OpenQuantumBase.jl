@@ -35,6 +35,9 @@ using SafeTestsets
     @time @safetestset "Bath" begin
         include("coupling_bath_interaction/bath.jl")
     end
+    @time @safetestset "Interactions" begin
+        include("coupling_bath_interaction/interaction.jl")
+    end
     @time @safetestset "Davies and AME" begin
         include("opensys/davies.jl")
     end
@@ -47,7 +50,7 @@ using SafeTestsets
     @time @safetestset "Stochastic" begin
         include("opensys/stochastic.jl")
     end
-    @time @safetestset "Annealing/Interactions" begin
+    @time @safetestset "Annealing/Evolution" begin
         include("annealing.jl")
     end
     @time @safetestset "Projections" begin
