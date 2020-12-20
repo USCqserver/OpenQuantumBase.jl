@@ -32,7 +32,10 @@ using SafeTestsets
         include("hamiltonian/custom_hamiltonian.jl")
     end
     @time @safetestset "Coupling" begin
-        include("coupling.jl")
+        include("coupling_bath_interaction/coupling.jl")
+    end
+    @time @safetestset "Bath" begin
+        include("coupling_bath_interaction/bath.jl")
     end
     @time @safetestset "Davies and AME" begin
         include("opensys/davies.jl")
@@ -45,9 +48,6 @@ using SafeTestsets
     end
     @time @safetestset "Stochastic" begin
         include("opensys/stochastic.jl")
-    end
-    @time @safetestset "Bath" begin
-        include("bath.jl")
     end
     @time @safetestset "Annealing/Interactions" begin
         include("annealing.jl")
