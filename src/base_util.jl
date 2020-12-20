@@ -88,3 +88,19 @@ struct SingleFunctionMatrix
     fun::Any
 end
 @inline Base.getindex(F::SingleFunctionMatrix, ind...) = F.fun
+
+
+"""
+$(SIGNATURES)
+
+Convert bloch sphere angle `θ` and `ϕ` to the corresponding state vector according to ``cos(θ/2)|0⟩+exp(iϕ)sin(θ/2)|1⟩``.
+"""
+function bloch_to_state(θ::Real, ϕ::Real)
+    if !(0<=θ<=π)
+        throw(ArgumentError("θ is out of range 0≤θ≤π."))
+    end
+    if !(0<=ϕ<=2π)
+        throw(ArgumentError("ϕ is out of range 0≤ϕ≤2π."))
+    end
+    cos(θ / 2) * PauliVec[3][1] + exp(1.0im * ϕ) * sin(θ / 2) * PauliVec[3][2]
+end

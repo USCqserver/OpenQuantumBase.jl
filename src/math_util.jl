@@ -8,7 +8,7 @@ const σ₋ = [0.0im 0;1 0]
 const σ₊ = [0.0im 1;0 0]
 const σ = [σx, σy, σz, σi]
 xvec = [[1.0 + 0.0im, 1.0] / sqrt(2), [1.0 + 0.0im, -1.0] / sqrt(2)]
-yvec = [[1.0im, -1.0] / sqrt(2), [1.0im, 1.0] / sqrt(2)]
+yvec = [[1.0, 1.0im] / sqrt(2), [1.0, -1.0im] / sqrt(2)]
 zvec = [[1.0 + 0.0im, 0], [0, 1.0 + 0.0im]]
 
 const spσz = sparse(σz)
