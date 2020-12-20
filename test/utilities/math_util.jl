@@ -11,6 +11,7 @@ m =
     r[2] * PauliVec[1][1] * PauliVec[1][1]'
 @test check_positivity(m)
 @test !check_positivity(σx)
+@test_logs (:warn, "Input fails the numerical test for Hermitian matrix. Use the upper triangle to construct a new Hermitian matrix.") check_positivity(σ₊)
 # == units conversion test ===
 @test temperature_2_freq(1e3) ≈ 20.8366176361328 atol = 1e-4 rtol = 1e-4
 @test freq_2_temperature(20) ≈ 959.8489324422699 atol = 1e-4 rtol = 1e-4
@@ -69,3 +70,13 @@ w, v = eigen_decomp(H_check, [0.5])
 w = [1,1,1,2,3,4,4,5]
 @test OpenQuantumBase.find_degenerate(w) == [[1,2,3],[6,7]]
 @test isempty(OpenQuantumBase.find_degenerate([1,2,3]))
+
+gibbs = gibbs_state(σz, 12)
+@test gibbs[2,2] ≈ 1/(1+exp(-temperature_2_β(12)*2))
+@test gibbs[1,1] ≈ 1 - 1/(1+exp(-temperature_2_β(12)*2))
+
+@test low_level_matrix(σz⊗σz+0.1σz⊗σi, 2) == [0.0+0.0im   0.0+0.0im   0.0+0.0im  0.0+0.0im
+0.0+0.0im  -0.9+0.0im   0.0+0.0im  0.0+0.0im
+0.0+0.0im   0.0+0.0im  -1.1+0.0im  0.0+0.0im
+0.0+0.0im   0.0+0.0im   0.0+0.0im  0.0+0.0im]
+@test_logs (:warn, "Subspace dimension bigger than total dimension.") low_level_matrix(σz⊗σz+0.1σz⊗σi, 5)

@@ -5,6 +5,8 @@ H = DenseHamiltonian([(s) -> 1 - s, (s) -> s], [σx, σz])
 dH(s) = (-real(σx) + real(σz))
 coupling = ConstantCouplings(["Z"])
 
+@test_logs (:warn, "The projection method only works with real Hamitonians. Convert the complex Hamiltonian to real one.") project_to_lowlevel(H, [0.0, 0.5, 1.0], coupling, dH)
+
 t_obj = project_to_lowlevel(H, [0.0, 0.5, 1.0], coupling, dH)
 
 @test t_obj.ev ≈ [[-1.0, 1.0], [-0.707107, 0.707107], [-1.0, 1.0]] atol = 1e-6
