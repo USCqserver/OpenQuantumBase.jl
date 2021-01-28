@@ -26,9 +26,9 @@ jobs:
           - x64
         experimental: [false]
         include:
-          - version: ['nightly']
-            os: [ubuntu-latest, macOS-latest, windows-latest]
-            arch: [x64]
+          - version: 'nightly'
+            os: ubuntu-latest
+            arch: x64
             experimental: true
     steps:
       - uses: actions/checkout@v2
