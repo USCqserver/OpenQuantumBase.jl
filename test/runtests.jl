@@ -7,14 +7,14 @@ using SafeTestsets
     @time @safetestset "Math Utilities" begin
         include("utilities/math_util.jl")
     end
+    @time @safetestset "Multi-qubits Hamiltonian Construction" begin
+        include("utilities/multi_qubits_construction.jl")
+    end
     @time @safetestset "Displays" begin
         include("utilities/display.jl")
     end
     @time @safetestset "Interpolations" begin
         include("interpolations.jl")
-    end
-    @time @safetestset "Multi-qubits Hamiltonian Construction" begin
-        include("multi_hamiltonian.jl")
     end
     @time @safetestset "Dense Hamiltonian" begin
         include("hamiltonian/dense_hamiltonian.jl")

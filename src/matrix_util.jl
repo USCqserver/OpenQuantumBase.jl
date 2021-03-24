@@ -33,9 +33,9 @@ function q_translate(h::String; sp = false)
 end
 
 """
-    single_clause(ops, q_ind, weight, num_qubit; sp=false)
+    single_clause(ops::Vector{String}, q_ind, weight, num_qubit; sp=false)
 
-Construct a single clause of the multi-qubits Hamiltonian. `ops` is a list of Pauli operator names which appears in this clause. `q_ind` is the list of indices corresponding to the Pauli matrices in `ops`. `weight` is the constant factor of this clause. `num_qubit` is the total number of qubits. A sparse matrix can be construct by setting `sp` to `true`. The following example construct a clause of `` Z_1 I Z_3/2 ``.
+Construct a single clause of the multi-qubits Hamiltonian. `ops` is a list of Pauli operator names which appear in this clause. `q_ind` is the list of indices corresponding to the Pauli matrices in `ops`. `weight` is the constant factor of this clause. `num_qubit` is the total number of qubits. A sparse matrix can be construct by setting `sp` to `true`. The following example construct a clause of `` Z_1 I Z_3/2 ``.
 
 # Examples
 ```julia-repl
@@ -51,7 +51,7 @@ julia> single_clause(["z", "z"], [1, 3], 0.5, 3)
  0.0+0.0im  -0.0+0.0im  0.0+0.0im  -0.0+0.0im  -0.0+0.0im   0.0-0.0im  -0.0+0.0im   0.5-0.0im
 ```
 """
-function single_clause(ops, q_ind, weight, num_qubit; sp = false)
+function single_clause(ops::Vector{String}, q_ind, weight, num_qubit; sp = false)
     if sp == false
         σ_tag = "σ"
         i_tag = σi
@@ -65,6 +65,39 @@ function single_clause(ops, q_ind, weight, num_qubit; sp = false)
         if idx != nothing
             op2 = eval(Meta.parse(σ_tag * lowercase(ops[idx])))
             res = res ⊗ op2
+        else
+            res = res ⊗ i_tag
+        end
+    end
+    res
+end
+
+"""
+    single_clause(ops::Vector{T}, q_ind, weight, num_qubit; sp=false) where T<:AbstractMatrix
+
+Construct a single clause of the multi-qubits Hamiltonian. `ops` is a list of single-qubit operators that appear in this clause. The sparse identity matrix is used once `sp` is set to `true`. The following example construct a clause of `` Z_1 I Z_3/2 ``.
+
+# Examples
+```julia-repl
+julia> single_clause([σz, σz], [1, 3], 0.5, 3)
+8×8 Array{Complex{Float64},2}:
+ 0.5+0.0im   0.0+0.0im  0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im
+ 0.0+0.0im  -0.5+0.0im  0.0+0.0im  -0.0+0.0im   0.0+0.0im  -0.0+0.0im   0.0+0.0im  -0.0+0.0im
+ 0.0+0.0im   0.0+0.0im  0.5+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im   0.0+0.0im
+ 0.0+0.0im  -0.0+0.0im  0.0+0.0im  -0.5+0.0im   0.0+0.0im  -0.0+0.0im   0.0+0.0im  -0.0+0.0im
+ 0.0+0.0im   0.0+0.0im  0.0+0.0im   0.0+0.0im  -0.5+0.0im  -0.0+0.0im  -0.0+0.0im  -0.0+0.0im
+ 0.0+0.0im  -0.0+0.0im  0.0+0.0im  -0.0+0.0im  -0.0+0.0im   0.5-0.0im  -0.0+0.0im   0.0-0.0im
+ 0.0+0.0im   0.0+0.0im  0.0+0.0im   0.0+0.0im  -0.0+0.0im  -0.0+0.0im  -0.5+0.0im  -0.0+0.0im
+ 0.0+0.0im  -0.0+0.0im  0.0+0.0im  -0.0+0.0im  -0.0+0.0im   0.0-0.0im  -0.0+0.0im   0.5-0.0im
+```
+"""
+function single_clause(ops::Vector{T}, q_ind, weight, num_qubit; sp = false) where T<:AbstractMatrix
+    i_tag = sp == false ? σi : spσi
+    res = weight
+    for i = 1:num_qubit
+        idx = findfirst((x) -> x == i, q_ind)
+        if idx != nothing
+            res = res ⊗ ops[idx]
         else
             res = res ⊗ i_tag
         end
