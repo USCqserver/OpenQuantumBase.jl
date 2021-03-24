@@ -51,7 +51,7 @@ julia> single_clause(["z", "z"], [1, 3], 0.5, 3)
  0.0+0.0im  -0.0+0.0im  0.0+0.0im  -0.0+0.0im  -0.0+0.0im   0.0-0.0im  -0.0+0.0im   0.5-0.0im
 ```
 """
-function single_clause(ops, q_ind, weight, num_qubit; sp = false)
+function single_clause(ops::Vector{String}, q_ind, weight, num_qubit; sp = false)
     if sp == false
         σ_tag = "σ"
         i_tag = σi
