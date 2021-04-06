@@ -48,7 +48,11 @@ function (R::RedfieldLiouvillian)(du, u, p, t::Real)
                 R.unitary(R.Uτ, x)
                 R.Ut .= R.Ut * R.Uτ'
                 mul!(R.Uτ, coupling[j](p(x)), R.Ut')
-                mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
+                # The 5 arguments mul! will to produce NaN when it
+                # should not. May switch back to it when this is fixed.
+                # mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
+                mul!(cache, R.Ut, R.Uτ)
+                lmul!(cfun[i, j](t, x), cache)
             end
             quadgk!(
                 integrand,
@@ -76,7 +80,11 @@ function update_vectorized_cache!(cache, R::RedfieldLiouvillian, p, t::Real)
                 R.unitary(R.Uτ, x)
                 R.Ut .= R.Ut * R.Uτ'
                 mul!(R.Uτ, coupling[j](p(x)), R.Ut')
-                mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
+                # The 5 arguments mul! will to produce NaN when it
+                # should not. May switch back to it when this is fixed.
+                # mul!(cache, R.Ut, R.Uτ, cfun[i, j](t, x), 0)
+                mul!(cache, R.Ut, R.Uτ)
+                lmul!(cfun[i, j](t, x), cache)
             end
             quadgk!(
                 integrand,
