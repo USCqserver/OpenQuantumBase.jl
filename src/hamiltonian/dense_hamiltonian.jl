@@ -8,15 +8,15 @@ Defines a time dependent Hamiltonian object with dense Matrices.
 $(FIELDS)
 """
 struct DenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
-    " List of time dependent functions "
+    "List of time dependent functions"
     f::Vector
-    " List of constant matrices "
+    "List of constant matrices"
     m::Vector
-    """Internal cache"""
+    "Internal cache"
     u_cache::AbstractMatrix
-    """Size"""
+    "Size"
     size::Tuple
-    """Eigen decomposition routine"""
+    "Eigen decomposition routine"
     EIGS::Any
 end
 
@@ -46,7 +46,6 @@ function DenseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
     EIGS = EIGS(cache)
     DenseHamiltonian{eltype(mats[1])}(funcs, mats, cache, hsize, EIGS)
 end
-
 
 """
     function (h::DenseHamiltonian)(s::Real)
