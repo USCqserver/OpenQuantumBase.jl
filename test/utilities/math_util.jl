@@ -63,6 +63,9 @@ v = sqrt.([0.4, 0.6])
 @test ρ2 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [2])
 @test purity(ρ1) ≈ 1
 @test purity(ρ2) == 0.5
+@test check_pure_state(ρ1)
+@test !check_pure_state(ρ2)
+@test !check_pure_state([0.4 0.5; 0.5 0.6])
 
 ρ = PauliVec[1][1]*PauliVec[1][1]'
 σ = PauliVec[3][1]*PauliVec[3][1]'
