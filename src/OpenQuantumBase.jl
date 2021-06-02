@@ -115,7 +115,8 @@ export q_translate, standard_driver, local_field_term, two_local_term,
        single_clause, q_translate_state, collective_operator, hamming_weight_operator
 
 export check_positivity, check_unitary, check_density_matrix, partial_trace,
-       matrix_decompose, low_level_matrix, fidelity, inst_population, gibbs_state
+       matrix_decompose, low_level_matrix, fidelity, inst_population, gibbs_state, purity, check_pure_state
+
 export construct_interpolations, gradient, log_uniform
 
 export hamiltonian_from_function, evaluate, issparse, get_cache, update_cache!,

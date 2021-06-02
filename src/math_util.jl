@@ -278,3 +278,21 @@ true
 function check_density_matrix(ρ; atol::Real=0, rtol::Real=atol>0 ? 0 : √eps())
     ishermitian(ρ) && (eigmin(ρ) >= 0) && isapprox(tr(ρ), 1, atol=atol, rtol=rtol)
 end
+
+"""
+$(SIGNATURES)
+
+Calculate the purity of density matrix `ρ`: ``tr(ρ²)``. This function does not check whether `ρ` is a valid density matrix.
+"""
+function purity(ρ)
+    tr(ρ*ρ)
+end
+
+"""
+$(SIGNATURES)
+
+Check whether the input `ρ` is a pure state: ``tr(ρ²)≈1``. This function will first check if `ρ` is a valid density matrix. `atol` and `rtol` are the corresponding absolute and relative error tolerance used for float point number comparison.
+"""
+function check_pure_state(ρ; atol::Real=0, rtol::Real=atol>0 ? 0 : √eps())
+    check_density_matrix(ρ) && isapprox(purity(ρ), 1, atol=atol, rtol=rtol)
+end
