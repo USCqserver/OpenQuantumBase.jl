@@ -6,9 +6,9 @@ An custum bath object defined by the two-point correlation function and the corr
 $(FIELDS)
 """
 mutable struct CustomBath <: AbstractBath
-    """correlation function"""
+    "correlation function"
     cfun::Any
-    """spectrum"""
+    "spectrum"
     γ::Any
 end
 
@@ -40,11 +40,11 @@ $(TYPEDEF)
 $(FIELDS)
 """
 mutable struct CorrelatedBath <: AbstractBath
-    """correlation function"""
+    "correlation function"
     cfun::Any
-    """spectrum"""
+    "spectrum"
     γ::Any
-    """bath correlator idx"""
+    "bath correlator idx"
     inds::Any
 end
 
@@ -88,7 +88,7 @@ A bath object to hold jump correlator of ULE.
 $(FIELDS)
 """
 struct ULEBath <: AbstractBath
-    """correlation function"""
+    "correlation function"
     cfun::Any
 end
 

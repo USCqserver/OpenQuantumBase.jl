@@ -82,11 +82,11 @@ Defines a time dependent Hamiltonian in adiabatic frame.
 $(FIELDS)
 """
 struct AdiabaticFrameHamiltonian{T} <: AbstractDenseHamiltonian{T}
-    """Geometric part"""
+    "Geometric part"
     geometric::AbstractGeometricOperator
-    """Adiabatic part"""
+    "Adiabatic part"
     diagonal::AbstractDiagonalOperator
-    """Size of the Hamiltonian"""
+    "Size of the Hamiltonian"
     size::Any
 end
 

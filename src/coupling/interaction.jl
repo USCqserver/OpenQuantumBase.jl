@@ -13,9 +13,9 @@ An object to hold coupling operator and the corresponding bath object.
 $(FIELDS)
 """
 struct Interaction <: AbstractInteraction
-    """system operator"""
+    "system operator"
     coupling::AbstractCouplings
-    """bath coupling to the system operator"""
+    "bath coupling to the system operator"
     bath::AbstractBath
 end
 
@@ -27,11 +27,11 @@ A Lindblad operator, define by a rate ``γ`` and corresponding operator ``L```.
 $(FIELDS)
 """
 struct Lindblad <: AbstractInteraction
-    """Lindblad rate"""
+    "Lindblad rate"
     γ::Any
-    """Lindblad operator"""
+    "Lindblad operator"
     L::Any
-    """size"""
+    "size"
     size::Tuple
 end
 
@@ -59,7 +59,7 @@ An container for different system-bath interactions.
 $(FIELDS)
 """
 struct InteractionSet{T <: Tuple}
-    """A tuple of Interaction"""
+    "A tuple of Interaction"
     interactions::T
 end
 

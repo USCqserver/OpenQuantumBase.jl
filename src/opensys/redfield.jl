@@ -10,21 +10,21 @@ Defines RedfieldLiouvillian.
 $(FIELDS)
 """
 struct RedfieldLiouvillian <: AbstractLiouvillian
-    """Redfield kernels"""
+    "Redfield kernels"
     kernels::Any
-    """close system unitary"""
+    "close system unitary"
     unitary::Any
-    """absolute error tolerance for integration"""
+    "absolute error tolerance for integration"
     atol::Float64
-    """relative error tolerance for integration"""
+    "relative error tolerance for integration"
     rtol::Float64
-    """cache matrix for inplace unitary"""
+    "cache matrix for inplace unitary"
     Ut::Union{Matrix,MMatrix}
-    """cache matrix for inplace unitary"""
+    "cache matrix for inplace unitary"
     Uτ::Union{Matrix,MMatrix}
-    """cache matrix for integration"""
+    "cache matrix for integration"
     Λ::Union{Matrix,MMatrix}
-    """tf minus coarse grain time scale"""
+    "tf minus coarse grain time scale"
     Ta::Real
 end
 

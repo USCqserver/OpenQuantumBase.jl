@@ -59,9 +59,9 @@ A statistical ensemble that is equivalent to a density matrix ρ.
 $(FIELDS)
 """
 struct EᵨEnsemble
-    """The weights for each state vector"""
+    "The weights for each state vector"
     ω::Vector
-    """The states vectors in the ensemble"""
+    "The states vectors in the ensemble"
     vec::Vector
     function EᵨEnsemble(ω::Vector, vec::Vector)
         if !(eltype(ω) <: Number && all((x) -> x >= 0, ω))
@@ -84,7 +84,7 @@ A container for a matrix whose elements are the same function. Getting any indic
 $(FIELDS)
 """
 struct SingleFunctionMatrix
-    """Internal function"""
+    "Internal function"
     fun::Any
 end
 @inline Base.getindex(F::SingleFunctionMatrix, ind...) = F.fun

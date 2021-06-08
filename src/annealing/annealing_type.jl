@@ -6,13 +6,13 @@ $(TYPEDEF)
 $(FIELDS)
 """
 mutable struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
-    """Hamiltonian for the annealing."""
+    "Hamiltonian for the annealing."
     H::hType
-    """Initial state for the annealing."""
+    "Initial state for the annealing."
     u0::uType
-    """Function of annealing parameter s wrt to t"""
+    "Function of annealing parameter s wrt to t"
     annealing_parameter::Any
-    """A system bath interaction set."""
+    "A system bath interaction set."
     interactions::Union{InteractionSet,Nothing}
 end
 
@@ -48,13 +48,13 @@ $(FIELDS)
 """
 struct ODEParams
     # H and opensys may be move to dedicated OpenSysOp in the future
-    """Hamiltonian"""
+    "Hamiltonian"
     L::Any
-    """Total annealing time"""
+    "Total annealing time"
     tf::Real
-    """Function to convert physical time to annealing parameter"""
+    "Function to convert physical time to annealing parameter"
     annealing_parameter::Function
-    """Annealing control object"""
+    "Annealing control object"
     control::Any
 end
 
