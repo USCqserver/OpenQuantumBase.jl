@@ -70,6 +70,7 @@ include("unit_util.jl")
 include("math_util.jl")
 include("matrix_util.jl")
 include("interpolation.jl")
+include("dev_tools.jl")
 
 include("coupling/coupling.jl")
 include("coupling/interaction.jl")
@@ -138,5 +139,7 @@ export τ_B, τ_SB, coarse_grain_timescale
 export InplaceUnitary, EᵨEnsemble, sample_state_vector
 
 export ProjectedSystem, project_to_lowlevel, get_dθ, concatenate
+
+export random_ising
 
 end  # module OpenQuantumBase
