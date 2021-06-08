@@ -20,8 +20,7 @@ ulind(dρ, ρ, p, 5.0)
 
 # test for EᵨEnsemble
 u0 = EᵨEnsemble([0.5, 0.5], [PauliVec[3][1], PauliVec[3][2]])
-Random.seed!(1234)
-@test [sample_state_vector(u0) for i in 1:4] == [[0.0 + 0.0im, 1.0 + 0.0im], [0.0 + 0.0im, 1.0 + 0.0im], [0.0 + 0.0im, 1.0 + 0.0im], [1.0 + 0.0im, 0.0 + 0.0im]]
+@test all((x)->x∈[PauliVec[3][1], PauliVec[3][2]], [sample_state_vector(u0) for i in 1:4])
 
 Lz = Lindblad((s) -> 0.5, (s) -> σz)
 Lx = Lindblad((s) -> 0.2, (s) -> σx)
