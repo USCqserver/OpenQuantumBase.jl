@@ -8,9 +8,9 @@ Defines interpolating DenseHamiltonian object
 $(FIELDS)
 """
 struct InterpDenseHamiltonian{T} <: AbstractDenseHamiltonian{T}
-    """Interpolating object"""
+    "Interpolating object"
     interp_obj::Any
-    """Size"""
+    "Size"
     size::Any
 end
 
@@ -25,9 +25,9 @@ Defines interpolating SparseHamiltonian object
 $(FIELDS)
 """
 struct InterpSparseHamiltonian{T} <: AbstractSparseHamiltonian{T}
-    """Interpolating object"""
+    "Interpolating object"
     interp_obj::Any
-    """Size"""
+    "Size"
     size::Any
 end
 

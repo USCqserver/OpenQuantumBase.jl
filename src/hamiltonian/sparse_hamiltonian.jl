@@ -8,15 +8,15 @@ Defines a time dependent Hamiltonian object with sparse Matrices.
 $(FIELDS)
 """
 struct SparseHamiltonian{T<:Number} <: AbstractSparseHamiltonian{T}
-    " List of time dependent functions "
+    "List of time dependent functions"
     f::Any
-    " List of constant matrices "
+    "List of constant matrices"
     m::Vector{SparseMatrixCSC{T,Int}}
-    """Internal cache"""
+    "Internal cache"
     u_cache::SparseMatrixCSC{T,Int}
-    """Size"""
+    "Size"
     size::Tuple
-    """Eigen decomposition routine"""
+    "Eigen decomposition routine"
     EIGS::Any
 end
 
