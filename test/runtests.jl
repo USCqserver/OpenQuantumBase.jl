@@ -1,3 +1,4 @@
+#using Test: include
 using SafeTestsets
 
 @time begin
@@ -9,6 +10,9 @@ using SafeTestsets
     end
     @time @safetestset "Multi-qubits Hamiltonian Construction" begin
         include("utilities/multi_qubits_construction.jl")
+    end
+    @time @safetestset "Development tools" begin
+        include("dev_tools.jl")
     end
     @time @safetestset "Displays" begin
         include("utilities/display.jl")
