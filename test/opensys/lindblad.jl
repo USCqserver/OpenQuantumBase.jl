@@ -47,7 +47,4 @@ update_cache!(cache, Ł, p, 5.0)
 
 Random.seed!(1234)
 sample_res = [OpenQuantumBase.lind_jump(Ł, PauliVec[1][1], p, 0.5) for i in 1:4]
-@test sample_res == [[1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im],
-[0.0 + 0.0im 1.0 + 0.0im; 1.0 + 0.0im 0.0 + 0.0im],
-[1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im],
-[1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im]]
+@test all((x)->x∈[σz, σx], sample_res)
