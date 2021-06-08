@@ -8,7 +8,7 @@ A tag for inplace unitary function. `func(cache, t)` is the actual inplace updat
 $(FIELDS)
 """
 struct InplaceUnitary
-    """inplace update function"""
+    "inplace update function"
     func::Any
 end
 

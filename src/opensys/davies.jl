@@ -10,11 +10,11 @@ $(TYPEDEF)
 $(FIELDS)
 """
 struct DaviesGenerator <: AbstractLiouvillian
-    """System bath coupling operators"""
+    "System bath coupling operators"
     coupling::AbstractCouplings
-    """Spectrum density"""
+    "Spectrum density"
     γ::Any
-    """Lambshift spectral density"""
+    "Lambshift spectral density"
     S::Any
 end
 
@@ -83,13 +83,13 @@ Defines correlated Davies generator
 $(FIELDS)
 """
 struct CorrelatedDaviesGenerator <: AbstractLiouvillian
-    """System bath coupling operators"""
+    "System bath coupling operators"
     coupling::AbstractCouplings
-    """Spectrum density"""
+    "Spectrum density"
     γ::Any
-    """Lambshift spectral density"""
+    "Lambshift spectral density"
     S::Any
-    """Indices to iterate"""
+    "Indices to iterate"
     inds::Any
 end
 
@@ -136,13 +136,13 @@ Defines the one-sided AME Liouvillian operator.
 $(FIELDS)
 """
 struct OneSidedAMELiouvillian <: AbstractLiouvillian
-    """System bath coupling operators"""
+    "System bath coupling operators"
     coupling::AbstractCouplings
-    """Spectrum density"""
+    "Spectrum density"
     γ::Any
-    """Lambshift spectral density"""
+    "Lambshift spectral density"
     S::Any
-    """Indices to iterate"""
+    "Indices to iterate"
     inds::Any
 end
 

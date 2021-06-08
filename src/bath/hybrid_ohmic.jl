@@ -6,15 +6,15 @@ A hybrid noise model with both low and high frequency noise. The high frequency 
 $(FIELDS)
 """
 struct HybridOhmicBath <: AbstractBath
-    """MRT width (2π GHz)"""
+    "MRT width (2π GHz)"
     W::Float64
-    """low spectrum reorganization energy (2π GHz)"""
+    "low spectrum reorganization energy (2π GHz)"
     ϵl::Float64
-    """strength of high frequency Ohmic bath"""
+    "strength of high frequency Ohmic bath"
     η::Float64
-    """cutoff frequency"""
+    "cutoff frequency"
     ωc::Float64
-    """inverse temperature"""
+    "inverse temperature"
     β::Float64
 end
 

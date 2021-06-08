@@ -10,19 +10,19 @@ $(TYPEDEF)
 $(FIELDS)
 """
 struct CGLiouvillian <: AbstractLiouvillian
-    """CGME kernels"""
+    "CGME kernels"
     kernels::Any
-    """close system unitary"""
+    "close system unitary"
     unitary::Any
-    """absolute error tolerance for integration"""
+    "absolute error tolerance for integration"
     atol::Float64
-    """relative error tolerance for integration"""
+    "relative error tolerance for integration"
     rtol::Float64
-    """cache matrix for inplace unitary"""
+    "cache matrix for inplace unitary"
     Ut1::Union{Matrix,MMatrix}
-    """cache matrix for inplace unitary"""
+    "cache matrix for inplace unitary"
     Ut2::Union{Matrix,MMatrix}
-    """cache matrix for integration"""
+    "cache matrix for integration"
     Ut::Union{Matrix,MMatrix}
 end
 

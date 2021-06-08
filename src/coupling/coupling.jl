@@ -8,9 +8,9 @@ Defines constant system bath coupling operators.
 $(FIELDS)
 """
 struct ConstantCouplings <: AbstractCouplings
-    """1-D array for independent coupling operators"""
+    "1-D array for independent coupling operators"
     mats::Vector{AbstractMatrix}
-    """String representation for the coupling (for display purpose)"""
+    "String representation for the coupling (for display purpose)"
     str_rep::Union{Vector{String},Nothing}
 end
 
@@ -114,9 +114,9 @@ julia> TimeDependentCoupling([(s)->s], [σz], unit=:ħ)
 ```
 """
 struct TimeDependentCoupling
-    """1-D array of time dependent functions"""
+    "1-D array of time dependent functions"
     funcs::Any
-    """1-D array of constant matrics"""
+    "1-D array of constant matrics"
     mats::Any
 
     function TimeDependentCoupling(funcs, mats; unit = :h)
@@ -140,7 +140,7 @@ Defines an 1-D array of time dependent system bath coupling operators.
 $(FIELDS)
 """
 struct TimeDependentCouplings <: AbstractTimeDependentCouplings
-    """A tuple of single `TimeDependentCoupling` operators"""
+    "A tuple of single `TimeDependentCoupling` operators"
     coupling::Tuple
 
     function TimeDependentCouplings(args...)
@@ -162,9 +162,9 @@ $(TYPEDEF)
 $(FIELDS)
 """
 struct CustomCouplings <: AbstractTimeDependentCouplings
-    """A 1-D array of callable objects that returns coupling matrices"""
+    "A 1-D array of callable objects that returns coupling matrices"
     coupling::Any
-    """Size of the coupling operator"""
+    "Size of the coupling operator"
     size::Any
 end
 

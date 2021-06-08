@@ -8,19 +8,19 @@ Object for a projected low level system. The projection is only valid for real H
 $(FIELDS)
 """
 struct ProjectedSystem
-    """Time grid (unitless) for projection"""
+    "Time grid (unitless) for projection"
     s::AbstractArray{Float64,1}
-    """Energy values for different levels"""
+    "Energy values for different levels"
     ev::Array{Vector{Float64},1}
-    """Geometric terms"""
+    "Geometric terms"
     dθ::Array{Vector{Float64},1}
-    """Projected system bath interaction operators"""
+    "Projected system bath interaction operators"
     op::Array{Array{Matrix{Float64},1},1}
-    """Direction for the calculation"""
+    "Direction for the calculation"
     direct::Symbol
-    """Number of leves to keep"""
+    "Number of leves to keep"
     lvl::Int
-    """Energy eigenstates at the final time"""
+    "Energy eigenstates at the final time"
     ref::Array{Float64,2}
 end
 

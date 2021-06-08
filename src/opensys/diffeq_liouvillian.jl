@@ -8,15 +8,15 @@ Defines a total Liouvillian to feed to the solver using the `DiffEqOperator` int
 $(FIELDS)
 """
 struct DiffEqLiouvillian{diagonalization,adiabatic_frame}
-    """Hamiltonian"""
+    "Hamiltonian"
     H::AbstractHamiltonian
-    """Open system in eigenbasis"""
+    "Open system in eigenbasis"
     opensys_eig::Vector{AbstractLiouvillian}
-    """Open system in normal basis"""
+    "Open system in normal basis"
     opensys::Vector{AbstractLiouvillian}
-    """Levels to truncate"""
+    "Levels to truncate"
     lvl::Int
-    """Internal cache"""
+    "Internal cache"
     u_cache::Any
 end
 

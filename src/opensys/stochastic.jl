@@ -8,17 +8,17 @@ Defines a fluctuator ensemble controller
 $(FIELDS)
 """
 mutable struct FluctuatorLiouvillian <: AbstractLiouvillian
-    """system-bath coupling operator"""
+    "system-bath coupling operator"
     coupling::Any
-    """waitting time distribution for every fluctuators"""
+    "waitting time distribution for every fluctuators"
     dist::Any
-    """cache for each fluctuator value"""
+    "cache for each fluctuator value"
     b0::Any
-    """index of the fluctuator to be flipped next"""
+    "index of the fluctuator to be flipped next"
     next_idx::Any
-    """time interval for next flip event"""
+    "time interval for next flip event"
     next_τ::Any
-    """noise value"""
+    "noise value"
     n::Any
 end
 

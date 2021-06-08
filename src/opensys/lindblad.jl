@@ -70,11 +70,11 @@ $(TYPEDEF)
 The Liouvillian operator in Lindblad form.
 """
 struct LindbladLiouvillian <: AbstractLiouvillian
-    """1-d array of Lindblad rates"""
+    "1-d array of Lindblad rates"
     γ::Vector
-    """1-d array of Lindblad operataors"""
+    "1-d array of Lindblad operataors"
     L::Vector
-    """size"""
+    "size"
     size::Tuple
 end
 

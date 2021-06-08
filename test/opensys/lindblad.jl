@@ -20,8 +20,7 @@ ulind(dρ, ρ, p, 5.0)
 
 # test for EᵨEnsemble
 u0 = EᵨEnsemble([0.5, 0.5], [PauliVec[3][1], PauliVec[3][2]])
-Random.seed!(1234)
-@test [sample_state_vector(u0) for i in 1:4] == [[0.0 + 0.0im, 1.0 + 0.0im], [0.0 + 0.0im, 1.0 + 0.0im], [0.0 + 0.0im, 1.0 + 0.0im], [1.0 + 0.0im, 0.0 + 0.0im]]
+@test all((x)->x∈[PauliVec[3][1], PauliVec[3][2]], [sample_state_vector(u0) for i in 1:4])
 
 Lz = Lindblad((s) -> 0.5, (s) -> σz)
 Lx = Lindblad((s) -> 0.2, (s) -> σx)
@@ -48,7 +47,4 @@ update_cache!(cache, Ł, p, 5.0)
 
 Random.seed!(1234)
 sample_res = [OpenQuantumBase.lind_jump(Ł, PauliVec[1][1], p, 0.5) for i in 1:4]
-@test sample_res == [[1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im],
-[0.0 + 0.0im 1.0 + 0.0im; 1.0 + 0.0im 0.0 + 0.0im],
-[1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im],
-[1.0 + 0.0im 0.0 + 0.0im; 0.0 + 0.0im -1.0 + 0.0im]]
+@test all((x)->x∈[σz, σx], sample_res)
