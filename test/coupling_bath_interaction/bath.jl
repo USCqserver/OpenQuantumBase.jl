@@ -30,6 +30,8 @@ bath = CustomBath(correlation=cfun, spectrum=sfun)
 @test correlation(1, bath) ≈ exp(-1)
 @test correlation(2, 1, bath) == correlation(1, bath)
 @test spectrum(0, bath) ≈ 2
+@test γ(0, bath) ≈ 2
+@test S(0, bath) == 0
 
 # test suite for ensemble fluctuators
 rtn = OpenQuantumBase.SymetricRTN(2.0, 2.0)
@@ -55,3 +57,10 @@ cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w) -> 0 γfun; γfun (w) -> 
 @test γm[2, 2](0.0) == 0
 @test γm[1, 2](0.5) == 1.0
 @test γm[2, 1](0.5) == 1.0
+
+@test_throws ArgumentError OpenQuantumBase.build_correlation(cbath)
+lambfun_1 = OpenQuantumBase.build_lambshift([0.0], false, cbath, nothing)
+@test lambfun_1[1,1](0.0) == 0
+@test lambfun_1[2,2](0.1) == 0
+@test lambfun_1[1,2](0.5) == 0
+@test lambfun_1[2,2](1.0) == 0

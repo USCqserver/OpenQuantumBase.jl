@@ -49,7 +49,7 @@ mutable struct CorrelatedBath <: AbstractBath
 end
 
 CorrelatedBath(inds; correlation=nothing, spectrum=nothing) = CorrelatedBath(correlation, spectrum, inds)
-build_correlation(bath::CorrelatedBath) = bath.cfun == nothing ? error("Correlation function is not specified.") : bath.cfun
+build_correlation(bath::CorrelatedBath) = bath.cfun == nothing ? throw(ArgumentError("Correlation function is not specified.")) : bath.cfun
 build_spectrum(bath::CorrelatedBath) = bath.γ == nothing ? error("Spectrum is not specified.") : bath.γ
 build_inds(bath::CorrelatedBath) = bath.inds
 
