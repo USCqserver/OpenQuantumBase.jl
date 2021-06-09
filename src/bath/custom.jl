@@ -61,7 +61,7 @@ function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::Correlat
             if isempty(ω_range)
                 S_loc = Array{Function,2}(undef, l)
                 for i in eachindex(gamma)
-                    S_loc[i] = (w) -> lamb(w, gamma[i])
+                    S_loc[i] = (w) -> lambshift(w, gamma[i])
                 end
             else
                 S_loc = Array{Any,2}(undef, l)

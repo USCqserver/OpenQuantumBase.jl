@@ -50,13 +50,13 @@ bath = HybridOhmic(W, η, fc, T)
 
 # test suite for correlated bath
 coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)
-γfun(w) = w >= 0 ? 1.0 : exp(-0.5)
+γfun= (w) -> w >= 0 ? exp(-w) : exp(0.8w)
 cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w) -> 0 γfun; γfun (w) -> 0])
 γm = OpenQuantumBase.build_spectrum(cbath)
 @test γm[1, 1](0.0) == 0
 @test γm[2, 2](0.0) == 0
-@test γm[1, 2](0.5) == 1.0
-@test γm[2, 1](0.5) == 1.0
+@test γm[1, 2](0.5) == exp(-0.5)
+@test γm[2, 1](-0.5) == exp(-0.5*0.8)
 
 @test_throws ArgumentError OpenQuantumBase.build_correlation(cbath)
 lambfun_1 = OpenQuantumBase.build_lambshift([0.0], false, cbath, nothing)
@@ -64,3 +64,10 @@ lambfun_1 = OpenQuantumBase.build_lambshift([0.0], false, cbath, nothing)
 @test lambfun_1[2,2](0.1) == 0
 @test lambfun_1[1,2](0.5) == 0
 @test lambfun_1[2,2](1.0) == 0
+
+lambfun_2 = OpenQuantumBase.build_lambshift([], true, cbath, nothing)
+lambfun_3 = OpenQuantumBase.build_lambshift(range(-5,5,length=1000), true, cbath, nothing)
+@test isapprox(lambfun_2[1,2](0.0), 0.03551, atol=1e-4)
+@test isapprox(lambfun_3[1,2](0.0), 0.03551, atol=1e-4)
+@test lambfun_2[1,1](0) == 0
+@test lambfun_3[2,2](0) == 0
