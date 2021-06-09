@@ -49,7 +49,7 @@ mutable struct CorrelatedBath <: AbstractBath
 end
 
 CorrelatedBath(inds; correlation=nothing, spectrum=nothing) = CorrelatedBath(correlation, spectrum, inds)
-build_correlation(bath::CorrelatedBath) = bath.cfun == nothing ? error("Correlation function is not specified.") : bath.cfun
+build_correlation(bath::CorrelatedBath) = bath.cfun == nothing ? throw(ArgumentError("Correlation function is not specified.")) : bath.cfun
 build_spectrum(bath::CorrelatedBath) = bath.γ == nothing ? error("Spectrum is not specified.") : bath.γ
 build_inds(bath::CorrelatedBath) = bath.inds
 
@@ -61,7 +61,7 @@ function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::Correlat
             if isempty(ω_range)
                 S_loc = Array{Function,2}(undef, l)
                 for i in eachindex(gamma)
-                    S_loc[i] = (w) -> lamb(w, gamma[i])
+                    S_loc[i] = (w) -> lambshift(w, gamma[i])
                 end
             else
                 S_loc = Array{Any,2}(undef, l)
