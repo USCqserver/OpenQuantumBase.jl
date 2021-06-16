@@ -20,7 +20,7 @@ $(SIGNATURES)
 
 Calculate the Lamb shift of spectrum `γ`. `atol` is the absolute tolerance for Cauchy principal value integral.
 """
-function lambshift(w, γ; atol = 1e-7)
+function lambshift_cpvagk(w, γ; atol = 1e-7)
     g(x) = γ(x) / (x - w)
     cpv, cperr = cpvagk(γ, w, w - 1.0, w + 1.0)
     negv, negerr = quadgk(g, -Inf, w - 1.0)

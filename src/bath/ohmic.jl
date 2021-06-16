@@ -32,20 +32,13 @@ $(SIGNATURES)
 
 Calculate spectral density ``γ(ω)`` of `bath`.
 """
-function γ(ω, bath::OhmicBath)
+function spectrum(ω, bath::OhmicBath)
     if isapprox(ω, 0.0, atol=1e-9)
         return 2 * pi * bath.η / bath.β
     else
         return 2 * pi * bath.η * ω * exp(-abs(ω) / bath.ωc) / (1 - exp(-bath.β * ω))
     end
 end
-
-"""
-$(SIGNATURES)
-
-Calculate spectral density ``γ(ω)`` of `bath`.
-"""
-spectrum(ω, bath::OhmicBath) = γ(ω, bath)
 
 """
 $(SIGNATURES)

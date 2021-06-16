@@ -12,7 +12,9 @@ cfun_test = OpenQuantumBase.build_correlation(bath)
 @test γ(0.0, bath) == 2 * pi * η / β
 @test γfun_test(0.0) == 2 * pi * η / β
 @test spectrum(0.0, bath) == 2 * pi * η / β
-@test S(0.0, bath) ≈ -0.0025132734115775254 atol = 1e-6
+@test S(0.0, bath) ≈ OpenQuantumBase.lambshift_cpvagk(0.0, (x)->γ(x, bath)) atol = 1e-4 rtol = 1e-4
+# the following test is kept as a consistency check
+@test OpenQuantumBase.lambshift_cpvagk(0.0, (x)->γ(x, bath)) ≈ -0.0025132734115775254 rtol = 1e-4
 
 η = 1e-4;fc = 4;T = 16
 bath = Ohmic(η, fc, T)
@@ -45,8 +47,10 @@ ensemble_rtn = EnsembleFluctuator([1.0, 2.0], [2.0, 1.0])
 # test suite for HybridOhmic bath
 η = 0.01; W = 5; fc = 4; T = 12.5
 bath = HybridOhmic(W, η, fc, T)
-@test S(0.0, bath) ≈ -0.2872777516270734
 @test spectrum(0.0, bath) ≈ 1.7045312175373621
+@test S(0.0, bath) ≈ OpenQuantumBase.lambshift_cpvagk(0.0, (x)->γ(x, bath)) atol = 1e-4 rtol = 1e-4
+# the following test is kept as a consistency check
+@test OpenQuantumBase.lambshift_cpvagk(0.0, (x)->γ(x, bath)) ≈ -0.2872777516270734
 
 # test suite for correlated bath
 coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)

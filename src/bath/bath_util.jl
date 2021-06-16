@@ -16,6 +16,13 @@ Calculate the Lamb shift of `bath`. `atol` is the absolute tolerance for Cauchy 
 """
 S(w, bath::AbstractBath; atol=1e-7) = lambshift(w, (ω) -> spectrum(ω, bath), atol=atol)
 
+"""
+$(SIGNATURES)
+
+Calculate spectral density ``γ(ω)`` of `bath`.
+"""
+γ(ω, bath::AbstractBath) = spectrum(ω, bath)
+
 function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, lambshift_S)
     if turn_on == true
         if lambshift_S == nothing

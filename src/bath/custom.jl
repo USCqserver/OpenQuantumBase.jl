@@ -16,9 +16,6 @@ CustomBath(; correlation=nothing, spectrum=nothing) =
     CustomBath(correlation, spectrum)
 correlation(τ, bath::CustomBath) = bath.cfun(τ)
 spectrum(ω, bath::CustomBath) = bath.γ(ω)
-γ(ω, bath::CustomBath) = bath.γ(ω)
-S(w, bath::CustomBath; atol=1e-7) =
-    lambshift(w, (ω) -> spectrum(ω, bath), atol=atol)
 
 function build_correlation(bath::CustomBath)
     bath.cfun == nothing && error("Correlation function is not specified.")
