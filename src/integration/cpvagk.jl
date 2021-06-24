@@ -1,3 +1,4 @@
+# The content in this file is for test purpose only
 """
     cpvagk(f, t, a, b, tol=256*eps())
 
@@ -93,17 +94,4 @@ function lambshift_cpvagk(w, γ; atol = 1e-7)
         @warn "Absolute error of integration is larger than the tolerance."
     end
     -v / 2 / pi
-end
-# The above version of lamb shift calculation is used for test only
-
-"""
-$(SIGNATURES)
-
-Calculate the Lamb shift of spectrum `γ` at angular frequency `ω`. All keyword arguments of `quadgk` function is supported.
-"""
-function lambshift(ω, γ; kwargs...)
-    integrand = (x)->(γ(ω+x) - γ(ω-x))/x
-    integral, = quadgk(integrand, 0, Inf; kwargs...)
-    # TODO: do something with the error information
-    -integral / 2 / π
 end
