@@ -18,17 +18,11 @@ isinplace(::InplaceUnitary) = true
 """
 $(SIGNATURES)
 
-Calculate the Lamb shift of spectrum `γ`. `atol` is the absolute tolerance for Cauchy principal value integral.
+Calculate the Lamb shift of spectrum `γ` at angular frequency `ω`. All keyword arguments of `quadgk` function is supported.
 """
-function lambshift_cpvagk(w, γ; atol = 1e-7)
-    g(x) = γ(x) / (x - w)
-    cpv, cperr = cpvagk(γ, w, w - 1.0, w + 1.0)
-    negv, negerr = quadgk(g, -Inf, w - 1.0)
-    posv, poserr = quadgk(g, w + 1.0, Inf)
-    v = cpv + negv + posv
-    err = cperr + negerr + poserr
-    if (err > atol) || (isnan(err))
-        @warn "Absolute error of integration is larger than the tolerance."
-    end
-    -v / 2 / pi
+function lambshift(ω, γ; kwargs...)
+    integrand = (x)->(γ(ω+x) - γ(ω-x))/x
+    integral, = quadgk(integrand, 0, Inf; kwargs...)
+    # TODO: do something with the error information
+    -integral / 2 / π
 end
