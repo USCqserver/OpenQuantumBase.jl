@@ -62,7 +62,7 @@ function single_clause(ops::Vector{String}, q_ind, weight, num_qubit; sp = false
     res = weight
     for i = 1:num_qubit
         idx = findfirst((x) -> x == i, q_ind)
-        if idx != nothing
+        if !isnothing(idx)
             op2 = eval(Meta.parse(σ_tag * lowercase(ops[idx])))
             res = res ⊗ op2
         else
@@ -96,7 +96,7 @@ function single_clause(ops::Vector{T}, q_ind, weight, num_qubit; sp = false) whe
     res = weight
     for i = 1:num_qubit
         idx = findfirst((x) -> x == i, q_ind)
-        if idx != nothing
+        if !isnothing(idx)
             res = res ⊗ ops[idx]
         else
             res = res ⊗ i_tag

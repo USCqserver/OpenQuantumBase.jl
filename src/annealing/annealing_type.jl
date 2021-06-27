@@ -26,8 +26,8 @@ function Annealing(
     interactions = nothing,
     annealing_parameter = (tf, t) -> t / tf,
 ) where {T}
-    if coupling != nothing && bath != nothing
-        if interactions != nothing
+    if !isnothing(coupling) && !isnothing(bath)
+        if !isnothing(interactions)
             throw(ArgumentError("Both interactions and coupling/bath are specified. Please merge coupling/bath into interactions."))
         end
         interactions = InteractionSet(Interaction(coupling, bath))
