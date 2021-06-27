@@ -17,22 +17,18 @@ import Interpolations:
 """
 $(SIGNATURES)
 
-Construct interpolation of N-D array `y` along its last dimension on grid `x`. `method` specifies the interpolation algorithm, which can be either "BSpline" or "Gridded". If `x` is an `AbstractRange`, the default method is "BSpline", otherwise the default `method` is "Gridded". `order` is the interpolation order. If `x` is `AbstractRange`, the default order is 2, otherwise the default order is 1. `extrapolation` specifies the extrapolation methods.
+Construct interpolation of N-D array `y` along its last dimension on grid `x`. `method` specifies the interpolation algorithm, which can be either "BSpline" or "Gridded". If `x` is an `AbstractRange`, the default method is "BSpline", otherwise the default `method` is "Gridded". `order` is the interpolation order. If `x` is `AbstractRange`, the default order is 2, otherwise the default order is 1. `extrapolation` specifies the extrapolation methods, which defines what happens if you try to index into the interpolation object with coordinates outside of its bounds in any dimension. The implemented extrapolation methods are "line", "flat", or you can pass a constant to be used as a "fill" value returned for any out-of-bounds evaluation. The default value is 0.
 """
 function construct_interpolations(
     x::AbstractRange{S},
     y::AbstractArray{T,N};
     method="BSpline",
     order=2,
-    extrapolation="line",
+    extrapolation=0,
 ) where {S <: Real,T <: Number,N}
     method = interp_tuple(N, method, order)
     itp = interpolate(y, method)
-    if lowercase(extrapolation) == "line"
-        itp = extrapolate(itp, Line())
-    elseif lowercase(extrapolation) == "flat"
-        itp = extrapolate(itp, Flat())
-    end
+    itp = extrapolate(itp, extrap_method(extrapolation))
     index = interp_index(x, size(y))
     scale(itp, index...)
 end
@@ -43,7 +39,7 @@ function construct_interpolations(
     y::AbstractArray{T,N};
     method="Gridded",
     order=1,
-    extrapolation="line",
+    extrapolation=0,
 ) where {S <: Real,T <: Number,N}
     if lowercase(method) == "bspline"
         Δ = diff(x)
@@ -64,12 +60,7 @@ function construct_interpolations(
     method = interp_tuple(N, method, order)
     index = interp_index(x, size(y))
     itp = interpolate(index, y, method)
-    if lowercase(extrapolation) == "line"
-        itp = extrapolate(itp, Line())
-    elseif lowercase(extrapolation) == "flat"
-        itp = extrapolate(itp, Flat())
-    end
-    itp
+    extrapolate(itp, extrap_method(extrapolation))
 end
 
 
@@ -78,7 +69,7 @@ function construct_interpolations(
     y::AbstractArray{W,1};
     method="BSpline",
     order=2,
-    extrapolation="line",
+    extrapolation=0,
 ) where {S <: Real,W <: AbstractArray}
     y = cat(y...; dims=ndims(y[1]) + 1)
     construct_interpolations(
@@ -100,15 +91,10 @@ function construct_interpolations(
     y::AbstractArray{W,1};
     method="Gridded",
     order=1,
-    extrapolation="line",
+    extrapolation=0,
 ) where {S <: Real,W <: AbstractArray}
     itp = interpolate((x,), y, interp_method(method, order))
-    if lowercase(extrapolation) == "line"
-        itp = extrapolate(itp, Line())
-    elseif lowercase(extrapolation) == "flat"
-        itp = extrapolate(itp, Flat())
-    end
-    itp
+    extrapolate(itp, extrap_method(extrapolation))
 end
 
 
@@ -161,6 +147,18 @@ function interp_method(method, order::Integer; boundary=Line(OnGrid()))
     end
     res
 end
+
+function extrap_method(method::String)
+    if lowercase(method) == "line"
+        Line()
+    elseif lowercase(method) == "flat"
+        Flat()
+    else
+        throw(ArgumentError("Extrapolation method: $method is not supported."))
+    end
+end
+
+extrap_method(method::Number) = method
 
 
 """

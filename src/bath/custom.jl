@@ -18,7 +18,7 @@ correlation(τ, bath::CustomBath) = bath.cfun(τ)
 spectrum(ω, bath::CustomBath) = bath.γ(ω)
 
 function build_correlation(bath::CustomBath)
-    bath.cfun == nothing && error("Correlation function is not specified.")
+    isnothing(bath.cfun) && error("Correlation function is not specified.")
     if numargs(bath.cfun) == 1
         SingleFunctionMatrix((t₁, t₂) -> bath.cfun(t₁ - t₂))
     else
@@ -27,7 +27,7 @@ function build_correlation(bath::CustomBath)
 end
 
 build_spectrum(bath::CustomBath) =
-    bath.γ == nothing ? error("Noise spectrum is not specified.") : bath.γ
+    isnothing(bath.γ) ? error("Noise spectrum is not specified.") : bath.γ
 
 """
 $(TYPEDEF)
@@ -46,15 +46,15 @@ mutable struct CorrelatedBath <: AbstractBath
 end
 
 CorrelatedBath(inds; correlation=nothing, spectrum=nothing) = CorrelatedBath(correlation, spectrum, inds)
-build_correlation(bath::CorrelatedBath) = bath.cfun == nothing ? throw(ArgumentError("Correlation function is not specified.")) : bath.cfun
-build_spectrum(bath::CorrelatedBath) = bath.γ == nothing ? error("Spectrum is not specified.") : bath.γ
+build_correlation(bath::CorrelatedBath) = isnothing(bath.cfun) ? throw(ArgumentError("Correlation function is not specified.")) : bath.cfun
+build_spectrum(bath::CorrelatedBath) = isnothing(bath.γ) ? error("Spectrum is not specified.") : bath.γ
 build_inds(bath::CorrelatedBath) = bath.inds
 
 function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::CorrelatedBath, lambshift_S)
     gamma = build_spectrum(bath)
     l = size(gamma)
     if turn_on == true
-        if lambshift_S == nothing
+        if isnothing(lambshift_S)
             if isempty(ω_range)
                 S_loc = Array{Function,2}(undef, l)
                 for i in eachindex(gamma)

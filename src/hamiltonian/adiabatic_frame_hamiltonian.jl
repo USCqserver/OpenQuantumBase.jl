@@ -109,7 +109,7 @@ function AdiabaticFrameHamiltonian(ωfuns, geofuns)
     l = length(D)
     T = eltype(D)
 
-    if geofuns == nothing || isempty(geofuns)
+    if isnothing(geofuns) || isempty(geofuns)
         G = ZeroGeometricOperator{T}(l)
     else
         G = GeometricOperator(geofuns)

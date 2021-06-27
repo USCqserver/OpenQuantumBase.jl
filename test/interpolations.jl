@@ -15,6 +15,9 @@ res_real = inter_real.(test_x)
 
 @test res_complex ≈ exp_complex
 @test res_real ≈ exp_real
+@test isa(inter_complex(-1), Complex)
+@test inter_complex(-1) ≈ 0
+@test inter_real(11) ≈ 0
 @test gridded_2_range_inter.(test_x) ≈ exp_complex
 @test gradient(inter_real, 2.3) ≈ -1
 @test gradient(inter_real, [0.13, 0.21]) ≈ [-1, -1]
@@ -23,6 +26,7 @@ res_real = inter_real.(test_x)
 y_array = transpose(hcat(y1, y2))
 y_array_itp = construct_interpolations(x, y_array, order=1)
 @test exp_complex ≈ y_array_itp(1, test_x)
+@test y_array_itp([1, 2], -1) ≈ [0, 0]
 
 # Test for extrapolation
 x = range(1.0,stop=10.0)

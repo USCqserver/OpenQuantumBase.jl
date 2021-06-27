@@ -25,7 +25,7 @@ Calculate spectral density ``γ(ω)`` of `bath`.
 
 function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, lambshift_S)
     if turn_on == true
-        if lambshift_S == nothing
+        if isnothing(lambshift_S)
             if isempty(ω_range)
                 S_loc = (ω) -> S(ω, bath)
             else
