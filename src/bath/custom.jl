@@ -50,29 +50,43 @@ build_correlation(bath::CorrelatedBath) = isnothing(bath.cfun) ? throw(ArgumentE
 build_spectrum(bath::CorrelatedBath) = isnothing(bath.γ) ? error("Spectrum is not specified.") : bath.γ
 build_inds(bath::CorrelatedBath) = bath.inds
 
-function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::CorrelatedBath, lambshift_S)
+function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::CorrelatedBath, ::Nothing)
     gamma = build_spectrum(bath)
     l = size(gamma)
     if turn_on == true
-        if isnothing(lambshift_S)
-            if isempty(ω_range)
-                S_loc = Array{Function,2}(undef, l)
-                for i in eachindex(gamma)
-                    S_loc[i] = (w) -> lambshift(w, gamma[i])
-                end
-            else
-                S_loc = Array{Any,2}(undef, l)
-                for i in eachindex(gamma)
-                    s_list = [lambshift(ω, gamma[i]) for ω in ω_range]
-                    S_loc[i] = construct_interpolations(ω_range, s_list)
-                end
+        if isempty(ω_range)
+            S_loc = Array{Function,2}(undef, l)
+            for i in eachindex(gamma)
+                S_loc[i] = (w) -> lambshift(w, gamma[i])
             end
         else
-            S_loc = lambshift_S
+            S_loc = Array{Any,2}(undef, l)
+            for i in eachindex(gamma)
+                s_list = [lambshift(ω, gamma[i]) for ω in ω_range]
+                S_loc[i] = construct_interpolations(ω_range, s_list)
+            end
         end
     else
         S_loc = Array{Function,2}(undef, size(gamma))
         S_loc .= (ω) -> 0.0
+    end
+    S_loc
+end
+
+function build_lambshift(ω_range::AbstractVector, ::Bool, bath::CorrelatedBath, lambshift_S::Dict)
+    gamma = build_spectrum(bath)
+    l = size(gamma)
+    if isempty(ω_range)
+        S_loc = Array{Function,2}(undef, l)
+        for i in eachindex(gamma)
+            S_loc[i] = (w) -> lambshift(w, gamma[i]; lambshift_S...)
+        end
+    else
+        S_loc = Array{Any,2}(undef, l)
+        for i in eachindex(gamma)
+            s_list = [lambshift(ω, gamma[i]; lambshift_S...) for ω in ω_range]
+            S_loc[i] = construct_interpolations(ω_range, s_list)
+        end
     end
     S_loc
 end
