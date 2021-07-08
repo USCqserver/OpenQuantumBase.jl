@@ -292,3 +292,51 @@ function q_translate_state(h::String; normal = false)
         res
     end
 end
+
+"""
+$(SIGNATURES)
+
+Return the creation operator truncated at `num_levels`.
+
+# Examples
+```julia-repl
+julia> creation_operator(3)
+3×3 LinearAlgebra.Bidiagonal{Float64, Vector{Float64}}:
+ 0.0   ⋅        ⋅ 
+ 1.0  0.0       ⋅
+  ⋅   1.41421  0.0
+```
+"""
+creation_operator(num_levels::Int) = Bidiagonal(zeros(num_levels), sqrt.(1:num_levels-1), :L)
+
+"""
+$(SIGNATURES)
+
+Return the annihilation operator truncated at `num_levels`.
+
+# Examples
+```julia-repl
+julia> annihilation_operator(3)
+3×3 LinearAlgebra.Bidiagonal{Float64, Vector{Float64}}:
+ 0.0  1.0   ⋅
+  ⋅   0.0  1.41421
+  ⋅    ⋅   0.0
+```
+"""
+annihilation_operator(num_levels::Int) = Bidiagonal(zeros(num_levels), sqrt.(1:num_levels-1), :U);
+
+"""
+$(SIGNATURES)
+
+Return the number operator truncated at `num_levels`.
+
+# Examples
+```julia-repl
+julia> number_operator(3)
+3×3 LinearAlgebra.Diagonal{Int64, UnitRange{Int64}}:
+ 0  ⋅  ⋅
+ ⋅  1  ⋅
+ ⋅  ⋅  2
+```
+"""
+number_operator(num_levels::Int) = Diagonal(0:num_levels-1)
