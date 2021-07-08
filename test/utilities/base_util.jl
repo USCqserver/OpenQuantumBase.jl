@@ -12,3 +12,6 @@ using OpenQuantumBase, Test
 @test bloch_to_state(π/2, π/2) ≈ PauliVec[2][1]
 @test_throws ArgumentError bloch_to_state(2π, 0)
 @test_throws ArgumentError bloch_to_state(π, 3π)
+
+@test creation_operator(3) ≈ [0 0 0; 1 0 0; 0 sqrt(2) 0]
+@test annihilation_operator(3) ≈ [0 1 0; 0 0 sqrt(2); 0 0 0]
