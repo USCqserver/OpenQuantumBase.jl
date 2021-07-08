@@ -15,3 +15,4 @@ using OpenQuantumBase, Test
 
 @test creation_operator(3) ≈ [0 0 0; 1 0 0; 0 sqrt(2) 0]
 @test annihilation_operator(3) ≈ [0 1 0; 0 0 sqrt(2); 0 0 0]
+@test number_operator(3) ≈ [0 0 0; 0 1 0; 0 0 2]

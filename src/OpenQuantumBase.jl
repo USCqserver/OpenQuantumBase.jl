@@ -110,7 +110,7 @@ export eigen_decomp, EIGEN_DEFAULT
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature
 export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy, σ₊, σ₋,
-       bloch_to_state, creation_operator, annihilation_operator
+       bloch_to_state, creation_operator, annihilation_operator, number_operator
 
 export q_translate, standard_driver, local_field_term, two_local_term,
        single_clause, q_translate_state, collective_operator, hamming_weight_operator
