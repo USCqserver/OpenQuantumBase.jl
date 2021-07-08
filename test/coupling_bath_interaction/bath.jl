@@ -71,7 +71,11 @@ lambfun_1 = OpenQuantumBase.build_lambshift([0.0], false, cbath, nothing)
 
 lambfun_2 = OpenQuantumBase.build_lambshift([], true, cbath, nothing)
 lambfun_3 = OpenQuantumBase.build_lambshift(range(-5,5,length=1000), true, cbath, nothing)
+lambfun_4 = OpenQuantumBase.build_lambshift([], true, cbath, Dict(:order=>1))
+lambfun_5 = OpenQuantumBase.build_lambshift([0.0, 0.01], true, cbath, Dict(:order=>1))
 @test isapprox(lambfun_2[1,2](0.0), 0.03551, atol=1e-4)
 @test isapprox(lambfun_3[1,2](0.0), 0.03551, atol=1e-4)
 @test lambfun_2[1,1](0) == 0
 @test lambfun_3[2,2](0) == 0
+@test lambfun_4[1,2](0) ≈ 0.08681 atol=1e-4
+@test lambfun_5[2, 1](0.01) ≈ 0.12268 atol=1e-4
