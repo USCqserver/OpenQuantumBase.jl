@@ -12,9 +12,9 @@ build_spectrum(bath::AbstractBath) = (ω) -> spectrum(ω, bath)
 """
 $(SIGNATURES)
 
-Calculate the Lamb shift of `bath`. `atol` is the absolute tolerance for Cauchy principal value integral.
+Calculate the Lamb shift of `bath`. All the keyword arguments of `quadgk` function is supported.
 """
-S(w, bath::AbstractBath; atol=1e-7) = lambshift(w, (ω) -> spectrum(ω, bath), atol=atol)
+S(w, bath::AbstractBath; kwargs...) = lambshift(w, (ω) -> spectrum(ω, bath); kwargs...)
 
 """
 $(SIGNATURES)
@@ -23,23 +23,30 @@ Calculate spectral density ``γ(ω)`` of `bath`.
 """
 γ(ω, bath::AbstractBath) = spectrum(ω, bath)
 
-function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, lambshift_S)
+function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, ::Nothing)
     if turn_on == true
-        if isnothing(lambshift_S)
-            if isempty(ω_range)
-                S_loc = (ω) -> S(ω, bath)
-            else
-                s_list = [S(ω, bath) for ω in ω_range]
-                S_loc = construct_interpolations(ω_range, s_list)
-            end
+        if isempty(ω_range)
+            S_loc = (ω) -> S(ω, bath)
         else
-            S_loc = lambshift_S
+            s_list = [S(ω, bath) for ω in ω_range]
+            S_loc = construct_interpolations(ω_range, s_list)
         end
     else
         S_loc = (ω) -> 0.0
     end
     S_loc
 end
+
+function build_lambshift(ω_range::AbstractVector, ::Bool, bath::AbstractBath, lambshift_S::Dict)
+    if isempty(ω_range)
+        S_loc = (ω) -> S(ω, bath)
+    else
+        s_list = [S(ω, bath; lambshift_S...) for ω in ω_range]
+        S_loc = construct_interpolations(ω_range, s_list)
+    end
+end
+
+build_lambshift(::AbstractVector, ::Bool, ::AbstractBath, lambshift_S) = lambshift_S
 
 """
 $(SIGNATURES)

@@ -48,7 +48,11 @@ function (L::ULELiouvillian)(du, u, p, t)
                 L.unitary(L.Uτ, x)
                 L.Ut .= L.Ut * L.Uτ'
                 mul!(L.Uτ, coupling[j](s), L.Ut')
-                mul!(cache, L.Ut, L.Uτ, cfun[i, j](t, x), 0)
+                # The 5 arguments mul! will to produce NaN when it
+                # should not. May switch back to it when this is fixed.
+                # mul!(cache, L.Ut, L.Uτ, cfun[i, j](t, x), 0)
+                mul!(cache, L.Ut, L.Uτ)
+                lmul!(cfun[i, j](t, x), cache)
             end
             quadgk!(
                 integrand,
