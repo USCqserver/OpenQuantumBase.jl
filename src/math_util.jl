@@ -180,7 +180,7 @@ end
 """
 $(SIGNATURES)
 
-Calculate the partial trace of the density matrix `ρ`. `qubit_2_keep` is an array of qubit indices to keep.
+Calculate the partial trace of the density matrix `ρ`, assuming all the subsystems are qubits. `qubit_2_keep` denotes the indices whose corresponding qubits are not traced out.
 
 # Examples
 ```julia-repl
@@ -191,24 +191,37 @@ julia> partial_trace(ρ1⊗ρ2, [1])
  0.2  0.6
 ```
 """
-function partial_trace(ρ::Matrix, qubit_2_keep)
+function partial_trace(ρ::Matrix, qubit_2_keep::AbstractVector{Int})
     num = Int(log2(size(ρ, 1)))
-    mat = reshape(ρ, repeat([2, 2], num)...)
-    axis_2_sum =
-        [(i, num + i) for i in 1:num if !(i in (num .- qubit_2_keep .+ 1))]
-    minus_factor = [(i, 2 * i) for i = 0:(length(axis_2_sum)-1)]
-    axis_2_sum =
-        [(q[1] - m[1], q[2] - m[2]) for (q, m) in zip(axis_2_sum, minus_factor)]
-    for (i, j) in axis_2_sum
-        idx1 = fill!(Array{Any,1}(undef, ndims(mat)), Colon())
-        idx2 = fill!(Array{Any,1}(undef, ndims(mat)), Colon())
-        idx1[i] = 1
-        idx1[j] = 1
-        idx2[i] = 2
-        idx2[j] = 2
-        mat = mat[idx1...] + mat[idx2...]
-    end
-    mat
+    partial_trace(ρ, [2 for i in 1:num], qubit_2_keep)
+end
+
+"""
+$(SIGNATURES)
+
+Calculate the partial trace of the density matrix `ρ`. Assume `ρ` is in the tensor space of ``ℋ₁⊗ℋ₂⊗…``, `sys_dim` is an array of the corresponding sub-system dimensions. `dim_2_keep` is an array of the indices whose corresponding subsystems are not traced out.
+
+# Examples
+```julia-repl
+julia> ρ1 = [0.4 0.2; 0.2 0.6]; ρ2 = [0.5 0; 0 0.5];
+julia> partial_trace(ρ1⊗ρ2, [2, 2], [1])
+2×2 Array{Float64,2}:
+ 0.4  0.2
+ 0.2  0.6
+```
+"""
+function partial_trace(ρ::Matrix, sys_dim::AbstractVector{Int}, dim_2_keep::AbstractVector{Int})
+    size(ρ, 1) != size(ρ, 2) && throw(ArgumentError("ρ is not a square matrix."))
+    prod(sys_dim) != size(ρ, 1) && throw(ArgumentError("System dimensions do not multiply to density matrix dimension."))
+
+    N = length(sys_dim)
+    sys_dim = reverse(sys_dim)
+    ρ = reshape(ρ, sys_dim..., sys_dim...)
+    dim_2_keep = N .+ 1 .- dim_2_keep
+    dim_2_trace = [i for i in 1:N if !(i in dim_2_keep)]
+    traction_idx = collect(1:2*N)
+    traction_idx[dim_2_trace .+ N] .= traction_idx[dim_2_trace]
+    tensortrace(ρ, traction_idx)
 end
 
 """
