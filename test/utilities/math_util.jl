@@ -59,8 +59,12 @@ w, v = eigen_decomp(H_check, [0.5])
 v = sqrt.([0.4, 0.6])
 ρ1 = v*v'
 ρ2 = [0.5 0; 0 0.5]
+ρ3 = ones(3, 3)/3
 @test ρ1 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [1])
 @test ρ2 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [2])
+@test ρ3 ≈ partial_trace(ρ1⊗ρ2⊗ρ3, [2,2,3], [3])
+@test_throws ArgumentError partial_trace(ρ1⊗ρ2⊗ρ3, [3,2,3], [3])
+@test_throws ArgumentError partial_trace(rand(4,5), [2,2], [1])
 @test purity(ρ1) ≈ 1
 @test purity(ρ2) == 0.5
 @test check_pure_state(ρ1)

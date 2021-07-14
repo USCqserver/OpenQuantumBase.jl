@@ -8,6 +8,7 @@ import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
 import QuadGK: quadgk!, quadgk
+import TensorOperations: tensortrace
 
 """
 $(TYPEDEF)
