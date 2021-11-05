@@ -81,7 +81,7 @@ S(x) = x + 0.1
 
 H = DenseHamiltonian(
     [(s) -> 1 - s, (s) -> s],
-    [-standard_driver(2), (0.1 * σz ⊗ σi + 0.5 * σz ⊗ σz)],
+    [-standard_driver(2), (0.1 * σz ⊗ σi + 0.5 * σz ⊗ σz)]
 )
 coupling = ConstantCouplings(["ZI+IZ"])
 davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
@@ -142,6 +142,20 @@ jump_op = OpenQuantumBase.lindblad_jump(ame_op, ψ, p, 1)
 exp_res = Complex{Float64}[6.672340269678421 + 0.0im 0.37611761184098264 + 0.0im 0.30757886113480604 + 0.0im -7.009918137704409 + 0.0im; 8.329733374366892 + 0.0im 0.46954431240210126 + 0.0im 0.38398070261603034 + 0.0im -8.751164764267996 + 0.0im; 9.465353222476072 + 0.0im 0.5335588272449766 + 0.0im 0.4363300501381911 + 0.0im -9.944239734825716 + 0.0im; 7.213269209357397 + 0.0im 0.4066095970732551 + 0.0im 0.33251438607759143 + 0.0im -7.578214632218711 + 0.0im]
 @test size(jump_op) == (4, 4)
 @test jump_op ≈ exp_res
+
+# Dense Hamiltonian with size smaller than truncation levels
+H = DenseHamiltonian(
+    [(s) -> 1 - s, (s) -> s],
+    [-standard_driver(4), random_ising(4)]
+)
+
+coupling = collective_coupling("Z", 4)
+davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
+ame_op = DiffEqLiouvillian(H, [davies], [], 20)
+p = ODEParams(H, 2.0, (tf, t) -> t / tf)
+cache = zeros(ComplexF64, 16, 16)
+update_cache!(cache, ame_op, p, 1)
+@test cache != zeros(ComplexF64, 16, 16)
 
 # Sparse Hamiltonian test
 Hd = standard_driver(4; sp=true)

@@ -31,6 +31,7 @@ function DiffEqLiouvillian(H, opensys_eig, opensys, lvl)
         lvl = size(H, 1)
         u_cache = similar(get_cache(H))
     else
+        lvl = size(H, 1) < lvl ? size(H, 1) : lvl
         # for SparseHamiltonian, we will create dense matrix cache
         # for the truncated subspace
         u_cache = Matrix{eltype(H)}(undef, lvl, lvl)

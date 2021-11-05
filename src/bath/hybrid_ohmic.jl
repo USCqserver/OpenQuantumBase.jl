@@ -64,10 +64,9 @@ function Gₕ(ω, bath::HybridOhmicBath)
     η = bath.η
     S0 = η / bath.β
     if isapprox(ω, 0, atol=1e-8)
-        return 4 / S0
+        return 1 / S0
     else
-        γ² = (S0 / 2)^2
-        return η * ω * exp(-abs(ω) / bath.ωc) / (1 - exp(-bath.β * ω)) / (ω^2 + γ²)
+        return 4 * η * ω * exp(-abs(ω) / bath.ωc) / (1 - exp(-bath.β * ω)) / (ω^2 + 4*S0^2)
     end
 end
 
