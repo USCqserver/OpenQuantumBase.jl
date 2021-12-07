@@ -42,8 +42,6 @@ end
 $(SIGNATURES)
 
 Calculate the eigen value decomposition of the Hamiltonian `H` at time `s`. Keyword argument `lvl` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`.
-
-`eig_init` is the initializer for eigen factorization routine. It returns a function of signature: `(H, s, lvl) -> (w, v)`. The default initializer `EIGEN_DEFAULT` will use `LAPACK` routine for both dense and sparse matrices.
 """
 function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int=2)
     w, v = H.EIGS(H, s, lvl)
@@ -75,8 +73,6 @@ end
 $(SIGNATURES)
 
 For a time series quantum states given by `states`, whose time points are given by `s`, calculate the population of instantaneous eigenstates of `H`. The levels of the instantaneous eigenstates are specified by `lvl`, which can be any slice index.
-
-`eig_init` is the initializer for eigen factorization routine. It returns a function of signature: `(H, s, lvl) -> (w, v)`. The default initializer `EIGEN_DEFAULT` will use `LAPACK` routine for both dense and sparse matrices.
 """
 function inst_population(s, states, H::AbstractHamiltonian; lvl=1:1)
     if typeof(lvl) <: Int
