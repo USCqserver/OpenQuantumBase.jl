@@ -1,13 +1,7 @@
 using OpenQuantumBase, Test
 
-A = (s) -> (1 - s)
-B = (s) -> s
-u = [1.0 + 0.0im, 1] / sqrt(2)
-ρ = u * u'
+H = build_example_hamiltonian(1)
 
-H = DenseHamiltonian([A, B], [σx, σz])
-
-@test_throws ArgumentError DenseHamiltonian([A, B], [σx, σz], unit=:hh)
 @test size(H) == (2, 2)
 @test H(0) == 2π * σx
 @test evaluate(H, 0) == σx
@@ -29,6 +23,7 @@ temp = -1im * π * (σx + σz)
 
 # in-place update for matrices
 du = [1.0 + 0.0im 0; 0 0]
+ρ  = PauliVec[1][1] * PauliVec[1][1]'
 H(du, ρ, 2, 0.5)
 @test du ≈ -1.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
 
@@ -38,3 +33,6 @@ w, v = eigen_decomp(H, 0.5)
 w, v = eigen_decomp(H, 0.0)
 @test w ≈ [-1, 1]
 @test v ≈ [-1 1; 1 1] / sqrt(2)
+
+# error message test
+@test_throws ArgumentError DenseHamiltonian([(s)->1-s, (s)->s], [σx, σz], unit=:hh)

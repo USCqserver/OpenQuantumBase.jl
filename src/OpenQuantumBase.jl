@@ -141,7 +141,7 @@ export InplaceUnitary, EᵨEnsemble, sample_state_vector
 
 export ProjectedSystem, project_to_lowlevel, get_dθ, concatenate
 
-# APIs for developement tools, may move to a different repo latter
-export random_ising, alt_sec_chain
+# APIs for test and developement tools, may move to a different repo latter
+export random_ising, alt_sec_chain, build_example_hamiltonian
 
 end  # module OpenQuantumBase

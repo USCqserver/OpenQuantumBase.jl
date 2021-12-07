@@ -29,3 +29,15 @@ function alt_sec_chain(w1, w2, n, num_qubits; sp=false)
     end
     two_local_term(J, idx, num_qubits, sp=sp)
 end
+
+function build_example_hamiltonian(num_qubits; sp=false)
+    A = (s) -> (1 - s)
+    B = (s) -> s
+    if num_qubits == 1
+        sp ? SparseHamiltonian([A, B], [spσx, spσz]) : DenseHamiltonian([A, B], [σx, σz])
+    elseif num_qubits == 4
+        Hd = -standard_driver(4, sp = sp)
+        Hp = -q_translate("ZIII+IZII+IIZI+IIIZ", sp = sp)
+        sp ? SparseHamiltonian([A, B], [Hd, Hp]) : DenseHamiltonian([A, B], [Hd, Hp])
+    end
+end
