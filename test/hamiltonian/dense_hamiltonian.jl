@@ -28,8 +28,8 @@ H(du, ρ, 2, 0.5)
 # eigen-decomposition
 w, v = eigen_decomp(H, 0.5)
 @test w ≈ [-1, 1] / √2
-@test abs(v[:, 1]'*[1-√2, 1] / sqrt(4-2√2)) ≈ 1
-@test abs(v[:, 2]'*[1+√2, 1] / sqrt(4+2√2)) ≈ 1
+@test abs(v[:, 1]'*[1-sqrt(2), 1] / sqrt(4-2*sqrt(2))) ≈ 1
+@test abs(v[:, 2]'*[1+sqrt(2), 1] / sqrt(4+2*sqrt(2))) ≈ 1
 
 Hrot= rotate(H, v)
 @test evaluate(Hrot, 0.5) ≈ [-1 0; 0 1] / sqrt(2)
