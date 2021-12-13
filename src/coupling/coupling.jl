@@ -69,6 +69,11 @@ function ConstantCouplings(
     ConstantCouplings(mats, c)
 end
 
+function rotate(C::ConstantCouplings, v)
+    mats = [v' * m * v for m in C.mats]
+    ConstantCouplings(mats, unit=:ħ)
+end
+
 """
     function collective_coupling(op, num_qubit; sp = false, unit = :h)
 

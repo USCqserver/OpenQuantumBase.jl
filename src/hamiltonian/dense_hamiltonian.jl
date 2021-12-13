@@ -103,3 +103,8 @@ function Base.copy(H::DenseHamiltonian)
     mats = Base.copy(H.m)
     DenseHamiltonian{eltype(mats[1])}(H.f, mats, Base.copy(H.u_cache), size(H), H.EIGS)
 end
+
+function rotate(H::DenseHamiltonian, v; EIGS = EIGEN_DEFAULT)
+    mats = [v' * m * v for m in H.m]
+    DenseHamiltonian(H.f, mats, unit=:ħ, EIGS = EIGS)
+end

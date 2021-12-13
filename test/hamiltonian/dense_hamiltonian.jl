@@ -31,5 +31,8 @@ w, v = eigen_decomp(H, 0.5)
 @test abs(v[:, 1]'*[1-√2, 1] / sqrt(4-2√2)) ≈ 1
 @test abs(v[:, 2]'*[1+√2, 1] / sqrt(4+2√2)) ≈ 1
 
+Hrot= rotate(H, v)
+@test evaluate(Hrot, 0.5) ≈ [-1 0; 0 1] / sqrt(2)
+
 # error message test
 @test_throws ArgumentError DenseHamiltonian([(s)->1-s, (s)->s], [σx, σz], unit=:hh)

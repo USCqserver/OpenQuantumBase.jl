@@ -8,6 +8,10 @@ res = c(0.2)
 @test isequal(res[1], 2π*σz⊗σi)
 @test res[2] == 2π*σi⊗σz
 
+crot = rotate(c, σx⊗σi)
+@test crot[1](0) ≈ -2π*σz⊗σi
+@test crot[2](0.5) ≈ 2π*σi⊗σz
+
 c = ConstantCouplings(["ZI", "IZ"], unit=:ħ)
 @test isequal(c.mats[1], σz⊗σi)
 @test isequal(c.mats[2], σi⊗σz)
