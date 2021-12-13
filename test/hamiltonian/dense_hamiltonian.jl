@@ -3,8 +3,6 @@ using OpenQuantumBase, Test
 H = build_example_hamiltonian(1)
 
 @test size(H) == (2, 2)
-@test H(0) == 2π * σx
-@test evaluate(H, 0) == σx
 @test H(0.5) == π * (σx + σz)
 @test evaluate(H, 0.5) == (σx + σz) / 2
 @test get_cache(H) ≈ π * (σx + σz)
@@ -29,10 +27,9 @@ H(du, ρ, 2, 0.5)
 
 # eigen-decomposition
 w, v = eigen_decomp(H, 0.5)
-@test w ≈ [-1, 1] / sqrt(2)
-w, v = eigen_decomp(H, 0.0)
-@test w ≈ [-1, 1]
-@test v ≈ [-1 1; 1 1] / sqrt(2)
+@test w ≈ [-1, 1] / √2
+@test abs(v[:, 1]'*[1-√2, 1] / sqrt(4-2√2)) ≈ 1
+@test abs(v[:, 2]'*[1+√2, 1] / sqrt(4+2√2)) ≈ 1
 
 # error message test
 @test_throws ArgumentError DenseHamiltonian([(s)->1-s, (s)->s], [σx, σz], unit=:hh)
