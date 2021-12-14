@@ -3,9 +3,9 @@ using OpenQuantumBase, Test
 A = (s)->(1 - s)
 B = (s)->s
 u = [1.0 + 0.0im, 1] / sqrt(2)
-ρ = u * u'
+ρ = PauliVec[1][1] * PauliVec[1][1]'
 
-H = DenseHamiltonian([A, B], [σx, σz])
+H = build_example_hamiltonian(1)
 t_axis = range(0, 1, length=10)
 H_list = [evaluate(H, t) for t in t_axis]
 
@@ -28,7 +28,7 @@ du = [1.0 + 0.0im 0; 0 0]
 H_interp(du, ρ, 2.0, 0.5)
 @test du ≈ -1.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
 
-H = SparseHamiltonian([A, B], [spσx, spσz])
+H = build_example_hamiltonian(1, sp=true)
 t_axis = range(0, 1, length=10)
 H_list = [evaluate(H, t) for t in t_axis]
 H_interp = InterpSparseHamiltonian(t_axis, H_list)

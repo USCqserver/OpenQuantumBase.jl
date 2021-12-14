@@ -1,16 +1,8 @@
 using OpenQuantumBase, Test
 
-A = (s) -> (1 - s)
-B = (s) -> s
-u = [1.0 + 0.0im, 1] / sqrt(2)
-ρ = u * u'
+H = build_example_hamiltonian(1)
 
-H = DenseHamiltonian([A, B], [σx, σz])
-
-@test_throws ArgumentError DenseHamiltonian([A, B], [σx, σz], unit=:hh)
 @test size(H) == (2, 2)
-@test H(0) == 2π * σx
-@test evaluate(H, 0) == σx
 @test H(0.5) == π * (σx + σz)
 @test evaluate(H, 0.5) == (σx + σz) / 2
 @test get_cache(H) ≈ π * (σx + σz)
@@ -29,12 +21,18 @@ temp = -1im * π * (σx + σz)
 
 # in-place update for matrices
 du = [1.0 + 0.0im 0; 0 0]
+ρ  = PauliVec[1][1] * PauliVec[1][1]'
 H(du, ρ, 2, 0.5)
 @test du ≈ -1.0im * π * ((σx + σz) * ρ - ρ * (σx + σz))
 
 # eigen-decomposition
 w, v = eigen_decomp(H, 0.5)
-@test w ≈ [-1, 1] / sqrt(2)
-w, v = eigen_decomp(H, 0.0)
-@test w ≈ [-1, 1]
-@test v ≈ [-1 1; 1 1] / sqrt(2)
+@test w ≈ [-1, 1] / √2
+@test abs(v[:, 1]'*[1-sqrt(2), 1] / sqrt(4-2*sqrt(2))) ≈ 1
+@test abs(v[:, 2]'*[1+sqrt(2), 1] / sqrt(4+2*sqrt(2))) ≈ 1
+
+Hrot= rotate(H, v)
+@test evaluate(Hrot, 0.5) ≈ [-1 0; 0 1] / sqrt(2)
+
+# error message test
+@test_throws ArgumentError DenseHamiltonian([(s)->1-s, (s)->s], [σx, σz], unit=:hh)
