@@ -31,6 +31,8 @@ t_obj = project_to_lowlevel(H, 0:0.01:1, coupling, dH, direction=:backward)
 @test all((x)->isapprox(x, [-1, 1]), t_obj.ev)
 @test all((x)->isapprox(x[1], π/4), t_obj.dθ)
 
+#TODO: the following tests fail on Windows with Julia 1.7, there is a temperary solution by adding a print function, need to find a permanent fix
+
 H = SparseHamiltonian(
     [(s) -> 1 - s, (s) -> s],
     [-standard_driver(2, sp=true) / 2, (spσz ⊗ spσi - 0.1spσz ⊗ spσz) / 2],

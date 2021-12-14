@@ -75,7 +75,8 @@ function project_to_lowlevel(
     else
         projected_system = ProjectedSystem(s_axis, lvl, direction, refs)
     end
-
+    #TODO: the print function is to prevent failure on Windows with Julia 1.7, need to find a permanent fix
+    print("")
     for s in _s_axis
         w, v = H.EIGS(H, s, lvl)
         # this is needed for StaticArrays
