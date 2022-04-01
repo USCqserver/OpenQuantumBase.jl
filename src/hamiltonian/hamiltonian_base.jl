@@ -41,6 +41,33 @@ end
 """
 $(SIGNATURES)
 
+    Default eigenvalue decomposition method for an abstract Hamiltonian `H` at time `s`. 
+    Requires the Hamiltonian to be callable and have a u_cache field
+    Keyword argument `lvl` specifies the number of levels to keep in the output. 
+    `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. 
+    (The `k`th eigenvector can be obtained from the slice `v[:, k]`.)
+"""
+function haml_eigs_default(H::AbstractHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
+    #lvl = size(H.u_cache, 1)
+    if isnothing(lvl)
+        w,v = eigen(Hermitian(H(t)))
+        return real(w), v
+    elseif lvl <= 10
+        w,v = eigen(Hermitian(H(t)))
+    else
+        w,v = eigen!(Hermitian(H(t)), 1:lvl)
+    end
+    
+    return real(w)[1:lvl], v[:, 1:lvl]
+end
+
+function haml_eigs(H::AbstractHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
+    return haml_eigs_default(H, t, lvl=lvl)
+end
+
+"""
+$(SIGNATURES)
+
 Calculate the eigen value decomposition of the Hamiltonian `H` at time `s`. Keyword argument `lvl` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`.
 """
 function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int=2)
