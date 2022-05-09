@@ -91,3 +91,6 @@ gibbs = gibbs_state(σz, 12)
 0.0+0.0im   0.0+0.0im  -1.1+0.0im  0.0+0.0im
 0.0+0.0im   0.0+0.0im   0.0+0.0im  0.0+0.0im]
 @test_logs (:warn, "Subspace dimension bigger than total dimension.") low_level_matrix(σz⊗σz+0.1σz⊗σi, 5)
+
+@test !OpenQuantumBase.lesssim(1e-6, 2e-6, atol=1e-5)
+@test OpenQuantumBase.lesssim(1e-6, 2e-6)
