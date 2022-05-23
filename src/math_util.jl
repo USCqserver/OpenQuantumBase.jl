@@ -309,19 +309,3 @@ Check whether the input `ρ` is a pure state: ``tr(ρ²)≈1``. This function wi
 function check_pure_state(ρ; atol::Real=0, rtol::Real=atol>0 ? 0 : √eps())
     check_density_matrix(ρ) && isapprox(purity(ρ), 1, atol=atol, rtol=rtol)
 end
-
-"""
-$(SIGNATURES)
-
-Inexact inequality comparison. `x` is smaller than `y` if their relative distance or their absolute distance is larger than the tolerance bound: `lesssim`` returns true if x-y < min(-atol, -rtol*max(norm(x), norm(y))). The default atol is zero and the default rtol depends on the types of x and y.
-
-# Examples
-```julia-repl
-julia> lesssim(1e-6, 2e-6)
-true
-julia> lesssim(1e-6, 2e-6, atol=1e-5)
-false
-"""
-function lesssim(x::Number, y::Number; atol::Real=0, rtol::Real=Base.rtoldefault(x,y,atol))
-	x - y < min(-atol, -rtol*max(abs(x), abs(y)))
-end
