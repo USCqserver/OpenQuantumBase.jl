@@ -41,3 +41,20 @@ function build_example_hamiltonian(num_qubits; sp=false)
         sp ? SparseHamiltonian([A, B], [Hd, Hp]) : DenseHamiltonian([A, B], [Hd, Hp])
     end
 end
+
+"""
+$(SIGNATURES)
+
+Find the unique gap values upto `sigdigits` number of significant digits.
+"""
+function find_unique_gap(w::Vector{T}; sigdigits::Integer = 8) where T<:Real
+    w = round.(w, sigdigits=sigdigits)
+    w_matrix = w' .- w
+    uniq_w = unique(w_matrix)
+    uniq_w = sort(uniq_w[findall((x)->x>0, uniq_w)])
+	indices = []
+    for uw in uniq_w
+        push!(indices, findall((x)->x==uw, w_matrix))
+    end
+	uniq_w, indices, findall((x)->x==0, w_matrix)
+end

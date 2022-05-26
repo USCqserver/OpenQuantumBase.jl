@@ -30,9 +30,11 @@ function GapIndices(w::Vector{T}; digits::Integer=8, sigdigits::Integer=8) where
     for i in 1:l-1
         for j in i+1:l
             gap = w[j] - w[i]
-            if abs(gap) ≤ 10^(-digits)
+            if abs(gap) ≤ 10.0^(-digits)
                 push!(a0_idx, i)
                 push!(b0_idx, j)
+                push!(a0_idx, j)
+                push!(b0_idx, i)
             else
                 gap = round(gap, sigdigits=sigdigits)
                 idx = searchsortedfirst(gaps, gap)

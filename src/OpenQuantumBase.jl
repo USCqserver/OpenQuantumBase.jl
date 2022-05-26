@@ -95,6 +95,7 @@ include("hamiltonian/custom_hamiltonian.jl")
 include("annealing/annealing_type.jl")
 include("annealing/displays.jl")
 
+include("opensys/opensys_util.jl")
 include("opensys/diffeq_liouvillian.jl")
 include("opensys/redfield.jl")
 include("opensys/davies.jl")
