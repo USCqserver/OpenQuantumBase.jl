@@ -18,7 +18,7 @@ TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
 
 [compat]
 Distributions = "0.22, 0.23, 0.24, 0.25"
-DocStringExtensions = "0.7, 0.8"
+DocStringExtensions = "0.7, 0.8, 0.9"
 HCubature = "1.3"
 Interpolations = "0.12, 0.13"
 QuadGK = "2.4"
