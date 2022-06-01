@@ -65,7 +65,8 @@ end
 
 function (Op::DiffEqLiouvillian{true,false})(du, u, p, t)
     s = p(t)
-    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    #w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    w, v = haml_eigs(Op.H, s, lvl=Op.lvl)
     ω_ba = transpose(w) .- w
     ρ = v' * u * v
     H = Diagonal(w)
