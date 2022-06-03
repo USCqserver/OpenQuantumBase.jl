@@ -58,5 +58,5 @@ function GapIndices(w::Vector{T}; digits::Integer=8, sigdigits::Integer=8) where
     GapIndices(gaps, a_idx, b_idx, a0_idx, b0_idx)
 end
 
-# The length of `GapIndices` include nagative and zero gaps
-Base.length(Gidx::GapIndices) = 2*length(Gidx.uniq_w)+1
+positive_gap_indices(G::GapIndices) = zip(G.uniq_w, G.uniq_a, G.uniq_b)
+zero_gap_indices(G::GapIndices) = zip(G.a0, G.b0)

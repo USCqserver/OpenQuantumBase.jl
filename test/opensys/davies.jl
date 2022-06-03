@@ -5,10 +5,11 @@ import LinearAlgebra: Diagonal, diag
 #= =============== Define  test functions ================= =#
 # calculate the AME linblad term using the formula in reference paper
 function ame_update_term(op, ρ, w, v, γ, S)
-    L_ij = Array{Array{Complex{Float64},2},2}(undef, (4, 4))
-    A_ij = Array{Complex{Float64},2}(undef, (4, 4))
-    for i = 1:4
-        for j = 1:4
+    l = length(w)
+    L_ij = Array{Array{Complex{Float64},2},2}(undef, (l, l))
+    A_ij = Array{Complex{Float64},2}(undef, (l, l))
+    for i = 1:l
+        for j = 1:l
             A_ij[i, j] = v[:, i]' * op * v[:, j]
             L_ij[i, j] = v[:, i]' * op * v[:, j] * v[:, i] * v[:, j]'
         end

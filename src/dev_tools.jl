@@ -47,7 +47,7 @@ $(SIGNATURES)
 
 Find the unique gap values upto `sigdigits` number of significant digits.
 """
-function find_unique_gap(w::Vector{T}; sigdigits::Integer = 8) where T<:Real
+function find_unique_gap(w::AbstractVector{T}; sigdigits::Integer = 8) where T<:Real
     w = round.(w, sigdigits=sigdigits)
     w_matrix = w' .- w
     uniq_w = unique(w_matrix)
@@ -57,4 +57,38 @@ function find_unique_gap(w::Vector{T}; sigdigits::Integer = 8) where T<:Real
         push!(indices, findall((x)->x==uw, w_matrix))
     end
 	uniq_w, indices, findall((x)->x==0, w_matrix)
+end
+
+function ame_update_test(ops, ρ, w, v, γ, S)
+    l = length(w)
+    uniq_w, positive_indices, zero_indices = find_unique_gap(w)
+    cs = [v'*c*v for c in ops]
+    ρ = v' * ρ * v
+    dρ = zeros(ComplexF64, l, l)
+    Hₗₛ = zeros(ComplexF64, l, l)
+    for (w, idx) in zip(uniq_w, positive_indices)
+        g₊ = γ(w)
+        g₋ = γ(-w)
+        a = [x.I[1] for x in idx]
+        b = [x.I[2] for x in idx]
+        for c in cs
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+            dρ += g₊*(L₊*ρ*L₊'-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋'-0.5*(LL₋*ρ+ρ*LL₋))
+            Hₗₛ += S(w)*LL₊ + S(-w)*LL₋
+        end
+    end
+    g0 = γ(0)
+	a = [x.I[1] for x in zero_indices]
+    b = [x.I[2] for x in zero_indices]
+	for c in cs
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+		dρ += g0*(L*ρ*L'-0.5*(LL*ρ+ρ*LL))
+        Hₗₛ += S(0)*LL
+	end
+	dρ -= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
+    v * dρ * v'
 end

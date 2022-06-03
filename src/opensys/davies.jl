@@ -18,13 +18,42 @@ struct DaviesGenerator <: AbstractLiouvillian
     S::Any
 end
 
-function (D::DaviesGenerator)(du, ρ, ω_ba, v, s::Real)
-    γm = D.γ.(ω_ba)
-    sm = D.S.(ω_ba)
-    for op in D.coupling(s)
-        A = v' * op * v
-        davies_update!(du, ρ, A, γm, sm)
+function (D::DaviesGenerator)(du, ρ, w, v, s::Real)
+#    γm = D.γ.(ω_ba)
+#    sm = D.S.(ω_ba)
+#    for op in D.coupling(s)
+#        A = v' * op * v
+#        davies_update!(du, ρ, A, γm, sm)
+#    end
+
+    l = length(w)
+    uniq_w, positive_indices, zero_indices = find_unique_gap(w)
+    cs = [v'*c*v for c in D.coupling(s)]
+    Hₗₛ = zeros(ComplexF64, l, l)
+    for (w, idx) in zip(uniq_w, positive_indices)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        a = [x.I[1] for x in idx]
+        b = [x.I[2] for x in idx]
+        for c in cs
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+            du .+= g₊*(L₊*ρ*L₊'-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋'-0.5*(LL₋*ρ+ρ*LL₋))
+            Hₗₛ += D.S(w)*LL₊ + D.S(-w)*LL₋
+        end
     end
+    g0 = D.γ(0)
+	a = [x.I[1] for x in zero_indices]
+    b = [x.I[2] for x in zero_indices]
+	for c in cs
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+		du .+= g0*(L*ρ*L'-0.5*(LL*ρ+ρ*LL))
+        Hₗₛ += D.S(0)*LL
+	end
+	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
 end
 
 function (D::DaviesGenerator)(du, ρ, ω_ba, s::Real)
