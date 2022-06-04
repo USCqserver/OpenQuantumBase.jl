@@ -59,6 +59,11 @@ function find_unique_gap(w::AbstractVector{T}; sigdigits::Integer = 8) where T<:
 	uniq_w, indices, findall((x)->x==0, w_matrix)
 end
 
+"""
+$(SIGNATURES)
+
+The function calculates the derivative of the density matrix . This function is for test purpose only.
+"""
 function ame_update_test(ops, ρ, w, v, γ, S)
     l = length(w)
     uniq_w, positive_indices, zero_indices = find_unique_gap(w)

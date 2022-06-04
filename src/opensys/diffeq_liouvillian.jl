@@ -66,12 +66,14 @@ end
 function (Op::DiffEqLiouvillian{true,false})(du, u, p, t)
     s = p(t)
     w, v = Op.H.EIGS(Op.H, s, Op.lvl)
-#    ω_ba = transpose(w) .- w
+    # preprocessing the gaps and their indices
+    gap_ind = GapIndices(w)
+    # rotate the density matrix into eigen basis``
     ρ = v' * u * v
     H = Diagonal(w)
     Op.u_cache .= -1.0im * (H * ρ - ρ * H)
     for lv in Op.opensys_eig
-        lv(Op.u_cache, ρ, w, v, s)
+        lv(Op.u_cache, ρ, gap_ind, v, s)
     end
     mul!(du, v, Op.u_cache * v')
     for lv in Op.opensys

@@ -3,48 +3,6 @@ import LinearAlgebra: Diagonal, diag
 
 
 #= =============== Define  test functions ================= =#
-# calculate the AME linblad term using the formula in reference paper
-function ame_update_term(op, ρ, w, v, γ, S)
-    l = length(w)
-    L_ij = Array{Array{Complex{Float64},2},2}(undef, (l, l))
-    A_ij = Array{Complex{Float64},2}(undef, (l, l))
-    for i = 1:l
-        for j = 1:l
-            A_ij[i, j] = v[:, i]' * op * v[:, j]
-            L_ij[i, j] = v[:, i]' * op * v[:, j] * v[:, i] * v[:, j]'
-        end
-    end
-    dρ = []
-    hls = []
-    w_ab = Array{Float64,2}(undef, (4, 4))
-    for i = 1:4
-        for j = 1:4
-            w_ab[i, j] = w[j] - w[i]
-            if i != j
-                T = L_ij[i, j]' * L_ij[i, j]
-                push!(
-                    dρ,
-                    γ(w[j] - w[i]) * (
-                        L_ij[i, j] * ρ * L_ij[i, j]' -
-                        0.5 * (T * ρ + ρ * T)
-                    ),
-                )
-                push!(hls, T * S(w[j] - w[i]))
-            end
-            T = L_ij[i, i]' * L_ij[j, j]
-            push!(
-                dρ,
-                γ(0) *
-                (L_ij[i, i] * ρ * L_ij[j, j]' - 0.5 * (T * ρ + ρ * T)),
-            )
-            push!(hls, T * S(0))
-        end
-    end
-    dρ = sum(dρ)
-    hls = sum(hls)
-    dρ = dρ - 1.0im * (hls * ρ - ρ * hls)
-    dρ, A_ij
-end
 
 # calculate the ame trajectory term
 function ame_trajectory_update_term(op, w, v, γ, S)
@@ -76,8 +34,8 @@ function onesided_ame_udpate(op, ρ, w, v, γ, S)
     K + K'
 end
 
-γ(x) = x >= 0 ? x + 1 : (1 - x) * exp(x)
-S(x) = x + 0.1
+gamma(x) = x >= 0 ? x + 1 : (1 - x) * exp(x)
+lamb(x) = x + 0.1
 #= ================ Define test functions ================= =#
 
 H = DenseHamiltonian(
@@ -85,9 +43,9 @@ H = DenseHamiltonian(
     [-standard_driver(2), (0.1 * σz ⊗ σi + 0.5 * σz ⊗ σz)]
 )
 coupling = ConstantCouplings(["ZI+IZ"])
-davies = OpenQuantumBase.DaviesGenerator(coupling, γ, S)
+davies = OpenQuantumBase.DaviesGenerator(coupling, gamma, lamb)
 onesided = OpenQuantumBase.OneSidedAMELiouvillian(coupling, OpenQuantumBase.SingleFunctionMatrix(γ), OpenQuantumBase.SingleFunctionMatrix(S), [(1, 1)])
-op = 2π * (σz ⊗ σi + σi ⊗ σz)
+ops = [2π * (σz ⊗ σi + σi ⊗ σz)]
 
 w, v = eigen_decomp(H, 0.5, lvl=4)
 w = 2π * w
@@ -95,18 +53,19 @@ w = 2π * w
 ρ = ψ * ψ'
 u = v' * ρ * v
 w_ab = transpose(w) .- w
-gm = γ.(w_ab)
-sm = S.(w_ab)
+gm = gamma.(w_ab)
+sm = lamb.(w_ab)
+g_idx = OpenQuantumBase.GapIndices(w)
 
 # expected result
-dρ, A_ij = ame_update_term(op, ρ, w, v, γ, S)
+dρ = OpenQuantumBase.ame_update_test(ops, ρ, w, v, gamma, lamb)
+
+#du = zeros(ComplexF64, (4, 4))
+#OpenQuantumBase.davies_update!(du, u, A_ij, gm, sm)
+#@test v * du * v' ≈ dρ atol = 1e-6 rtol = 1e-6
 
 du = zeros(ComplexF64, (4, 4))
-OpenQuantumBase.davies_update!(du, u, A_ij, gm, sm)
-@test v * du * v' ≈ dρ atol = 1e-6 rtol = 1e-6
-
-du = zeros(ComplexF64, (4, 4))
-davies(du, u, w_ab, v, 0.5)
+davies(du, u, g_idx, v, 0.5)
 @test v * du * v' ≈ dρ atol = 1e-6 rtol = 1e-6
 
 onesided_dρ = onesided_ame_udpate(op, ρ, w, v, γ, S) 

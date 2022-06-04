@@ -59,4 +59,4 @@ function GapIndices(w::Vector{T}; digits::Integer=8, sigdigits::Integer=8) where
 end
 
 positive_gap_indices(G::GapIndices) = zip(G.uniq_w, G.uniq_a, G.uniq_b)
-zero_gap_indices(G::GapIndices) = zip(G.a0, G.b0)
+zero_gap_indices(G::GapIndices) = G.a0, G.b0
