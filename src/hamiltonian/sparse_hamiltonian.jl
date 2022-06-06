@@ -41,6 +41,9 @@ function SparseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
     SparseHamiltonian(funcs, mats, cache, size(mats[1]), EIGS)
 end
 
+function haml_eigs_default(H::SparseHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
+    return eigen!(Hermitian(Array(H(t))), 1:lvl)
+end
 
 """
     function (h::SparseHamiltonian)(t::Real)
