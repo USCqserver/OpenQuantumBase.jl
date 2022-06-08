@@ -8,8 +8,10 @@ $(TYPEDEF)
 $(FIELDS)
 """
 struct GapIndices
+    "Energies"
+    w::Vector{Real}
     "Unique positive gaps"
-    uniq_w
+    uniq_w::Vector{Real}
     "a indices for the corresponding gaps in uniq_w"
     uniq_a
     "b indices for the corresponding gaps in uniq_w"
@@ -55,7 +57,7 @@ function GapIndices(w::Vector{T}; digits::Integer=8, sigdigits::Integer=8) where
     end
     append!(a0_idx, 1:l)
 	append!(b0_idx, 1:l)
-    GapIndices(gaps, a_idx, b_idx, a0_idx, b0_idx)
+    GapIndices(w, gaps, a_idx, b_idx, a0_idx, b0_idx)
 end
 
 positive_gap_indices(G::GapIndices) = zip(G.uniq_w, G.uniq_a, G.uniq_b)

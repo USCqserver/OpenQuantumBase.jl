@@ -75,6 +75,7 @@ function (Op::DiffEqLiouvillian{true,false})(du, u, p, t)
     for lv in Op.opensys_eig
         lv(Op.u_cache, ρ, gap_ind, v, s)
     end
+    # rotate the density matrix back into computational basis
     mul!(du, v, Op.u_cache * v')
     for lv in Op.opensys
         lv(du, u, p, t)
@@ -100,13 +101,14 @@ function update_cache!(cache, Op::DiffEqLiouvillian{true,false}, p, t::Real)
 end
 
 function (Op::DiffEqLiouvillian{true,true})(du, u, p, t)
+    # This function is for the Liouville operators in adiabatic frame
     s = p(t)
     H = Op.H(p.tf, s)
     w = diag(H)
-    ω_ba = transpose(w) .- w
+    gap_ind = GapIndices(w)
     du .= -1.0im * (H * u - u * H)
     for lv in Op.opensys_eig
-        lv(du, u, ω_ba, s)
+        lv(du, u, gap_ind, s)
     end
 end
 

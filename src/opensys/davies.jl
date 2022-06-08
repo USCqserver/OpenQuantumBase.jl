@@ -18,8 +18,7 @@ struct DaviesGenerator <: AbstractLiouvillian
     S::Any
 end
 
-function (D::DaviesGenerator)(du, ρ, gap_idx, v, s::Real)
-
+function (D::DaviesGenerator)(du, ρ, gap_idx::GapIndices, v, s::Real)
     l = size(du, 1)
     # prerotate all the system bath coupling operators into the energy eigenbasis
     cs = [v'*c*v for c in D.coupling(s)]
@@ -47,36 +46,32 @@ function (D::DaviesGenerator)(du, ρ, gap_idx, v, s::Real)
 	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
 end
 
-function (D::DaviesGenerator)(du, ρ, ω_ba, s::Real)
-    γm = D.γ.(ω_ba)
-    sm = D.S.(ω_ba)
-    for op in D.coupling(s)
-        davies_update!(du, ρ, op, γm, sm)
+function (D::DaviesGenerator)(du, ρ, gap_idx::GapIndices, s::Real)
+    l = size(du, 1)
+    cs = [c for c in D.coupling(s)]
+    Hₗₛ = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        for c in cs
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+            du .+= g₊*(L₊*ρ*L₊'-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋'-0.5*(LL₋*ρ+ρ*LL₋))
+            Hₗₛ += D.S(w)*LL₊ + D.S(-w)*LL₋
+        end
     end
+    g0 = D.γ(0)
+    a, b = zero_gap_indices(gap_idx)
+	for c in cs
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+		du .+= g0*(L*ρ*L'-0.5*(LL*ρ+ρ*LL))
+        Hₗₛ += D.S(0)*LL
+	end
+	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
 end
-
-#= function davies_update!(du, u, A, γ, S)
-    A2 = abs2.(A)
-    γA = γ .* A2
-    Γ = sum(γA, dims=1)
-    dim = size(du, 1)
-    for a = 1:dim
-        for b = 1:a - 1
-            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            @inbounds du[a, b] +=
-                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
-                γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
-        end
-        for b = a + 1:dim
-            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            @inbounds du[a, b] +=
-                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
-                γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
-        end
-    end
-    H_ls = Diagonal(sum(S .* A2, dims=1)[1, :])
-    axpy!(-1.0im, H_ls * u - u * H_ls, du)
-end =#
 
 function update_cache!(cache, D::DaviesGenerator, ω_ba, v, s::Real)
     len = size(ω_ba, 1)
