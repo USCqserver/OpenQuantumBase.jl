@@ -16,8 +16,6 @@ struct DenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
     u_cache::AbstractMatrix
     "Size"
     size::Tuple
-    "Eigen decomposition routine"
-    EIGS::Any
 end
 
 
@@ -25,10 +23,8 @@ end
 $(SIGNATURES)
 
 Constructor of the `DenseHamiltonian` type. `funcs` and `mats` are lists of time-dependent functions and the corresponding matrices. The Hamiltonian can be represented as ``∑ᵢfuncs[i](s)×mats[i]``. `unit` specifies wether `:h` or `:ħ` is set to one when defining `funcs` and `mats`. The `mats` will be scaled by ``2π`` if unit is `:h`.
-
-`EIGS` is the initializer for the eigendecomposition routine for the Hamiltonian. It should return a function of the signature: `(H, s, lvl) -> (w, v)`. The default method `EIGEN_DEFAULT` will use `LAPACK` routine.
 """
-function DenseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
+function DenseHamiltonian(funcs, mats; unit = :h)
     if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
@@ -43,8 +39,7 @@ function DenseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
         mats = unit_scale(unit) * mats
     end
     cache = similar(mats[1])
-    EIGS = EIGS(cache)
-    DenseHamiltonian{eltype(mats[1])}(funcs, mats, cache, hsize, EIGS)
+    DenseHamiltonian{eltype(mats[1])}(funcs, mats, cache, hsize)
 end
 
 """
@@ -86,7 +81,7 @@ end
 function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Complex,M}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, complex{M})
-    DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H), H.EIGS)
+    DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H))
 end
 
 function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
@@ -96,15 +91,15 @@ function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
     end
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, real(M))
-    DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H), H.EIGS)
+    DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H))
 end
 
 function Base.copy(H::DenseHamiltonian)
     mats = Base.copy(H.m)
-    DenseHamiltonian{eltype(mats[1])}(H.f, mats, Base.copy(H.u_cache), size(H), H.EIGS)
+    DenseHamiltonian{eltype(mats[1])}(H.f, mats, Base.copy(H.u_cache), size(H))
 end
 
-function rotate(H::DenseHamiltonian, v; EIGS = EIGEN_DEFAULT)
+function rotate(H::DenseHamiltonian, v)
     mats = [v' * m * v for m in H.m]
-    DenseHamiltonian(H.f, mats, unit=:ħ, EIGS = EIGS)
+    DenseHamiltonian(H.f, mats, unit=:ħ)
 end

@@ -48,7 +48,6 @@ $(SIGNATURES)
     (The `k`th eigenvector can be obtained from the slice `v[:, k]`.)
 """
 function haml_eigs_default(H::AbstractHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
-    #lvl = size(H.u_cache, 1)
     if isnothing(lvl)
         w,v = eigen(Hermitian(H(t)))
         return real(w), v
