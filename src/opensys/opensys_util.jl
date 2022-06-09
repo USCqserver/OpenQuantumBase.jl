@@ -9,7 +9,7 @@ $(FIELDS)
 """
 struct GapIndices
     "Energies"
-    w::Vector{Real}
+    w::AbstractVector{Real}
     "Unique positive gaps"
     uniq_w::Vector{Real}
     "a indices for the corresponding gaps in uniq_w"
@@ -17,12 +17,12 @@ struct GapIndices
     "b indices for the corresponding gaps in uniq_w"
     uniq_b
     "a indices for the 0 gap"
-    a0
+    a0::Vector{Int}
     "b indices for the 0 gap"
-    b0
+    b0::Vector{Int}
 end
 
-function GapIndices(w::Vector{T}; digits::Integer=8, sigdigits::Integer=8) where T<:Real
+function GapIndices(w::AbstractVector{T}, digits::Integer, sigdigits::Integer) where T<:Real
     l = length(w)
     gaps = Float64[]
     a_idx = Vector{Int}[]
@@ -62,3 +62,6 @@ end
 
 positive_gap_indices(G::GapIndices) = zip(G.uniq_w, G.uniq_a, G.uniq_b)
 zero_gap_indices(G::GapIndices) = G.a0, G.b0
+gap_matrix(G::GapIndices) = G.w' .- G.w
+get_lvl(G::GapIndices) = length(G.w)
+get_gaps_num(G::GapIndices) = 2*length(G.uniq_w)+1

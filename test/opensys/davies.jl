@@ -55,7 +55,7 @@ u = v' * ρ * v
 w_ab = transpose(w) .- w
 gm = gamma.(w_ab)
 sm = lamb.(w_ab)
-g_idx = OpenQuantumBase.GapIndices(w)
+g_idx = OpenQuantumBase.GapIndices(w, 8, 8)
 
 # expected result
 dρ = OpenQuantumBase.ame_update_test(ops, ρ, w, v, gamma, lamb)

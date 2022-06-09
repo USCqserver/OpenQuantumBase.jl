@@ -1,5 +1,3 @@
-import StatsBase: sample, Weights
-
 """
 $(TYPEDEF)
 
@@ -20,7 +18,7 @@ end
 
 function (D::DaviesGenerator)(du, ρ, gap_idx::GapIndices, v, s::Real)
     l = size(du, 1)
-    # prerotate all the system bath coupling operators into the energy eigenbasis
+    # pre-rotate all the system bath coupling operators into the energy eigenbasis
     cs = [v'*c*v for c in D.coupling(s)]
     Hₗₛ = spzeros(ComplexF64, l, l)
     for (w, a, b) in positive_gap_indices(gap_idx)
@@ -73,19 +71,29 @@ function (D::DaviesGenerator)(du, ρ, gap_idx::GapIndices, s::Real)
 	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
 end
 
-function update_cache!(cache, D::DaviesGenerator, ω_ba, v, s::Real)
-    len = size(ω_ba, 1)
-    γm = D.γ.(ω_ba)
-    sm = D.S.(ω_ba)
-    for op in D.coupling(s)
-        A2 = abs2.(v' * op * v)
-        for b = 1:len
-            for a = 1:len
-                @inbounds cache[b, b] -=
-                    A2[a, b] * (0.5 * γm[a, b] + 1.0im * sm[a, b])
-            end
+function update_cache!(cache, D::DaviesGenerator, gap_idx::GapIndices, v, s::Real)
+    l = size(cache, 1)
+    cs = [v'*c*v for c in D.coupling(s)]
+    H_eff = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        for c in cs
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+            H_eff -= (1.0im*D.S(w)+0.5*g₊)*LL₊ + (1.0im*D.S(-w)+0.5*g₋)*LL₋
         end
     end
+    g0 = D.γ(0)
+    a, b = zero_gap_indices(gap_idx)
+	for c in cs
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+        H_eff -= (1.0im*D.S(0)+0.5*g0)*LL
+	end
+    cache .+= H_eff
 end
 
 """
@@ -161,7 +169,8 @@ struct OneSidedAMELiouvillian <: AbstractLiouvillian
     inds::Any
 end
 
-function (A::OneSidedAMELiouvillian)(dρ, ρ, ω_ba, v, s::Real)
+function (A::OneSidedAMELiouvillian)(dρ, ρ, g_idx::GapIndices, v, s::Real)
+    ω_ba = gap_matrix(g_idx)
     for (α, β) in A.inds
         γm = A.γ[α,β].(ω_ba)
         sm = A.S[α,β].(ω_ba)
@@ -174,7 +183,8 @@ function (A::OneSidedAMELiouvillian)(dρ, ρ, ω_ba, v, s::Real)
     end
 end
 
-function (A::OneSidedAMELiouvillian)(du, u, ω_ba, s::Real)
+function (A::OneSidedAMELiouvillian)(du, u, g_idx::GapIndices, s::Real)
+    ω_ba = gap_matrix(g_idx)
     for (α, β) in A.inds
         γm = A.γ[α,β].(ω_ba)
         sm = A.S[α,β].(ω_ba)
