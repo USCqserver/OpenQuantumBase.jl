@@ -46,6 +46,9 @@ function haml_eigs_default(H::SparseHamiltonian, t; lvl::Union{Int,Nothing}=noth
     return real(w)[1:lvl], v[:, 1:lvl]
 end
 
+haml_eigs_default(H::SparseHamiltonian, t, ::Nothing) = eigen!(Hermitian(Array(H(t))))
+haml_eigs_default(H::SparseHamiltonian, t, lvl::Integer) = eigen!(Hermitian(Array(H(t))), 1:lvl)
+
 """
     function (h::SparseHamiltonian)(t::Real)
 

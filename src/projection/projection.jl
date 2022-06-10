@@ -59,7 +59,7 @@ function project_to_lowlevel(
         throw(ArgumentError("direction $direction is not supported."))
     end
     if isempty(refs)
-        w, v = hamil_eigs(H, _s_axis[1], lvl)
+        w, v = haml_eigs(H, _s_axis[1], lvl)
         # this is needed for StaticArrays
         w = w[1:lvl]
         v = v[:, 1:lvl]
@@ -77,7 +77,7 @@ function project_to_lowlevel(
     end
 
     for s in _s_axis
-        w, v = hamil_eigs(H, s, lvl)
+        w, v = haml_eigs(H, s, lvl)
         # this is needed for StaticArrays
         w = w[1:lvl]
         v = v[:, 1:lvl]

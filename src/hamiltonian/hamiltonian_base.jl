@@ -49,9 +49,9 @@ haml_eigs_default(H::AbstractHamiltonian, t, lvl::Integer) = eigen!(Hermitian(H(
 haml_eigs_default(H::AbstractHamiltonian, t, ::Nothing) = eigen(Hermitian(H(t)))
 haml_eigs(H::AbstractHamiltonian, t, lvl) = haml_eigs_default(H, t, lvl)
 
-function eigen!(M::Hermitian{T, S}, lvl::Integer) where T<:Number where S<:SMatrix
+function eigen!(M::Hermitian{T, S}, lvl::UnitRange) where T<:Number where S<:Union{SMatrix, MMatrix}
     w, v = eigen(Hermitian(M))
-    w[1:lvl], v[:, 1:lvl]
+    w[lvl], v[:, lvl]
 end
 
 """
