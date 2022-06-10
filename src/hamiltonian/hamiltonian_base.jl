@@ -41,27 +41,17 @@ end
 """
 $(SIGNATURES)
 
-    Default eigenvalue decomposition method for an abstract Hamiltonian `H` at time `s`. 
-    Requires the Hamiltonian to be callable and have a u_cache field
-    Keyword argument `lvl` specifies the number of levels to keep in the output. 
-    `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. 
+    Default eigenvalue decomposition method for an abstract Hamiltonian `H` at time `s`. Requires the Hamiltonian to be callable and have a `u_cache` field. Keyword argument `lvl` specifies the number of levels to keep in the output. 
+    The function returns (w, v), where `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. 
     (The `k`th eigenvector can be obtained from the slice `v[:, k]`.)
 """
-function haml_eigs_default(H::AbstractHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
-    if isnothing(lvl)
-        w,v = eigen(Hermitian(H(t)))
-        return real(w), v
-    elseif lvl <= 10
-        w,v = eigen(Hermitian(H(t)))
-    else
-        w,v = eigen!(Hermitian(H(t)), 1:lvl)
-    end
-    
-    return real(w)[1:lvl], v[:, 1:lvl]
-end
+haml_eigs_default(H::AbstractHamiltonian, t, lvl::Integer) = eigen!(Hermitian(H(t)), 1:lvl)
+haml_eigs_default(H::AbstractHamiltonian, t, ::Nothing) = eigen(Hermitian(H(t)))
+haml_eigs(H::AbstractHamiltonian, t, lvl) = haml_eigs_default(H, t, lvl)
 
-function haml_eigs(H::AbstractHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
-    return haml_eigs_default(H, t, lvl=lvl)
+function eigen!(M::Hermitian{T, S}, lvl::Integer) where T<:Number where S<:SMatrix
+    w, v = eigen(Hermitian(M))
+    w[1:lvl], v[:, 1:lvl]
 end
 
 """
@@ -70,7 +60,7 @@ $(SIGNATURES)
 Calculate the eigen value decomposition of the Hamiltonian `H` at time `s`. Keyword argument `lvl` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`.
 """
 function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int=2)
-    w, v = haml_eigs(H, s; lvl)
+    w, v = haml_eigs(H, s, lvl)
     real(w)[1:lvl] / 2 / π, v[:, 1:lvl]
 end
 
@@ -88,7 +78,7 @@ function eigen_decomp(
     res_val = Array{eltype(H),2}(undef, (lvl, s_dim))
     res_vec = Array{eltype(H),3}(undef, (size(H, 1), lvl, s_dim))
     for (i, s_val) in enumerate(s)
-        val, vec = haml_eigs(H, s_val; lvl)
+        val, vec = haml_eigs(H, s_val, lvl)
         res_val[:, i] = val[1:lvl]
         res_vec[:, :, i] = vec[:, 1:lvl]
     end
@@ -122,24 +112,6 @@ function inst_population(s, states, H::AbstractHamiltonian; lvl=1:1)
     end
     pop
 end
-
-"""
-    function EIGEN_DEFAULT(u_cache)
-
-The default initializer for eigen factorization method. It returns a function of signature: `(H, s, lvl) -> (w, v)`. `u_cache` is the cache for Hamiltonian object, `s` is the time argument for the Hamiltonian and `lvl` is the energy levels to keep. This default initializer will use `LAPACK` routine for both dense and sparse matrices.
-"""
-function EIGEN_DEFAULT(u_cache)
-    lvl = size(u_cache, 1)
-    if lvl <= 10
-        EIGS = (H, t, lvl) -> eigen(Hermitian(H(t)))
-    else
-        EIGS = (H, t, lvl) -> eigen!(Hermitian(H(t)), 1:lvl)
-    end
-    EIGS
-end
-
-EIGEN_DEFAULT(::SparseMatrixCSC) =
-    (H, t, lvl) -> eigen!(Hermitian(Array(H(t))), 1:lvl)
 
 function is_complex(f_list, m_list)
     any(m_list) do m

@@ -62,7 +62,7 @@ Calculate the jump operator for the `DiffEqLiouvillian` at time `t`.
 """
 function lindblad_jump(Op::DiffEqLiouvillian{true,false}, u, p, t::Real)
     s = p(t)
-    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    w, v = hamil_eigs(Op.H, s, Op.lvl)
     ω_ba = transpose(w) .- w
     resample([ame_jump(x, u, ω_ba, v, s) for x in Op.opensys_eig], u)
 end
