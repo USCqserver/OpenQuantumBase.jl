@@ -1,4 +1,3 @@
-import SparseArrays: findnz
 
 function lind_jump(lind::LindbladLiouvillian, u, p, s::Real)
     l = length(lind)
@@ -46,7 +45,6 @@ function ame_jump(D::DaviesGenerator, u, gap_idx::GapIndices, v, s)
         tag[idx] = (i, a, b, sqrt(g0))
         idx += 1
 	end
-
     choice = sample(tag, Weights(prob))
     L = choice[4] * sparse(choice[2], choice[3], σab[choice[1]][choice[2] + (choice[3] .- 1)*l] , l, l)
 

@@ -1,3 +1,4 @@
+# All functions here are for development purpose
 """
 $(SIGNATURES)
 
@@ -8,7 +9,7 @@ function random_ising(num_qubits::Integer; sp=false)
     idx = Vector{Vector{Int64}}()
     for i ∈ 1:num_qubits
         for j ∈ i+1:num_qubits
-            push!(J, 2*rand()-1)
+            push!(J, 2 * rand() - 1)
             push!(idx, [i, j])
         end
     end
@@ -24,8 +25,8 @@ function alt_sec_chain(w1, w2, n, num_qubits; sp=false)
     J = Vector{Float64}()
     idx = Vector{Vector{Int64}}()
     for i in 1:num_qubits-1
-        push!(J, isodd(ceil(Int, i/n)) ? w1 : w2)
-        push!(idx, [i, i+1])
+        push!(J, isodd(ceil(Int, i / n)) ? w1 : w2)
+        push!(idx, [i, i + 1])
     end
     two_local_term(J, idx, num_qubits, sp=sp)
 end
@@ -36,8 +37,8 @@ function build_example_hamiltonian(num_qubits; sp=false)
     if num_qubits == 1
         sp ? SparseHamiltonian([A, B], [spσx, spσz]) : DenseHamiltonian([A, B], [σx, σz])
     elseif num_qubits == 4
-        Hd = -standard_driver(4, sp = sp)
-        Hp = -q_translate("ZIII+IZII+IIZI+IIIZ", sp = sp)
+        Hd = -standard_driver(4, sp=sp)
+        Hp = -q_translate("ZIII+IZII+IIZI+IIIZ", sp=sp)
         sp ? SparseHamiltonian([A, B], [Hd, Hp]) : DenseHamiltonian([A, B], [Hd, Hp])
     end
 end
@@ -47,16 +48,17 @@ $(SIGNATURES)
 
 Find the unique gap values upto `sigdigits` number of significant digits.
 """
-function find_unique_gap(w::AbstractVector{T}; sigdigits::Integer = 8) where T<:Real
-    w = round.(w, sigdigits=sigdigits)
+function find_unique_gap(w::AbstractVector{T}; digits::Integer=8, sigdigits::Integer=8) where {T<:Real}
     w_matrix = w' .- w
+    w = round.(w_matrix, digits = digits)
+    w = round.(w_matrix, sigdigits=sigdigits)
     uniq_w = unique(w_matrix)
-    uniq_w = sort(uniq_w[findall((x)->x>0, uniq_w)])
-	indices = []
+    uniq_w = sort(uniq_w[findall((x) -> x > 0, uniq_w)])
+    indices = []
     for uw in uniq_w
-        push!(indices, findall((x)->x==uw, w_matrix))
+        push!(indices, findall((x) -> x == uw, w_matrix))
     end
-	uniq_w, indices, findall((x)->x==0, w_matrix)
+    uniq_w, indices, findall((x) -> x == 0, w_matrix)
 end
 
 """
@@ -67,7 +69,8 @@ The function calculates the derivative of the density matrix . This function is 
 function ame_update_test(ops, ρ, w, v, γ, S)
     l = length(w)
     uniq_w, positive_indices, zero_indices = find_unique_gap(w)
-    cs = [v'*c*v for c in ops]
+    @show uniq_w
+    cs = [v' * c * v for c in ops]
     ρ = v' * ρ * v
     dρ = zeros(ComplexF64, l, l)
     Hₗₛ = zeros(ComplexF64, l, l)
@@ -77,23 +80,54 @@ function ame_update_test(ops, ρ, w, v, γ, S)
         a = [x.I[1] for x in idx]
         b = [x.I[2] for x in idx]
         for c in cs
-            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
-            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
-            LL₊ = L₊'*L₊
-            LL₋ = L₋'*L₋
-            dρ += g₊*(L₊*ρ*L₊'-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋'-0.5*(LL₋*ρ+ρ*LL₋))
-            Hₗₛ += S(w)*LL₊ + S(-w)*LL₋
+            L₊ = sparse(a, b, c[a+(b.-1)*l], l, l)
+            L₋ = sparse(b, a, c[b+(a.-1)*l], l, l)
+            LL₊ = L₊' * L₊
+            LL₋ = L₋' * L₋
+            dρ += g₊ * (L₊ * ρ * L₊' - 0.5 * (LL₊ * ρ + ρ * LL₊)) + g₋ * (L₋ * ρ * L₋' - 0.5 * (LL₋ * ρ + ρ * LL₋))
+            Hₗₛ += S(w) * LL₊ + S(-w) * LL₋
         end
     end
     g0 = γ(0)
-	a = [x.I[1] for x in zero_indices]
+    a = [x.I[1] for x in zero_indices]
     b = [x.I[2] for x in zero_indices]
-	for c in cs
-		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
-        LL = L'*L
-		dρ += g0*(L*ρ*L'-0.5*(LL*ρ+ρ*LL))
-        Hₗₛ += S(0)*LL
-	end
-	dρ -= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
+    for c in cs
+        L = sparse(a, b, c[a+(b.-1)*l], l, l)
+        LL = L' * L
+        dρ += g0 * (L * ρ * L' - 0.5 * (LL * ρ + ρ * LL))
+        Hₗₛ += S(0) * LL
+    end
+    dρ -= 1.0im * (Hₗₛ * ρ - ρ * Hₗₛ)
     v * dρ * v'
+end
+
+function ame_trajectory_Heff_test(ops, w, v, γ, S)
+    l = length(w)
+    d = size(v, 1)
+    uniq_w, positive_indices, zero_indices = find_unique_gap(w)
+    cs = [v' * c * v for c in ops]
+    H_eff = zeros(ComplexF64, d, d)
+    for (w, idx) in zip(uniq_w, positive_indices)
+        g₊ = γ(w)
+        g₋ = γ(-w)
+        a = [x.I[1] for x in idx]
+        b = [x.I[2] for x in idx]
+        for c in cs
+            L₊ = sparse(a, b, c[a+(b.-1)*l], l, l)
+            L₋ = sparse(b, a, c[b+(a.-1)*l], l, l)
+            LL₊ = v * L₊' * L₊ * v'
+            LL₋ = v * L₋' * L₋ * v'
+
+            H_eff += S(w) * LL₊ + S(-w) * LL₋ - 0.5im * g₊ * LL₊ - 0.5im * g₋ * LL₋
+        end
+    end
+    g0 = γ(0)
+    a = [x.I[1] for x in zero_indices]
+    b = [x.I[2] for x in zero_indices]
+    for c in cs
+        L = sparse(a, b, c[a+(b.-1)*l], l, l)
+        LL = v * L' * L * v'
+        H_eff += S(0) * LL - 0.5im * g0 * LL
+    end
+    H_eff
 end
