@@ -66,7 +66,7 @@ end
 function (Op::DiffEqLiouvillian{true,false})(du, u, p, t)
     s = p(t)
     #w, v = Op.H.EIGS(Op.H, s, Op.lvl)
-    w, v = haml_eigs(Op.H, s, lvl=Op.lvl)
+    w, v = haml_eigs(Op.H, s, Op.lvl)
     ω_ba = transpose(w) .- w
     ρ = v' * u * v
     H = Diagonal(w)
@@ -82,7 +82,8 @@ end
 
 function update_cache!(cache, Op::DiffEqLiouvillian{true,false}, p, t::Real)
     s = p(t)
-    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    #w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    w, v = haml_eigs(Op.H, s, Op.lvl)
     ω_ba = transpose(w) .- w
     # initialze the cache as Hamiltonian in eigenbasis
     fill!(Op.u_cache, 0.0)
