@@ -18,59 +18,84 @@ struct DaviesGenerator <: AbstractLiouvillian
     S::Any
 end
 
-function (D::DaviesGenerator)(du, ρ, ω_ba, v, s::Real)
-    γm = D.γ.(ω_ba)
-    sm = D.S.(ω_ba)
-    for op in D.coupling(s)
-        A = v' * op * v
-        davies_update!(du, ρ, A, γm, sm)
-    end
-end
-
-function (D::DaviesGenerator)(du, ρ, ω_ba, s::Real)
-    γm = D.γ.(ω_ba)
-    sm = D.S.(ω_ba)
-    for op in D.coupling(s)
-        davies_update!(du, ρ, op, γm, sm)
-    end
-end
-
-function davies_update!(du, u, A, γ, S)
-    A2 = abs2.(A)
-    γA = γ .* A2
-    Γ = sum(γA, dims=1)
-    dim = size(du, 1)
-    for a = 1:dim
-        for b = 1:a - 1
-            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            @inbounds du[a, b] +=
-                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
-                γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
-        end
-        for b = a + 1:dim
-            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            @inbounds du[a, b] +=
-                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
-                γ[1, 1] * A[a, a] * A[b, b] * u[a, b]
+function (D::DaviesGenerator)(du, ρ, gap_idx::GapIndices, v, s::Real)
+    l = size(du, 1)
+    # pre-rotate all the system bath coupling operators into the energy eigenbasis
+    cs = [v'*c*v for c in D.coupling(s)]
+    Hₗₛ = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        for c in cs
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+            du .+= g₊*(L₊*ρ*L₊'-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋'-0.5*(LL₋*ρ+ρ*LL₋))
+            Hₗₛ += D.S(w)*LL₊ + D.S(-w)*LL₋
         end
     end
-    H_ls = Diagonal(sum(S .* A2, dims=1)[1, :])
-    axpy!(-1.0im, H_ls * u - u * H_ls, du)
+    g0 = D.γ(0)
+    a, b = zero_gap_indices(gap_idx)
+	for c in cs
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+		du .+= g0*(L*ρ*L'-0.5*(LL*ρ+ρ*LL))
+        Hₗₛ += D.S(0)*LL
+	end
+	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
 end
 
-function update_cache!(cache, D::DaviesGenerator, ω_ba, v, s::Real)
-    len = size(ω_ba, 1)
-    γm = D.γ.(ω_ba)
-    sm = D.S.(ω_ba)
-    for op in D.coupling(s)
-        A2 = abs2.(v' * op * v)
-        for b = 1:len
-            for a = 1:len
-                @inbounds cache[b, b] -=
-                    A2[a, b] * (0.5 * γm[a, b] + 1.0im * sm[a, b])
-            end
+function (D::DaviesGenerator)(du, ρ, gap_idx::GapIndices, s::Real)
+    l = size(du, 1)
+    cs = [c for c in D.coupling(s)]
+    Hₗₛ = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        for c in cs
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+            du .+= g₊*(L₊*ρ*L₊'-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋'-0.5*(LL₋*ρ+ρ*LL₋))
+            Hₗₛ += D.S(w)*LL₊ + D.S(-w)*LL₋
         end
     end
+    g0 = D.γ(0)
+    a, b = zero_gap_indices(gap_idx)
+	for c in cs
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+		du .+= g0*(L*ρ*L'-0.5*(LL*ρ+ρ*LL))
+        Hₗₛ += D.S(0)*LL
+	end
+	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
+end
+
+function update_cache!(cache, D::DaviesGenerator, gap_idx::GapIndices, v, s::Real)
+    l = size(cache, 1)
+    cs = [v'*c*v for c in D.coupling(s)]
+    H_eff = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        for c in cs
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+            H_eff -= (1.0im*D.S(w)+0.5*g₊)*LL₊ + (1.0im*D.S(-w)+0.5*g₋)*LL₋
+        end
+    end
+    g0 = D.γ(0)
+    a, b = zero_gap_indices(gap_idx)
+	for c in cs
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+        H_eff -= (1.0im*D.S(0)+0.5*g0)*LL
+	end
+    cache .+= H_eff
 end
 
 """
@@ -93,37 +118,70 @@ struct CorrelatedDaviesGenerator <: AbstractLiouvillian
     inds::Any
 end
 
-function (D::CorrelatedDaviesGenerator)(du, ρ, ω_ba, s::Real)
-    for (α, β) in D.inds
-        γm = D.γ[α,β].(ω_ba)
-        sm = D.S[α,β].(ω_ba)
+function (D::CorrelatedDaviesGenerator)(du, ρ, gap_idx::GapIndices, s::Real)
+    l = size(du, 1)
+    Hₗₛ = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        for (α, β) in D.inds
+            g₊ = D.γ[α,β](w)
+            g₋ = D.γ[α,β](-w)
+            Aα = D.coupling[α](s)
+            Aβ = D.coupling[β](s)
+            L₊ = sparse(a, b, Aβ[a + (b .- 1)*l], l, l)
+            L₊d = sparse(a, b, Aα[a + (b .- 1)*l], l, l)'
+            L₋ = sparse(b, a, Aβ[b + (a .- 1)*l], l, l)
+            L₋d = sparse(b, a, Aα[b + (a .- 1)*l], l, l)'
+            LL₊ = L₊d*L₊
+            LL₋ = L₋d*L₋
+            du .+= g₊*(L₊*ρ*L₊d-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋d-0.5*(LL₋*ρ+ρ*LL₋))
+            Hₗₛ += D.S[α,β](w)*LL₊ + D.S[α,β](-w)*LL₋
+        end
+    end
+    a, b = zero_gap_indices(gap_idx)
+	for (α, β) in D.inds
+        g0 = D.γ[α,β](0)
         Aα = D.coupling[α](s)
         Aβ = D.coupling[β](s)
-        correlated_davies_update!(du, ρ, Aα, Aβ, γm, sm)
-    end
+		L = sparse(a, b, Aβ[a + (b .- 1)*l], l, l)
+        Ld = sparse(a, b, Aα[a + (b .- 1)*l], l, l)'
+        LL = Ld*L
+		du .+= g0*(L*ρ*Ld-0.5*(LL*ρ+ρ*LL))
+        Hₗₛ += D.S[α,β](0)*LL
+	end
+	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
 end
 
-function correlated_davies_update!(du, u, Aα, Aβ, γ, S)
-    A2 = transpose(Aα) .* Aβ
-    γA = γ .* A2
-    Γ = sum(γA, dims=1)
-    dim = size(du, 1)
-    for a = 1:dim
-        for b = 1:a - 1
-            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            @inbounds du[a, b] +=
-                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
-                γ[1, 1] * Aα[a, a] * Aβ[b, b] * u[a, b]
-        end
-        for b = a + 1:dim
-            @inbounds du[a, a] += γA[a, b] * u[b, b] - γA[b, a] * u[a, a]
-            @inbounds du[a, b] +=
-                -0.5 * (Γ[a] + Γ[b]) * u[a, b] +
-                γ[1, 1] * Aα[a, a] * Aβ[b, b] * u[a, b]
+function (D::CorrelatedDaviesGenerator)(du, ρ, gap_idx::GapIndices, v, s::Real)
+    l = size(du, 1)
+    Hₗₛ = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        for (α, β) in D.inds
+            g₊ = D.γ[α,β](w)
+            g₋ = D.γ[α,β](-w)
+            Aα = v' * D.coupling[α](s) * v
+            Aβ = V' * D.coupling[β](s) * v
+            L₊ = sparse(a, b, Aβ[a + (b .- 1)*l], l, l)
+            L₊d = sparse(a, b, Aα[a + (b .- 1)*l], l, l)'
+            L₋ = sparse(b, a, Aβ[b + (a .- 1)*l], l, l)
+            L₋d = sparse(b, a, Aα[b + (a .- 1)*l], l, l)'
+            LL₊ = L₊d*L₊
+            LL₋ = L₋d*L₋
+            du .+= g₊*(L₊*ρ*L₊d-0.5*(LL₊*ρ+ρ*LL₊)) + g₋*(L₋*ρ*L₋d-0.5*(LL₋*ρ+ρ*LL₋))
+            Hₗₛ += D.S[α,β](w)*LL₊ + D.S[α,β](-w)*LL₋
         end
     end
-    H_ls = Diagonal(sum(S .* A2, dims=1)[1, :])
-    axpy!(-1.0im, H_ls * u - u * H_ls, du)
+    a, b = zero_gap_indices(gap_idx)
+	for (α, β) in D.inds
+        g0 = D.γ[α,β](0)
+        Aα = v' * D.coupling[α](s) * v
+        Aβ = v' * D.coupling[β](s) * v
+		L = sparse(a, b, Aβ[a + (b .- 1)*l], l, l)
+        Ld = sparse(a, b, Aα[a + (b .- 1)*l], l, l)'
+        LL = Ld*L
+		du .+= g0*(L*ρ*Ld-0.5*(LL*ρ+ρ*LL))
+        Hₗₛ += D.S[α,β](0)*LL
+	end
+	du .-= 1.0im * (Hₗₛ*ρ - ρ*Hₗₛ)
 end
 
 """
@@ -146,7 +204,8 @@ struct OneSidedAMELiouvillian <: AbstractLiouvillian
     inds::Any
 end
 
-function (A::OneSidedAMELiouvillian)(dρ, ρ, ω_ba, v, s::Real)
+function (A::OneSidedAMELiouvillian)(dρ, ρ, g_idx::GapIndices, v, s::Real)
+    ω_ba = gap_matrix(g_idx)
     for (α, β) in A.inds
         γm = A.γ[α,β].(ω_ba)
         sm = A.S[α,β].(ω_ba)
@@ -159,7 +218,8 @@ function (A::OneSidedAMELiouvillian)(dρ, ρ, ω_ba, v, s::Real)
     end
 end
 
-function (A::OneSidedAMELiouvillian)(du, u, ω_ba, s::Real)
+function (A::OneSidedAMELiouvillian)(du, u, g_idx::GapIndices, s::Real)
+    ω_ba = gap_matrix(g_idx)
     for (α, β) in A.inds
         γm = A.γ[α,β].(ω_ba)
         sm = A.S[α,β].(ω_ba)

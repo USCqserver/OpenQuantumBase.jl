@@ -43,6 +43,9 @@ using SafeTestsets
     @time @safetestset "Interactions" begin
         include("coupling_bath_interaction/interaction.jl")
     end
+    @time @safetestset "Open System utilities" begin
+        include("opensys/util.jl")
+    end
     @time @safetestset "Davies and AME" begin
         include("opensys/davies.jl")
     end

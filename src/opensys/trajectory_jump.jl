@@ -1,3 +1,4 @@
+
 function lind_jump(lind::LindbladLiouvillian, u, p, s::Real)
     l = length(lind)
     prob = Float64[]
@@ -11,47 +12,43 @@ function lind_jump(lind::LindbladLiouvillian, u, p, s::Real)
     sample(ops, Weights(prob))
 end
 
-function ame_jump(D::DaviesGenerator, u, ω_ba, v, s)
-    lvl = size(ω_ba, 1)
-    sys_dim = size(v, 1)
-    num_noise = length(D.coupling)
-    prob_dim = (lvl * (lvl - 1) + 1) * num_noise
-    γm = D.γ.(ω_ba)
+function ame_jump(D::DaviesGenerator, u, gap_idx::GapIndices, v, s)
+    l = get_lvl(gap_idx)
+    prob_dim = get_gaps_num(gap_idx) * length(D.coupling)
     prob = Array{Float64,1}(undef, prob_dim)
-    tag = Array{Tuple{Int,Int,Int},1}(undef, prob_dim)
+    tag = Array{Tuple{Int,Vector{Int},Vector{Int},Float64},1}(undef, prob_dim)
     idx = 1
-    ϕb = abs2.(v' * u)
+    ϕb = v' * u
     σab = [v' * op * v for op in D.coupling(s)]
-    for i = 1:num_noise
-        γA = γm .* abs2.(σab[i])
-        for b = 1:lvl
-            for a = 1:b - 1
-                prob[idx] = γA[a, b] * ϕb[b]
-                tag[idx] = (i, a, b)
-                idx += 1
-                prob[idx] = γA[b, a] * ϕb[a]
-                tag[idx] = (i, b, a)
-                idx += 1
-            end
-        end
-        prob[idx] = transpose(diag(γA)) * ϕb
-        tag[idx] = (i, 0, 0)
+    for (w, a, b) in positive_gap_indices(gap_idx)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        for i in eachindex(σab)
+            L₊ = sparse(a, b, σab[i][a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, σab[i][b + (a .- 1)*l], l, l)
+            ϕ₊ = L₊ * ϕb
+            prob[idx] = g₊ * real(ϕ₊' * ϕ₊)
+            tag[idx] = (i, a, b, sqrt(g₊))
+            idx += 1
+            ϕ₋ = L₋ * ϕb
+            prob[idx] = g₋ * real(ϕ₋' * ϕ₋)
+            tag[idx] = (i, b, a, sqrt(g₋))
+            idx += 1
+        end 
+    end
+    g0 = D.γ(0)
+    a, b = zero_gap_indices(gap_idx)
+	for i in eachindex(σab)
+		L = sparse(a, b, σab[i][a + (b .- 1)*l], l, l)
+        ϕ = L * ϕb
+        prob[idx] = g0 * (ϕ' * ϕ)
+        tag[idx] = (i, a, b, sqrt(g0))
         idx += 1
-    end
+	end
     choice = sample(tag, Weights(prob))
-    if choice[2] == 0
-        res = zeros(ComplexF64, sys_dim, sys_dim)
-        for i in range(1, stop=sys_dim)
-            res += sqrt(γm[1, 1]) * σab[choice[1]][i, i] * v[:, i] * v[:, i]'
-        end
-    else
-        res =
-            sqrt(γm[choice[2], choice[3]]) *
-            σab[choice[1]][choice[2], choice[3]] *
-            v[:, choice[2]] *
-            v[:, choice[3]]'
-    end
-    res
+    L = choice[4] * sparse(choice[2], choice[3], σab[choice[1]][choice[2] + (choice[3] .- 1)*l] , l, l)
+
+    v * L * v'
 end
 
 # TODO: Better implemention of ame_jump function
@@ -63,8 +60,8 @@ Calculate the jump operator for the `DiffEqLiouvillian` at time `t`.
 function lindblad_jump(Op::DiffEqLiouvillian{true,false}, u, p, t::Real)
     s = p(t)
     w, v = haml_eigs(Op.H, s, Op.lvl)
-    ω_ba = transpose(w) .- w
-    resample([ame_jump(x, u, ω_ba, v, s) for x in Op.opensys_eig], u)
+    gap_idx = GapIndices(w, Op.digits, Op.sigdigits)
+    resample([ame_jump(x, u, gap_idx, v, s) for x in Op.opensys_eig], u)
 end
 
 function lindblad_jump(Op::DiffEqLiouvillian{false,false}, u, p, t::Real)
