@@ -36,19 +36,6 @@ function SparseHamiltonian(funcs, mats; unit=:h)
     SparseHamiltonian(funcs, mats, cache, size(mats[1]))
 end
 
-function haml_eigs_default(H::SparseHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
-    if isnothing(lvl)
-        w, v = eigen!(Hermitian(Array(H(t))))
-        return real(w), v
-    else
-        w, v = eigen!(Hermitian(Array(H(t))), 1:lvl)
-    end
-    return real(w)[1:lvl], v[:, 1:lvl]
-end
-
-haml_eigs_default(H::SparseHamiltonian, t, ::Nothing) = eigen!(Hermitian(Array(H(t))))
-haml_eigs_default(H::SparseHamiltonian, t, lvl::Integer) = eigen!(Hermitian(Array(H(t))), 1:lvl)
-
 """
     function (h::SparseHamiltonian)(t::Real)
 

@@ -48,6 +48,10 @@ $(SIGNATURES)
 haml_eigs_default(H::AbstractHamiltonian, t, lvl::Integer) = eigen!(Hermitian(H(t)), 1:lvl)
 haml_eigs_default(H::AbstractHamiltonian, t, ::Nothing) = eigen(Hermitian(H(t)))
 haml_eigs(H::AbstractHamiltonian, t, lvl) = haml_eigs_default(H, t, lvl)
+# Default eigendecomposition routine for AbstractSparseHamiltonian Hamiltonian
+# It converts all sparse matrices into dense ones and use `LAPACK` routine for eigendecomposition
+haml_eigs_default(H::AbstractSparseHamiltonian, t, ::Nothing) = eigen!(Hermitian(Array(H(t))))
+haml_eigs_default(H::AbstractSparseHamiltonian, t, lvl::Integer) = eigen!(Hermitian(Array(H(t))), 1:lvl)
 
 function eigen!(M::Hermitian{T, S}, lvl::UnitRange) where T<:Number where S<:Union{SMatrix, MMatrix}
     w, v = eigen(Hermitian(M))
