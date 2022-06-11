@@ -50,8 +50,8 @@ Find the unique gap values upto `sigdigits` number of significant digits.
 """
 function find_unique_gap(w::AbstractVector{T}; digits::Integer=8, sigdigits::Integer=8) where {T<:Real}
     w_matrix = w' .- w
-    w = round.(w_matrix, digits = digits)
-    w = round.(w_matrix, sigdigits=sigdigits)
+    w_matrix = round.(w_matrix, digits = digits)
+    w_matrix = round.(w_matrix, sigdigits=sigdigits)
     uniq_w = unique(w_matrix)
     uniq_w = sort(uniq_w[findall((x) -> x > 0, uniq_w)])
     indices = []
@@ -64,12 +64,11 @@ end
 """
 $(SIGNATURES)
 
-The function calculates the derivative of the density matrix . This function is for test purpose only.
+The function calculates the derivative of the density matrix obtained by applying the Davies generators on the density matric `ρ``. This function is for test purpose only.
 """
 function ame_update_test(ops, ρ, w, v, γ, S)
     l = length(w)
     uniq_w, positive_indices, zero_indices = find_unique_gap(w)
-    @show uniq_w
     cs = [v' * c * v for c in ops]
     ρ = v' * ρ * v
     dρ = zeros(ComplexF64, l, l)
@@ -101,6 +100,11 @@ function ame_update_test(ops, ρ, w, v, γ, S)
     v * dρ * v'
 end
 
+"""
+$(SIGNATURES)
+
+The function calculates the effective Hamiltonian for the AME quantum trajectories. It is for test purpose only.
+"""
 function ame_trajectory_Heff_test(ops, w, v, γ, S)
     l = length(w)
     d = size(v, 1)
@@ -130,4 +134,22 @@ function ame_trajectory_Heff_test(ops, w, v, γ, S)
         H_eff += S(0) * LL - 0.5im * g0 * LL
     end
     H_eff
+end
+
+"""
+$(SIGNATURES)
+
+The function calculates dρ for one-sided AME. It is for test purpose only.
+"""
+function onesided_ame_update_test(ops, ρ, w, v, γ, S)
+    l = size(v, 1)
+    ω_ba = transpose(w) .- w
+    Γ =  0.5 * γ.(ω_ba) + 1.0im * S.(ω_ba)
+    res = zeros(ComplexF64, l, l)
+    for op in ops
+        L = v * (Γ .* (v' * op * v)) * v'
+        K = L * ρ * op - op * L * ρ
+        res += K + K'
+    end
+    res
 end
