@@ -16,18 +16,14 @@ struct SparseHamiltonian{T<:Number} <: AbstractSparseHamiltonian{T}
     u_cache::SparseMatrixCSC{T,Int}
     "Size"
     size::Tuple
-    "Eigen decomposition routine"
-    EIGS::Any
 end
 
 """
 $(SIGNATURES)
 
 Constructor of the `SparseHamiltonian` type. `funcs` and `mats` are lists of time-dependent functions and the corresponding matrices. The Hamiltonian can be represented as ``∑ᵢfuncs[i](s)×mats[i]``. `unit` specifies wether `:h` or `:ħ` is set to one when defining `funcs` and `mats`. The `mats` will be scaled by ``2π`` if unit is `:h`.
-
-`EIGS` is the initializer for the eigendecomposition routine for the Hamiltonian. It should return a function of the signature: `(H, s, lvl) -> (w, v)`. The default method `EIGEN_DEFAULT` will use `LAPACK` routine.
 """
-function SparseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
+function SparseHamiltonian(funcs, mats; unit=:h)
     if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
@@ -37,10 +33,21 @@ function SparseHamiltonian(funcs, mats; unit = :h, EIGS = EIGEN_DEFAULT)
     cache = similar(sum(mats))
     fill!(cache, 0.0)
     mats = unit_scale(unit) * mats
-    EIGS = EIGS(cache)
-    SparseHamiltonian(funcs, mats, cache, size(mats[1]), EIGS)
+    SparseHamiltonian(funcs, mats, cache, size(mats[1]))
 end
 
+function haml_eigs_default(H::SparseHamiltonian, t; lvl::Union{Int,Nothing}=nothing)
+    if isnothing(lvl)
+        w, v = eigen!(Hermitian(Array(H(t))))
+        return real(w), v
+    else
+        w, v = eigen!(Hermitian(Array(H(t))), 1:lvl)
+    end
+    return real(w)[1:lvl], v[:, 1:lvl]
+end
+
+haml_eigs_default(H::SparseHamiltonian, t, ::Nothing) = eigen!(Hermitian(Array(H(t))))
+haml_eigs_default(H::SparseHamiltonian, t, lvl::Integer) = eigen!(Hermitian(Array(H(t))), 1:lvl)
 
 """
     function (h::SparseHamiltonian)(t::Real)
@@ -81,18 +88,18 @@ function (h::SparseHamiltonian)(
     du .= -1.0im * (H * u - u * H)
 end
 
-function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Complex, M}
+function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Complex,M}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, complex{M})
     SparseHamiltonian(H.f, mats, cache, size(H))
 end
 
-function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Real, M}
+function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Real,M}
     f_val = sum((x) -> x(0.0), H.f)
     if !(typeof(f_val) <: Real)
         throw(TypeError(:convert, "H.f", Real, typeof(f_val)))
     end
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, real(M))
-    SparseHamiltonian(H.f, mats, cache, size(H), H.EIGS)
+    SparseHamiltonian(H.f, mats, cache, size(H))
 end

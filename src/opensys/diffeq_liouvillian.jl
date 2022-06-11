@@ -69,7 +69,7 @@ end
 
 function (Op::DiffEqLiouvillian{true,false})(du, u, p, t)
     s = p(t)
-    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    w, v = haml_eigs(Op.H, s, Op.lvl)
     # preprocessing the gaps and their indices
     gap_ind = GapIndices(w, Op.digits, Op.sigdigits)
     # rotate the density matrix into eigen basis
@@ -88,7 +88,7 @@ end
 
 function update_cache!(cache, Op::DiffEqLiouvillian{true,false}, p, t::Real)
     s = p(t)
-    w, v = Op.H.EIGS(Op.H, s, Op.lvl)
+    w, v = haml_eigs(Op.H, s, Op.lvl)
     # preprocessing the gaps and their indices
     gap_ind = GapIndices(w, Op.digits, Op.sigdigits)
     # initialze the cache as Hamiltonian in eigenbasis
