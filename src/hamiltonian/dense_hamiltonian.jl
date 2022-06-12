@@ -13,7 +13,7 @@ struct DenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
     "List of constant matrices"
     m::Vector
     "Internal cache"
-    u_cache::AbstractMatrix
+    u_cache::AbstractMatrix{T}
     "Size"
     size::Tuple
 end

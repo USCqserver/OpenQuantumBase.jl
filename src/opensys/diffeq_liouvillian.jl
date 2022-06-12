@@ -21,7 +21,7 @@ struct DiffEqLiouvillian{diagonalization,adiabatic_frame}
     "Number of significant digits to round for gaps"
     sigdigits::Integer
     "Internal cache"
-    u_cache::Any
+    u_cache::AbstractMatrix
 end
 
 """

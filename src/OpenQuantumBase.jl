@@ -3,7 +3,7 @@ module OpenQuantumBase
 using DocStringExtensions
 
 import LinearAlgebra: mul!, lmul!, axpy!, ishermitian, Hermitian, eigen, eigen!,
-       tr, diag, Diagonal, norm, I, Bidiagonal
+    tr, diag, Diagonal, norm, I, Bidiagonal
 import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
@@ -15,12 +15,12 @@ $(TYPEDEF)
 
 Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object should implement two interfaces: `H(t)` and `H(du, u, p, t)`.
 """
-abstract type AbstractHamiltonian{T <: Number} end
+abstract type AbstractHamiltonian{T<:Number} end
 
 
 Base.eltype(::AbstractHamiltonian{T}) where {T} = T
 Base.size(H::AbstractHamiltonian) = H.size
-Base.size(H::AbstractHamiltonian, dim::T) where {T <: Integer} = H.size[dim]
+Base.size(H::AbstractHamiltonian, dim::T) where {T<:Integer} = H.size[dim]
 get_cache(H::AbstractHamiltonian) = H.u_cache
 
 
@@ -29,7 +29,7 @@ $(TYPEDEF)
 
 Base for types defining Hamiltonians using dense matrices.
 """
-abstract type AbstractDenseHamiltonian{T <: Number} <: AbstractHamiltonian{T} end
+abstract type AbstractDenseHamiltonian{T<:Number} <: AbstractHamiltonian{T} end
 
 
 """
@@ -37,7 +37,7 @@ $(TYPEDEF)
 
 Base for types defining Hamiltonians using sparse matrices.
 """
-abstract type AbstractSparseHamiltonian{T <: Number} <: AbstractHamiltonian{T} end
+abstract type AbstractSparseHamiltonian{T<:Number} <: AbstractHamiltonian{T} end
 
 
 """
@@ -45,7 +45,7 @@ $(TYPEDEF)
 
 Base for types defining quantum annealing process.
 """
-abstract type AbstractAnnealing{hType <: AbstractHamiltonian,uType <: Union{Vector,Matrix},} end
+abstract type AbstractAnnealing{hType<:AbstractHamiltonian,uType<:Union{Vector,Matrix},} end
 
 """
 $(TYPEDEF)
@@ -107,34 +107,34 @@ include("opensys/trajectory_jump.jl")
 include("projection/projection.jl")
 
 export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian,
-       InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
+    InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
 export rotate
-export eigen_decomp
+export eigen_decomp, haml_eigs
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature
 export σx, σz, σy, σi, σ, ⊗, PauliVec, spσx, spσz, spσi, spσy, σ₊, σ₋,
-       bloch_to_state, creation_operator, annihilation_operator, number_operator
+    bloch_to_state, creation_operator, annihilation_operator, number_operator
 
 export q_translate, standard_driver, local_field_term, two_local_term,
-       single_clause, q_translate_state, collective_operator, hamming_weight_operator
+    single_clause, q_translate_state, collective_operator, hamming_weight_operator
 
 export check_positivity, check_unitary, check_density_matrix, partial_trace,
-       matrix_decompose, low_level_matrix, fidelity, inst_population, gibbs_state, purity, check_pure_state
+    matrix_decompose, low_level_matrix, fidelity, inst_population, gibbs_state, purity, check_pure_state
 
 export construct_interpolations, gradient, log_uniform
 
 export hamiltonian_from_function, evaluate, issparse, get_cache, update_cache!,
-       update_vectorized_cache!
+    update_vectorized_cache!
 
 export ConstantCouplings, TimeDependentCoupling, TimeDependentCouplings,
-       CustomCouplings, collective_coupling, Interaction, InteractionSet
+    CustomCouplings, collective_coupling, Interaction, InteractionSet
 
 export Annealing, ODEParams, set_u0!, Evolution
 
 export Lindblad, EnsembleFluctuator, DiffEqLiouvillian
 
 export Ohmic, OhmicBath, CustomBath, CorrelatedBath, ULEBath, HybridOhmic,
-       HybridOhmicBath
+    HybridOhmicBath
 export correlation, polaron_correlation, γ, S, spectrum, info_freq
 
 export τ_B, τ_SB, coarse_grain_timescale

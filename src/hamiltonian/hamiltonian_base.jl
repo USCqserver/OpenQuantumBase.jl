@@ -1,9 +1,15 @@
 """
 $(SIGNATURES)
 
-Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`
+Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`. 
+
+Fallback to `H.(s)/2/π` for generic `AbstractHamiltonian` type.
 """
 evaluate(H::AbstractHamiltonian, s::Real) = H.(s) / 2 / π
+
+function (H::AbstractHamiltonian, p, s::Real) 
+    H.(s) / 2 / π
+end
 
 """
 $(SIGNATURES)
@@ -13,6 +19,18 @@ Update the internal cache `cache` according to the value of the Hamiltonian `H` 
 Fallback to `cache .= -1.0im * H(p, s)` for generic `AbstractHamiltonian` type.
 """
 update_cache!(cache, H::AbstractHamiltonian, p, s::Real) = cache .= -1.0im * H(p, s)
+
+function update_vectorized_cache!(cache, H::AbstractHamiltonian, p, s::Real)
+    hmat = H(s)
+    iden = one(hmat)
+    cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
+end
+
+function (h::AbstractHamiltonian)(du, u::AbstractMatrix, p, s::Real)
+    H = h(s)
+    Hρ = -1.0im * H * u
+    du .= Hρ - transpose(Hρ)
+end
 
 """
 $(SIGNATURES)

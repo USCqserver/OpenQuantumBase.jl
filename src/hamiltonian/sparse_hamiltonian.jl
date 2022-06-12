@@ -67,7 +67,7 @@ end
 
 function (h::SparseHamiltonian)(
     du,
-    u,
+    u::AbstractMatrix,
     p,
     s::Real,
 ) where {T<:Number}
