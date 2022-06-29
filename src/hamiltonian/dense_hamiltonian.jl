@@ -54,23 +54,23 @@ function (h::DenseHamiltonian)(s::Real)
     h.u_cache
 end
 
-# The argument `p` is not essential for `DenseHamiltonian`
+# The third argument is not essential for `DenseHamiltonian`
 # It exists to keep the `update_cache!` interface consistent across
 # all `AbstractHamiltonian` types
-function update_cache!(cache, H::DenseHamiltonian, p, s::Real)
+function update_cache!(cache, H::DenseHamiltonian, ::Any, s::Real)
     fill!(cache, 0.0)
     for i = 1:length(H.m)
         @inbounds axpy!(-1.0im * H.f[i](s), H.m[i], cache)
     end
 end
 
-function update_vectorized_cache!(cache, H::DenseHamiltonian, p, s::Real)
+function update_vectorized_cache!(cache, H::DenseHamiltonian, ::Any, s::Real)
     hmat = H(s)
     iden = one(hmat)
     cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
 end
 
-function (h::DenseHamiltonian)(du, u::AbstractMatrix, p, s::Real)
+function (h::DenseHamiltonian)(du, u::AbstractMatrix, ::Any, s::Real)
     fill!(du, 0.0 + 0.0im)
     H = h(s)
     gemm!('N', 'N', -1.0im, H, u, 1.0 + 0.0im, du)
@@ -119,13 +119,14 @@ struct ConstantDenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
     size::Tuple
 end
 
+isconstant(::ConstantDenseHamiltonian) = true
+
 function (h::ConstantDenseHamiltonian)(::Real)
     h.u_cache
 end
 
 function update_cache!(cache, H::ConstantDenseHamiltonian, p, ::Real)
-    fill!(cache, 0.0)
-    axpy!(-1.0im, H.u_cache, cache)
+    cache .= -1.0im * H.u_cache
 end
 
 function update_vectorized_cache!(cache, H::ConstantDenseHamiltonian, p, ::Real)
@@ -134,14 +135,14 @@ function update_vectorized_cache!(cache, H::ConstantDenseHamiltonian, p, ::Real)
     cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
 end
 
-function (h::ConstantDenseHamiltonian)(du, u::AbstractMatrix, p, s::Real)
+function (h::ConstantDenseHamiltonian)(du, u::AbstractMatrix, p, ::Real)
     fill!(du, 0.0 + 0.0im)
     H = h.u_cache
     gemm!('N', 'N', -1.0im, H, u, 1.0 + 0.0im, du)
     gemm!('N', 'N', 1.0im, u, H, 1.0 + 0.0im, du)
 end
 
-function Base.convert(S::Type{T}, H::ConstantDenseHamiltonian{M}) where {T,M}
+function Base.convert(S::Type{T}, H::ConstantDenseHamiltonian{M}) where {T<:Number,M}
     mat = convert.(S, H.u_cache)
     ConstantDenseHamiltonian{eltype(mat)}(mat, size(H))
 end

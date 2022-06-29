@@ -11,6 +11,11 @@ function (H::AbstractHamiltonian, p, s::Real)
     H.(s) / 2 / π
 end
 
+"""
+isconstant(H)
+
+Check whether a Hamiltonian is constant.
+"""
 isconstant(::AbstractHamiltonian) = false
 
 """
@@ -143,4 +148,17 @@ function is_complex(f_list, m_list)
     end || any(f_list) do f
         typeof(f(0)) <: Complex
     end
+end
+
+function ConstantHamiltonian(mat::AbstractMatrix; unit=:h, static=true)
+    mat = unit_scale(unit) * mat
+    if static && size(mat, 1) <= 10
+        mat = SMatrix{size(mat, 1), size(mat, 2)}(mat)
+    end
+    ConstantDenseHamiltonian(mat, size(mat))
+end
+
+function ConstantHamiltonian(mat::SparseMatrixCSC; unit=:h, static=true)
+    mat = unit_scale(unit) * mat
+    ConstantSparseHamiltonian(mat, size(mat))
 end

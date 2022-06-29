@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 
-Defines a time dependent Hamiltonian object with sparse Matrices.
+Defines a time dependent Hamiltonian object with sparse matrices.
 
 # Fields
 
@@ -41,25 +41,25 @@ end
 
 Calling the Hamiltonian returns the value ``2πH(t)``.
 """
-function (h::SparseHamiltonian)(t::Real)
+function (h::SparseHamiltonian)(s::Real)
     fill!(h.u_cache, 0.0)
     for (f, m) in zip(h.f, h.m)
-        h.u_cache .+= f(t) * m
+        h.u_cache .+= f(s) * m
     end
     h.u_cache
 end
 
-# The argument `p` is not essential for `SparseHamiltonian`
+# The third argument is not essential for `SparseHamiltonian`
 # It exists to keep the `update_cache!` interface consistent across
 # all `AbstractHamiltonian` types
-function update_cache!(cache, H::SparseHamiltonian, tf, s::Real)
+function update_cache!(cache, H::SparseHamiltonian, ::Any, s::Real)
     fill!(cache, 0.0)
     for (f, m) in zip(H.f, H.m)
         cache .+= -1.0im * f(s) * m
     end
 end
 
-function update_vectorized_cache!(cache, H::SparseHamiltonian, tf, s::Real)
+function update_vectorized_cache!(cache, H::SparseHamiltonian, ::Any, s::Real)
     hmat = H(s)
     iden = sparse(I, size(H))
     cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
@@ -68,9 +68,9 @@ end
 function (h::SparseHamiltonian)(
     du,
     u::AbstractMatrix,
-    p,
+    ::Any,
     s::Real,
-) where {T<:Number}
+)
     H = h(s)
     du .= -1.0im * (H * u - u * H)
 end
@@ -89,4 +89,51 @@ function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Real,M}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, real(M))
     SparseHamiltonian(H.f, mats, cache, size(H))
+end
+
+"""
+$(TYPEDEF)
+
+Defines a time independent Hamiltonian object with sparse matrices.
+
+# Fields
+
+$(FIELDS)
+"""
+struct ConstantSparseHamiltonian{T<:Number} <: AbstractSparseHamiltonian{T}
+    "Internal cache"
+    u_cache::SparseMatrixCSC{T,Int}
+    "Size"
+    size::Tuple
+end
+
+isconstant(::ConstantSparseHamiltonian) = true
+
+function (h::ConstantSparseHamiltonian)(::Real)
+    h.u_cache
+end
+
+function update_cache!(cache, H::ConstantSparseHamiltonian, ::Any, ::Real)
+    cache .= -1.0im * H.u_cache
+end
+
+function update_vectorized_cache!(cache, H::ConstantSparseHamiltonian, ::Any, ::Real)
+    hmat = H.u_cache
+    iden = sparse(I, size(H))
+    cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
+end
+
+function (h::ConstantSparseHamiltonian)(
+    du,
+    u::AbstractMatrix,
+    ::Any,
+    ::Real,
+)
+    H = h.u_cache
+    du .= -1.0im * (H * u - u * H)
+end
+
+function Base.convert(S::Type{T}, H::ConstantSparseHamiltonian{M}) where {T<:Number,M}
+    mat = convert.(S, H.u_cache)
+    ConstantSparseHamiltonian{eltype(mat)}(mat, size(H))
 end
