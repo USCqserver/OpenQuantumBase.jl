@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 
-Defines a time dependent Hamiltonian object with dense Matrices.
+Defines a time dependent Hamiltonian object with dense matrices.
 
 # Fields
 
@@ -17,7 +17,6 @@ struct DenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
     "Size"
     size::Tuple
 end
-
 
 """
 $(SIGNATURES)
@@ -102,4 +101,57 @@ end
 function rotate(H::DenseHamiltonian, v)
     mats = [v' * m * v for m in H.m]
     DenseHamiltonian(H.f, mats, unit=:ħ)
+end
+
+"""
+$(TYPEDEF)
+
+Defines a time independent Hamiltonian object with dense matrices.
+
+# Fields
+
+$(FIELDS)
+"""
+struct ConstantDenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
+    "Internal cache"
+    u_cache::AbstractMatrix{T}
+    "Size"
+    size::Tuple
+end
+
+function (h::ConstantDenseHamiltonian)(::Real)
+    h.u_cache
+end
+
+function update_cache!(cache, H::ConstantDenseHamiltonian, p, ::Real)
+    fill!(cache, 0.0)
+    axpy!(-1.0im, H.u_cache, cache)
+end
+
+function update_vectorized_cache!(cache, H::ConstantDenseHamiltonian, p, ::Real)
+    hmat = H.u_cache
+    iden = one(hmat)
+    cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
+end
+
+function (h::ConstantDenseHamiltonian)(du, u::AbstractMatrix, p, s::Real)
+    fill!(du, 0.0 + 0.0im)
+    H = h.u_cache
+    gemm!('N', 'N', -1.0im, H, u, 1.0 + 0.0im, du)
+    gemm!('N', 'N', 1.0im, u, H, 1.0 + 0.0im, du)
+end
+
+function Base.convert(S::Type{T}, H::ConstantDenseHamiltonian{M}) where {T,M}
+    mat = convert.(S, H.u_cache)
+    ConstantDenseHamiltonian{eltype(mat)}(mat, size(H))
+end
+
+function Base.copy(H::ConstantDenseHamiltonian)
+    mat = copy(H.u_cache)
+    ConstantDenseHamiltonian{eltype(mat[1])}(mat, size(H))
+end
+
+function rotate(H::ConstantDenseHamiltonian, v)
+    mat = v' * H.u_cache * v
+    DenseHamiltonian(mat, size(mat))
 end
