@@ -11,6 +11,7 @@ H_sparse = SparseHamiltonian([A, B], [spσx, spσz])
 H_real = convert(Real, H_sparse)
 @test eltype(H_real) <: Real
 @test H_sparse(0.0) ≈ H_real(0.0)
+@test !isconstant(H_sparse)
 
 @test size(H_sparse) == (2,2)
 @test issparse(H_sparse)

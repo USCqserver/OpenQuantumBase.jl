@@ -108,7 +108,7 @@ include("projection/projection.jl")
 
 export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian,
     InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
-export rotate
+export rotate, isconstant
 export eigen_decomp, haml_eigs
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature

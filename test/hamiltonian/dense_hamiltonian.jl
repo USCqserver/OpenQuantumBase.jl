@@ -6,6 +6,7 @@ H = build_example_hamiltonian(1)
 @test H(0.5) == π * (σx + σz)
 @test evaluate(H, 0.5) == (σx + σz) / 2
 @test get_cache(H) ≈ π * (σx + σz)
+@test !isconstant(H)
 
 # update_cache method
 C = similar(σz)

@@ -11,6 +11,8 @@ function (H::AbstractHamiltonian, p, s::Real)
     H.(s) / 2 / π
 end
 
+isconstant(::AbstractHamiltonian) = false
+
 """
 $(SIGNATURES)
 

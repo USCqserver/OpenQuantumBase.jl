@@ -11,6 +11,7 @@ H_list = [evaluate(H, t) for t in t_axis]
 
 H_interp = InterpDenseHamiltonian(t_axis, H_list)
 @test H_interp(0.5) == H(0.5)
+@test !isconstant(H_interp)
 
 # update_cache method
 C = get_cache(H_interp, false)

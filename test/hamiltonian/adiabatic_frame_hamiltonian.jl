@@ -10,6 +10,7 @@ test_geometric_operator = OpenQuantumBase.GeometricOperator(((x) -> -1.0im * x))
 @test_throws ArgumentError OpenQuantumBase.GeometricOperator((x) -> x, (x) -> 1 - x)
 
 H = AdiabaticFrameHamiltonian(funcs, [])
+@test !isconstant(H)
 @test H(2, 0.5) ≈ Diagonal([π, π])
 H = AdiabaticFrameHamiltonian(funcs, nothing)
 @test H(2, 0.0) ≈ Diagonal([0, 2π])
