@@ -107,6 +107,11 @@ struct ConstantSparseHamiltonian{T<:Number} <: AbstractSparseHamiltonian{T}
     size::Tuple
 end
 
+function SparseHamiltonian(mat; unit=:h)
+    mat = unit_scale(unit) * mat
+    ConstantSparseHamiltonian(mat, size(mat))
+end
+
 isconstant(::ConstantSparseHamiltonian) = true
 
 function (h::ConstantSparseHamiltonian)(::Real)

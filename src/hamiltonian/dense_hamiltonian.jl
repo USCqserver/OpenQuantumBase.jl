@@ -1,19 +1,19 @@
 """
 $(TYPEDEF)
 
-Defines a time dependent Hamiltonian object with dense matrices.
+Defines a time dependent Hamiltonian object using Julia arrays.
 
 # Fields
 
 $(FIELDS)
 """
-struct DenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
+struct DenseHamiltonian{T<:Number,dimensionless_time<:Bool} <: AbstractDenseHamiltonian{T}
     "List of time dependent functions"
     f::Vector
     "List of constant matrices"
     m::Vector
     "Internal cache"
-    u_cache::AbstractMatrix{T}
+    u_cache::Matrix{T}
     "Size"
     size::Tuple
 end
@@ -21,9 +21,13 @@ end
 """
 $(SIGNATURES)
 
-Constructor of the `DenseHamiltonian` type. `funcs` and `mats` are lists of time-dependent functions and the corresponding matrices. The Hamiltonian can be represented as ``∑ᵢfuncs[i](s)×mats[i]``. `unit` specifies wether `:h` or `:ħ` is set to one when defining `funcs` and `mats`. The `mats` will be scaled by ``2π`` if unit is `:h`.
+Constructor of the `DenseHamiltonian` type. `funcs` and `mats` are lists of time-dependent functions and the corresponding matrices. The Hamiltonian can be represented as ``∑ᵢfuncs[i](s)×mats[i]``. 
+
+`unit` specifies wether `:h` or `:ħ` is set to one when defining `funcs` and `mats`. The `mats` will be scaled by ``2π`` if unit is `:h`.
+
+`dimensionless_time` specifies wether the arguments of the functions are dimensionless (normalized to total evolution time).
 """
-function DenseHamiltonian(funcs, mats; unit = :h)
+function DenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=false)
     if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
@@ -31,20 +35,15 @@ function DenseHamiltonian(funcs, mats; unit = :h)
         mats = complex.(mats)
     end
     hsize = size(mats[1])
-    # use static array for size smaller than 100
-    if hsize[1] <= 10
-        mats = [SMatrix{hsize[1],hsize[2]}(unit_scale(unit) * m) for m in mats]
-    else
-        mats = unit_scale(unit) * mats
-    end
+    mats = unit_scale(unit) * mats
     cache = similar(mats[1])
-    DenseHamiltonian{eltype(mats[1])}(funcs, mats, cache, hsize)
+    DenseHamiltonian{eltype(mats[1]), dimensionless_time}(funcs, mats, cache, hsize)
 end
 
 """
     function (h::DenseHamiltonian)(s::Real)
 
-Calling the Hamiltonian returns the value ``2πH(s)``. The argument `s` is in the dimensionless time. The returned matrix is in the unit of angular frequency.
+Calling the Hamiltonian returns the value ``2πH(s)``. The argument `s` is the (dimensionless) time. The returned matrix is in the unit of angular frequency.
 """
 function (h::DenseHamiltonian)(s::Real)
     fill!(h.u_cache, 0.0)
@@ -94,8 +93,8 @@ function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
 end
 
 function Base.copy(H::DenseHamiltonian)
-    mats = Base.copy(H.m)
-    DenseHamiltonian{eltype(mats[1])}(H.f, mats, Base.copy(H.u_cache), size(H))
+    mats = copy(H.m)
+    DenseHamiltonian{eltype(mats[1])}(H.f, mats, copy(H.u_cache), size(H))
 end
 
 function rotate(H::DenseHamiltonian, v)
@@ -106,7 +105,7 @@ end
 """
 $(TYPEDEF)
 
-Defines a time independent Hamiltonian object with dense matrices.
+Defines a time independent Hamiltonian object with a Julia array.
 
 # Fields
 
@@ -114,9 +113,14 @@ $(FIELDS)
 """
 struct ConstantDenseHamiltonian{T<:Number} <: AbstractDenseHamiltonian{T}
     "Internal cache"
-    u_cache::AbstractMatrix{T}
+    u_cache::Matrix{T}
     "Size"
     size::Tuple
+end
+
+function ConstantDenseHamiltonian(mat; unit=:h)
+    mat = unit_scale(unit) * mat
+    ConstantDenseHamiltonian{eltype(mat)}(mat, size(mat))
 end
 
 isconstant(::ConstantDenseHamiltonian) = true
@@ -125,7 +129,7 @@ function (h::ConstantDenseHamiltonian)(::Real)
     h.u_cache
 end
 
-function update_cache!(cache, H::ConstantDenseHamiltonian, p, ::Real)
+function update_cache!(cache, H::ConstantDenseHamiltonian, ::Any, ::Real)
     cache .= -1.0im * H.u_cache
 end
 
@@ -135,7 +139,7 @@ function update_vectorized_cache!(cache, H::ConstantDenseHamiltonian, p, ::Real)
     cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
 end
 
-function (h::ConstantDenseHamiltonian)(du, u::AbstractMatrix, p, ::Real)
+function (h::ConstantDenseHamiltonian)(du, u::AbstractMatrix, ::Any, ::Real)
     fill!(du, 0.0 + 0.0im)
     H = h.u_cache
     gemm!('N', 'N', -1.0im, H, u, 1.0 + 0.0im, du)
@@ -154,5 +158,5 @@ end
 
 function rotate(H::ConstantDenseHamiltonian, v)
     mat = v' * H.u_cache * v
-    DenseHamiltonian(mat, size(mat))
+    ConstantDenseHamiltonian(mat, size(mat))
 end
