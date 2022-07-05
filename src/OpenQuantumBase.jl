@@ -4,7 +4,7 @@ using DocStringExtensions
 
 import LinearAlgebra: mul!, lmul!, axpy!, ishermitian, Hermitian, eigen, eigen!,
     tr, diag, Diagonal, norm, I, Bidiagonal
-import StaticArrays: SMatrix, MMatrix, MVector, @MMatrix
+import StaticArrays: SMatrix, MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
 import QuadGK: quadgk!, quadgk
