@@ -7,18 +7,18 @@ Defines a time dependent Hamiltonian object using static arrays.
 
 $(FIELDS)
 """
-struct StaticDenseHamiltonian{T<:Number,dimensionless_time<:Bool} <: AbstractDenseHamiltonian{T}
+struct StaticDenseHamiltonian{T<:Number,dimensionless_time} <: AbstractDenseHamiltonian{T}
     "List of time dependent functions"
     f::Vector
     "List of constant matrices"
     m::Vector
     "Internal cache"
-    u_cache::MMatrix{T}
+    u_cache::MMatrix
     "Size"
     size::Tuple
 end
 
-function StaticDenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=false)
+function StaticDenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
@@ -26,11 +26,6 @@ function StaticDenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=false)
         mats = complex.(mats)
     end
     hsize = size(mats[1])
-    # use static array for size smaller than 100
-    # can be turned off by setting `static` to false
-    #if static && hsize[1] <= 10
-    #    mats = [SMatrix{hsize[1],hsize[2]}(unit_scale(unit) * m) for m in mats]
-    #end
     mats = unit_scale(unit) * mats
     cache = similar(mats[1])
     StaticDenseHamiltonian{eltype(mats[1]), dimensionless_time}(funcs, mats, cache, hsize)
@@ -94,10 +89,18 @@ function Base.copy(H::StaticDenseHamiltonian)
 end
 
 function rotate(H::StaticDenseHamiltonian, v)
-    mats = [v' * m * v for m in H.m]
-    StaticDenseHamiltonian(H.f, mats, unit=:ħ)
+    hsize = size(H)
+    mats = [SMatrix{hsize[1], hsize[2]}(v' * m * v) for m in H.m]
+    StaticDenseHamiltonian(H.f, mats, unit=:ħ, dimensionless_time=isdimensionlesstime(H))
 end
 
+isdimensionlesstime(H::StaticDenseHamiltonian{T, true}) where T = true
+isdimensionlesstime(H::StaticDenseHamiltonian{T, false}) where T = false
+
+function haml_eigs_default(H::StaticDenseHamiltonian, t, lvl::Integer) 
+    w, v = eigen(Hermitian(H(t)))
+    w[1:lvl], v[:, 1:lvl]
+end
 
 """
 $(TYPEDEF)

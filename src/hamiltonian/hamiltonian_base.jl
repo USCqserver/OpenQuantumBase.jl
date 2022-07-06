@@ -78,10 +78,10 @@ haml_eigs(H::AbstractHamiltonian, t, lvl) = haml_eigs_default(H, t, lvl)
 haml_eigs_default(H::AbstractSparseHamiltonian, t, ::Nothing) = eigen!(Hermitian(Array(H(t))))
 haml_eigs_default(H::AbstractSparseHamiltonian, t, lvl::Integer) = eigen!(Hermitian(Array(H(t))), 1:lvl)
 
-function eigen!(M::Hermitian{T, S}, lvl::UnitRange) where T<:Number where S<:Union{SMatrix, MMatrix}
-    w, v = eigen(Hermitian(M))
-    w[lvl], v[:, lvl]
-end
+#function eigen!(M::Hermitian{T, S}, lvl::UnitRange) where T<:Number where S<:Union{SMatrix, MMatrix}
+#    w, v = eigen(Hermitian(M))
+#    w[lvl], v[:, lvl]
+#end
 
 """
 $(SIGNATURES)
@@ -168,13 +168,13 @@ function ConstantHamiltonian(mat::SparseMatrixCSC; unit=:h, static=true)
     ConstantSparseHamiltonian(mat, size(mat))
 end
 
-function Hamiltonian(f, mats; unit=:h, dimensionless_time=false, static=true)
+function Hamiltonian(f, mats; unit=:h, dimensionless_time=true, static=true)
     @warn "Elements in `mats` have different types. Will attempt to promote them to a common type."
     mats = promote(mats)
     Hamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time, static= static)
 end
 
-function Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=false, static=true) where {T<:Matrix}
+function Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static=true) where {T<:Matrix}
     hsize = size(mats[1])
     # use static array for size smaller than 100
     # can be turned off by setting `static` to false
@@ -185,6 +185,6 @@ function Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=fal
     DenseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)
 end
 
-Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=false, static=true) where {T<:Union{SMatrix, MMatrix}} = StaticDenseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)
+Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static=true) where {T<:Union{SMatrix, MMatrix}} = StaticDenseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)
 
-Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=false, static=true) where {T<:SparseMatrixCSC} = SparseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)
+Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static=true) where {T<:SparseMatrixCSC} = SparseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)

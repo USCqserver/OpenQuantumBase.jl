@@ -7,7 +7,7 @@ Defines a time dependent Hamiltonian object using Julia arrays.
 
 $(FIELDS)
 """
-struct DenseHamiltonian{T<:Number,dimensionless_time<:Bool} <: AbstractDenseHamiltonian{T}
+struct DenseHamiltonian{T<:Number,dimensionless_time} <: AbstractDenseHamiltonian{T}
     "List of time dependent functions"
     f::Vector
     "List of constant matrices"
@@ -27,7 +27,7 @@ Constructor of the `DenseHamiltonian` type. `funcs` and `mats` are lists of time
 
 `dimensionless_time` specifies wether the arguments of the functions are dimensionless (normalized to total evolution time).
 """
-function DenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=false)
+function DenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
@@ -101,6 +101,9 @@ function rotate(H::DenseHamiltonian, v)
     mats = [v' * m * v for m in H.m]
     DenseHamiltonian(H.f, mats, unit=:ħ)
 end
+
+isdimensionlesstime(H::DenseHamiltonian{T, true}) where T = true
+isdimensionlesstime(H::DenseHamiltonian{T, false}) where T = false
 
 """
 $(TYPEDEF)

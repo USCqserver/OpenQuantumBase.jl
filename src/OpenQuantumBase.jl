@@ -88,6 +88,7 @@ include("integration/ext_util.jl")
 include("hamiltonian/hamiltonian_base.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
+include("hamiltonian/static_array_hamiltonian.jl")
 include("hamiltonian/adiabatic_frame_hamiltonian.jl")
 include("hamiltonian/interp_hamiltonian.jl")
 include("hamiltonian/custom_hamiltonian.jl")
@@ -107,8 +108,8 @@ include("opensys/trajectory_jump.jl")
 include("projection/projection.jl")
 
 export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian,
-    InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian
-export rotate, isconstant, ConstantHamiltonian
+    InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian, Hamiltonian
+export rotate, isconstant, isdimensionlesstime, ConstantHamiltonian
 export eigen_decomp, haml_eigs
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature
