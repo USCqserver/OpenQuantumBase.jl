@@ -79,7 +79,7 @@ end
 function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Complex,M}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, complex{M})
-    DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H))
+    DenseHamiltonian{eltype(mats[1]), isdimensionlesstime(H)}(H.f, mats, cache, size(H))
 end
 
 function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
@@ -89,7 +89,7 @@ function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
     end
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, real(M))
-    DenseHamiltonian{eltype(mats[1])}(H.f, mats, cache, size(H))
+    DenseHamiltonian{eltype(mats[1]), isdimensionlesstime(H)}(H.f, mats, cache, size(H))
 end
 
 function Base.copy(H::DenseHamiltonian)

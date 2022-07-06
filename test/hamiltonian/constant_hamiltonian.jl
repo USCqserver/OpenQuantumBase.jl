@@ -1,4 +1,4 @@
-using OpenQuantumBase, Test
+using OpenQuantumBase, Test, LinearAlgebra
 
 H₁ = ConstantHamiltonian(σx, unit=:ħ)
 H₂ = ConstantHamiltonian(σx, static=false)
@@ -33,8 +33,30 @@ update_vectorized_cache!(vcache₃, H₃, nothing, 0.5)
 ρ₁ = ones(ComplexF64, 2, 2)/2
 ρ₃ = ones(ComplexF64, 4, 4)/4
 H₁(cache₁, ρ₁, nothing, 0)
-H₂(cache₂, ρ₂, nothing, 0.5)
+H₂(cache₂, ρ₁, nothing, 0.5)
 H₃(cache₃, ρ₃, nothing, 1)
 @test cache₁ == -1.0im*(H₁(0)*ρ₁-ρ₁*H₁(0))
 @test cache₂ == -1.0im*(H₂(0.5)*ρ₁-ρ₁*H₂(0.5))
 @test cache₃ == -1.0im*(H₃(1)*ρ₃-ρ₃*H₃(1))
+
+we₁ = [-1, 1]/2/π
+we₂ = [-1, 1]
+we₃ = [-1, -1, 1, 1]
+w₁, v₁ = eigen_decomp(H₁, 0)
+w₂, v₂ = eigen_decomp(H₂, 0.5)
+w₃, v₃= eigen_decomp(H₃, 1, lvl=4)
+
+@test we₁ ≈ w₁
+@test we₂ ≈ w₂
+@test we₃ ≈ w₃
+
+@test H₁(0) ≈ 2π * v₁'*Diagonal(w₁)*v₁
+@test H₂(0.5) ≈ 2π * v₂'*Diagonal(w₂)*v₂
+
+Hr₁ = rotate(H₁, v₁)
+Hr₂ = rotate(H₂, v₂)
+Hr₃ = rotate(H₃, v₃)
+
+@test Hr₁(0) ≈2π*Diagonal(w₁)
+@test Hr₂(0.5) ≈ 2π*Diagonal(w₂)
+@test Hr₃(1) ≈ 2π*Diagonal(w₃)

@@ -25,6 +25,9 @@ using SafeTestsets
     @time @safetestset "Sparse Hamiltonian" begin
         include("hamiltonian/sparse_hamiltonian.jl")
     end
+    @time @safetestset "Constant Hamiltonian" begin
+        include("hamiltonian/constant_hamiltonian.jl")
+    end
     @time @safetestset "Adiabatic Frame Hamiltonian" begin
         include("hamiltonian/adiabatic_frame_hamiltonian.jl")
     end

@@ -156,6 +156,12 @@ function Base.copy(H::ConstantStaticDenseHamiltonian)
 end
 
 function rotate(H::ConstantStaticDenseHamiltonian, v)
-    mat = v' * H.u_cache * v
-    DenseHamiltonian(mat, size(mat))
+    hsize = size(H)
+    mat = SMatrix{hsize[1], hsize[2]}(v' * H.u_cache * v)
+    ConstantStaticDenseHamiltonian(mat, hsize)
+end
+
+function haml_eigs_default(H::ConstantStaticDenseHamiltonian, t, lvl::Integer) 
+    w, v = eigen(Hermitian(H(t)))
+    w[1:lvl], v[:, 1:lvl]
 end

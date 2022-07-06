@@ -151,7 +151,6 @@ function is_complex(f_list, m_list)
 end
 
 function ConstantHamiltonian(mat::Matrix; unit=:h, static=true)
-    mat = unit_scale(unit) * mat
     # use static array for size smaller than 100
     # can be turned off by setting `static` to false
     if static && size(mat, 1) <= 10

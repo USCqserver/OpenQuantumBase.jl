@@ -142,3 +142,9 @@ function Base.convert(S::Type{T}, H::ConstantSparseHamiltonian{M}) where {T<:Num
     mat = convert.(S, H.u_cache)
     ConstantSparseHamiltonian{eltype(mat)}(mat, size(H))
 end
+
+function rotate(H::ConstantSparseHamiltonian, v)
+    hsize = size(H)
+    mat = v' * H.u_cache * v
+    issparse(mat) ? ConstantSparseHamiltonian(mat, hsize) : ConstantDenseHamiltonian(mat, hsize)
+end
