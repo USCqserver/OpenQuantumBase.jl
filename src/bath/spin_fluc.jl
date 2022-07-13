@@ -41,14 +41,14 @@ julia> EnsembleFluctuator([1, 1], [1, 2])
 Fluctuator ensemble with 2 fluctuators
 ```
 """
-EnsembleFluctuator(b::AbstractArray{T}, ω::AbstractArray{T}) where {T <: Number} =
+EnsembleFluctuator(b::AbstractArray{T}, ω::AbstractArray{T}) where {T<:Number} =
     EnsembleFluctuator([SymetricRTN(x, y) for (x, y) in zip(b, ω)])
 correlation(τ, E::EnsembleFluctuator) = sum((x) -> correlation(τ, x), E.f)
 spectrum(ω, E::EnsembleFluctuator) = sum((x) -> spectrum(ω, x), E.f)
 construct_distribution(E::EnsembleFluctuator) =
     product_distribution([construct_distribution(x) for x in E.f])
 
-Base.length(E::EnsembleFluctuator) = Base.length(E.f)
+Base.length(E::EnsembleFluctuator) = length(E.f)
 Base.show(io::IO, ::MIME"text/plain", E::EnsembleFluctuator) =
     print(io, "Fluctuator ensemble with ", length(E), " fluctuators")
 Base.show(io::IO, E::EnsembleFluctuator) =
