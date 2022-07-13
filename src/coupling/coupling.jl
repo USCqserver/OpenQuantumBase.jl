@@ -22,6 +22,7 @@ Base.length(c::ConstantCouplings) = length(c.mats)
 Base.eltype(c::ConstantCouplings) = typeof(c.mats[1])
 Base.size(c::ConstantCouplings) = size(c.mats[1])
 Base.size(c::ConstantCouplings, d) = size(c.mats[1], d)
+isconstant(::ConstantCouplings) = true
 
 """
     function ConstantCouplings(mats::Union{Vector{Matrix{T}},Vector{SparseMatrixCSC{T,Int}}}; unit=:h) where {T<:Number}

@@ -153,3 +153,8 @@ function onesided_ame_update_test(ops, ρ, w, v, γ, S)
     end
     res
 end
+
+function vectorized_commutator(A)
+    iden = one(A)
+    iden⊗A - transpose(A)⊗iden
+end
