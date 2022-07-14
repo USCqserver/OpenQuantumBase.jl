@@ -7,7 +7,7 @@ Defines a time dependent Hamiltonian object with sparse matrices.
 
 $(FIELDS)
 """
-struct SparseHamiltonian{T<:Number} <: AbstractSparseHamiltonian{T}
+struct SparseHamiltonian{T<:Number,dimensionless_time} <: AbstractSparseHamiltonian{T}
     "List of time dependent functions"
     f::Any
     "List of constant matrices"
@@ -23,7 +23,7 @@ $(SIGNATURES)
 
 Constructor of the `SparseHamiltonian` type. `funcs` and `mats` are lists of time-dependent functions and the corresponding matrices. The Hamiltonian can be represented as ``∑ᵢfuncs[i](s)×mats[i]``. `unit` specifies wether `:h` or `:ħ` is set to one when defining `funcs` and `mats`. The `mats` will be scaled by ``2π`` if unit is `:h`.
 """
-function SparseHamiltonian(funcs, mats; unit=:h)
+function SparseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     if any((x) -> size(x) != size(mats[1]), mats)
         throw(ArgumentError("Matrices in the list do not have the same size."))
     end
@@ -33,8 +33,11 @@ function SparseHamiltonian(funcs, mats; unit=:h)
     cache = similar(sum(mats))
     fill!(cache, 0.0)
     mats = unit_scale(unit) * mats
-    SparseHamiltonian(funcs, mats, cache, size(mats[1]))
+    SparseHamiltonian{eltype(mats[1]), dimensionless_time}(funcs, mats, cache, size(mats[1]))
 end
+
+isdimensionlesstime(H::SparseHamiltonian{T, true}) where T = true
+isdimensionlesstime(H::SparseHamiltonian{T, false}) where T = false
 
 """
     function (h::SparseHamiltonian)(t::Real)
@@ -78,7 +81,7 @@ end
 function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Complex,M}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, complex{M})
-    SparseHamiltonian(H.f, mats, cache, size(H))
+    SparseHamiltonian{eltype(mats[1]), isdimensionlesstime(H)}(H.f, mats, cache, size(H))
 end
 
 function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Real,M}
@@ -88,7 +91,7 @@ function Base.convert(S::Type{T}, H::SparseHamiltonian{M}) where {T<:Real,M}
     end
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, real(M))
-    SparseHamiltonian(H.f, mats, cache, size(H))
+    SparseHamiltonian{eltype(mats[1]), isdimensionlesstime(H)}(H.f, mats, cache, size(H))
 end
 
 """
