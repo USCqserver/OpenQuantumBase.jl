@@ -17,13 +17,6 @@ Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object sh
 """
 abstract type AbstractHamiltonian{T<:Number} end
 
-
-Base.eltype(::AbstractHamiltonian{T}) where {T} = T
-Base.size(H::AbstractHamiltonian) = H.size
-Base.size(H::AbstractHamiltonian, dim::T) where {T<:Integer} = H.size[dim]
-get_cache(H::AbstractHamiltonian) = H.u_cache
-
-
 """
 $(TYPEDEF)
 
@@ -86,6 +79,7 @@ include("integration/cpvagk.jl")
 include("integration/ext_util.jl")
 
 include("hamiltonian/hamiltonian_base.jl")
+include("hamiltonian/interface.jl")
 include("hamiltonian/dense_hamiltonian.jl")
 include("hamiltonian/sparse_hamiltonian.jl")
 include("hamiltonian/static_array_hamiltonian.jl")
