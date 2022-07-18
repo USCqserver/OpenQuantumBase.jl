@@ -17,7 +17,7 @@ struct CustomDenseHamiltonian{T<:Number,in_place} <: AbstractDenseHamiltonian{T}
 end
 
 
-function hamiltonian_from_function(func; in_place = false)
+function hamiltonian_from_function(func; in_place=false)
     hmat = func(0.0)
     CustomDenseHamiltonian{eltype(hmat),in_place}(func, nothing, size(hmat))
 end

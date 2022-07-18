@@ -1,13 +1,13 @@
 """
 $(TYPEDEF)
 
-Defines interpolating DenseHamiltonian object
+Defines interpolating DenseHamiltonian object.
 
 # Fields
 
 $(FIELDS)
 """
-struct InterpDenseHamiltonian{T} <: AbstractDenseHamiltonian{T}
+struct InterpDenseHamiltonian{T,isdimensionlesstime} <: AbstractDenseHamiltonian{T}
     "Interpolating object"
     interp_obj::Any
     "Size"
@@ -18,26 +18,31 @@ end
 """
 $(TYPEDEF)
 
-Defines interpolating SparseHamiltonian object
+Defines interpolating SparseHamiltonian object.
 
 # Fields
 
 $(FIELDS)
 """
-struct InterpSparseHamiltonian{T} <: AbstractSparseHamiltonian{T}
+struct InterpSparseHamiltonian{T,dimensionless_time} <: AbstractSparseHamiltonian{T}
     "Interpolating object"
     interp_obj::Any
     "Size"
     size::Any
 end
 
+isdimensionlesstime(H::InterpDenseHamiltonian{T,true}) where {T} = true
+isdimensionlesstime(H::InterpDenseHamiltonian{T,false}) where {T} = false
+isdimensionlesstime(H::InterpSparseHamiltonian{T,true}) where {T} = true
+isdimensionlesstime(H::InterpSparseHamiltonian{T,false}) where {T} = false
 
 function InterpDenseHamiltonian(
     s,
     hmat;
-    method = "bspline",
-    order = 1,
-    unit = :h,
+    method="bspline",
+    order=1,
+    unit=:h,
+    dimensionless_time=true
 )
     if ndims(hmat) == 3
         hsize = size(hmat)[1:2]
@@ -52,12 +57,11 @@ function InterpDenseHamiltonian(
     interp_obj = construct_interpolations(
         s,
         unit_scale(unit) * hmat,
-        method = method,
-        order = order,
+        method=method,
+        order=order,
     )
-    InterpDenseHamiltonian{htype}(interp_obj, hsize)
+    InterpDenseHamiltonian{htype,dimensionless_time}(interp_obj, hsize)
 end
-
 
 function (H::InterpDenseHamiltonian)(s)
     H.interp_obj(1:size(H, 1), 1:size(H, 1), s)
@@ -96,7 +100,7 @@ get_cache(H::InterpDenseHamiltonian{T}) where {T} = Matrix{T}(undef, size(H))
 function (h::InterpDenseHamiltonian)(
     du,
     u::Matrix{T},
-    p,
+    ::Any,
     t::Real,
 ) where {T<:Complex}
     fill!(du, 0.0 + 0.0im)
@@ -108,15 +112,16 @@ end
 function InterpSparseHamiltonian(
     s_axis,
     H_list::AbstractArray{SparseMatrixCSC{T,Int},1};
-    unit = :h,
+    unit=:h,
+    dimensionless_time=true
 ) where {T<:Number}
     interp_obj = construct_interpolations(
         collect(s_axis),
         unit_scale(unit) * H_list,
-        method = "gridded",
-        order = 1,
+        method="gridded",
+        order=1,
     )
-    InterpSparseHamiltonian{T}(interp_obj, size(H_list[1]))
+    InterpSparseHamiltonian{T, dimensionless_time}(interp_obj, size(H_list[1]))
 end
 
 

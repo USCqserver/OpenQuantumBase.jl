@@ -7,6 +7,7 @@ u = [1.0 + 0.0im, 1] / sqrt(2)
 ρ = u * u'
 
 H_sparse = SparseHamiltonian([A, B], [spσx, spσz])
+@test isdimensionlesstime(H_sparse)
 
 H_real = convert(Real, H_sparse)
 @test eltype(H_real) <: Real
