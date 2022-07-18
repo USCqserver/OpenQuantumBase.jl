@@ -37,7 +37,7 @@ function DenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     hsize = size(mats[1])
     mats = unit_scale(unit) * mats
     cache = similar(mats[1])
-    DenseHamiltonian{eltype(mats[1]), dimensionless_time}(funcs, mats, cache, hsize)
+    DenseHamiltonian{eltype(mats[1]),dimensionless_time}(funcs, mats, cache, hsize)
 end
 
 """
@@ -79,7 +79,7 @@ end
 function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Complex,M}
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, complex{M})
-    DenseHamiltonian{eltype(mats[1]), isdimensionlesstime(H)}(H.f, mats, cache, size(H))
+    DenseHamiltonian{eltype(mats[1]),isdimensionlesstime(H)}(H.f, mats, cache, size(H))
 end
 
 function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
@@ -89,7 +89,7 @@ function Base.convert(S::Type{T}, H::DenseHamiltonian{M}) where {T<:Real,M}
     end
     mats = [convert.(S, x) for x in H.m]
     cache = similar(H.u_cache, real(M))
-    DenseHamiltonian{eltype(mats[1]), isdimensionlesstime(H)}(H.f, mats, cache, size(H))
+    DenseHamiltonian{eltype(mats[1]),isdimensionlesstime(H)}(H.f, mats, cache, size(H))
 end
 
 function Base.copy(H::DenseHamiltonian)
@@ -102,8 +102,13 @@ function rotate(H::DenseHamiltonian, v)
     DenseHamiltonian(H.f, mats, unit=:ħ)
 end
 
-isdimensionlesstime(H::DenseHamiltonian{T, true}) where T = true
-isdimensionlesstime(H::DenseHamiltonian{T, false}) where T = false
+"""
+isdimensionlesstime(H)
+
+Check whether the argument of a time dependent Hamiltonian is the dimensionless time.
+"""
+isdimensionlesstime(::DenseHamiltonian{T,true}) where {T} = true
+isdimensionlesstime(::DenseHamiltonian{T,false}) where {T} = false
 
 """
 $(TYPEDEF)
