@@ -1,7 +1,7 @@
 name = "OpenQuantumBase"
 uuid = "5dd19120-8766-11e9-1ef9-27094038a7db"
 authors = ["neversakura <neversakura@hotmail.com>"]
-version = "0.7.0"
+version = "0.7.1"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
