@@ -15,12 +15,6 @@ function ConstantHamiltonian(mat::SparseMatrixCSC; unit=:h, static=true)
     ConstantSparseHamiltonian(mat, size(mat))
 end
 
-function Hamiltonian(f, mats; unit=:h, dimensionless_time=true, static=true)
-    @warn "Elements in `mats` have different types. Will attempt to promote them to a common type."
-    mats = promote(mats)
-    Hamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time, static=static)
-end
-
 function Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static=true) where {T<:Matrix}
     hsize = size(mats[1])
     # use static array for size smaller than 100
