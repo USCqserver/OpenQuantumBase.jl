@@ -15,7 +15,7 @@ m =
 # == units conversion test ===
 @test temperature_2_freq(1e3) ≈ 20.8366176361328 atol = 1e-4 rtol = 1e-4
 @test freq_2_temperature(20) ≈ 959.8489324422699 atol = 1e-4 rtol = 1e-4
-@test temperature_2_freq(1e3) ≈ 1 /  temperature_2_β(1e3) / 2 / π
+@test temperature_2_freq(1e3) ≈ 1 / temperature_2_β(1e3) / 2 / π
 @test β_2_temperature(0.47) ≈ 16.251564065921915
 # === unitary test ===
 u_res = exp(-1.0im * 5 * 0.5 * σx)
@@ -57,37 +57,37 @@ w, v = eigen_decomp(H_check, [0.5])
 @test log_uniform(1, 10, 3) == [1, 10^0.5, 10]
 
 v = sqrt.([0.4, 0.6])
-ρ1 = v*v'
+ρ1 = v * v'
 ρ2 = [0.5 0; 0 0.5]
-ρ3 = ones(3, 3)/3
+ρ3 = ones(3, 3) / 3
 @test ρ1 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [1])
 @test ρ2 == partial_trace(ρ1 ⊗ ρ2 ⊗ ρ2, [2])
-@test ρ3 ≈ partial_trace(ρ1⊗ρ2⊗ρ3, [2,2,3], [3])
-@test_throws ArgumentError partial_trace(ρ1⊗ρ2⊗ρ3, [3,2,3], [3])
-@test_throws ArgumentError partial_trace(rand(4,5), [2,2], [1])
+@test ρ3 ≈ partial_trace(ρ1 ⊗ ρ2 ⊗ ρ3, [2, 2, 3], [3])
+@test_throws ArgumentError partial_trace(ρ1 ⊗ ρ2 ⊗ ρ3, [3, 2, 3], [3])
+@test_throws ArgumentError partial_trace(rand(4, 5), [2, 2], [1])
 @test purity(ρ1) ≈ 1
 @test purity(ρ2) == 0.5
 @test check_pure_state(ρ1)
 @test !check_pure_state(ρ2)
 @test !check_pure_state([0.4 0.5; 0.5 0.6])
 
-ρ = PauliVec[1][1]*PauliVec[1][1]'
-σ = PauliVec[3][1]*PauliVec[3][1]'
+ρ = PauliVec[1][1] * PauliVec[1][1]'
+σ = PauliVec[3][1] * PauliVec[3][1]'
 @test fidelity(ρ, σ) ≈ 0.5
 @test fidelity(ρ, ρ) ≈ 1
 @test check_density_matrix(ρ)
 @test !check_density_matrix(σx)
 
-w = [1,1,1,2,3,4,4,5]
-@test OpenQuantumBase.find_degenerate(w) == [[1,2,3],[6,7]]
-@test isempty(OpenQuantumBase.find_degenerate([1,2,3]))
+w = [-0.000000003, 0, 1, 1.000000001, 1.000000004, 1.000000006, 2, 3, 4, 4, 5, 5]
+@test find_degenerate(w, digits=8) == [[1, 2], [3, 4, 5], [9, 10], [11, 12]]
+@test isempty(find_degenerate([1, 2, 3]))
 
 gibbs = gibbs_state(σz, 12)
-@test gibbs[2,2] ≈ 1/(1+exp(-temperature_2_β(12)*2))
-@test gibbs[1,1] ≈ 1 - 1/(1+exp(-temperature_2_β(12)*2))
+@test gibbs[2, 2] ≈ 1 / (1 + exp(-temperature_2_β(12) * 2))
+@test gibbs[1, 1] ≈ 1 - 1 / (1 + exp(-temperature_2_β(12) * 2))
 
-@test low_level_matrix(σz⊗σz+0.1σz⊗σi, 2) == [0.0+0.0im   0.0+0.0im   0.0+0.0im  0.0+0.0im
-0.0+0.0im  -0.9+0.0im   0.0+0.0im  0.0+0.0im
-0.0+0.0im   0.0+0.0im  -1.1+0.0im  0.0+0.0im
-0.0+0.0im   0.0+0.0im   0.0+0.0im  0.0+0.0im]
-@test_logs (:warn, "Subspace dimension bigger than total dimension.") low_level_matrix(σz⊗σz+0.1σz⊗σi, 5)
+@test low_level_matrix(σz ⊗ σz + 0.1σz ⊗ σi, 2) == [0.0+0.0im 0.0+0.0im 0.0+0.0im 0.0+0.0im
+    0.0+0.0im -0.9+0.0im 0.0+0.0im 0.0+0.0im
+    0.0+0.0im 0.0+0.0im -1.1+0.0im 0.0+0.0im
+    0.0+0.0im 0.0+0.0im 0.0+0.0im 0.0+0.0im]
+@test_logs (:warn, "Subspace dimension bigger than total dimension.") low_level_matrix(σz ⊗ σz + 0.1σz ⊗ σi, 5)

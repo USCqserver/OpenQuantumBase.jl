@@ -229,6 +229,8 @@ $(SIGNATURES)
 
 Calculate the indices of the degenerate values in list `w`. `w` must be sorted in ascending order.
 
+If the `digits` keyword argument is provided, it rounds the energies to the specified number of digits after the decimal place (or before if negative), in base 10. The default value is 8.
+
 # Examples
 ```julia-repl
 julia> w = [1,1,1,2,3,4,4,5]
@@ -238,19 +240,24 @@ julia> find_degenerate(w)
  [6, 7]
 ```
 """
-function find_degenerate(w; atol::Real=1e-6, rtol::Real=0)
-    dw = w[2:end] - w[1:end-1]
-    inds = findall((x)->isapprox(x, 0.0, atol=atol, rtol=rtol), dw)
-    res = Array{Array{Int, 1}, 1}()
-    temp = Int[]
-    for i in eachindex(inds)
-        push!(temp, inds[i])
-        if (i==length(inds)) || !(inds[i]+1 == inds[i+1])
-            push!(temp, inds[i]+1)
-            push!(res, temp)
-            temp = Int[]
+function find_degenerate(w; digits::Integer=8)
+    w = round.(w, digits = digits)
+    res = []
+    tmp = []
+    flag = true
+    for i in 2:length(w)
+        if w[i] == w[i-1] && flag
+            push!(tmp, i-1, i)
+            flag = false
+        elseif w[i] == w[i-1]
+            push!(tmp, i)
+        elseif !flag
+            push!(res, tmp)
+            tmp = []
+            flag = true
         end
     end
+    isempty(tmp) ? nothing : push!(res, tmp)
     res
 end
 
