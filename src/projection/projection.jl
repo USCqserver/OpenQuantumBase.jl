@@ -43,8 +43,7 @@ function project_to_lowlevel(
     coupling,
     dH;
     lvl=2,
-    atol::Real=1e-6,
-    rtol::Real=0,
+    digits::Integer=6,
     direction=:forward,
     refs=zeros(0, 0),
 ) where {T <: Real,S <: Real}
@@ -63,7 +62,7 @@ function project_to_lowlevel(
         # this is needed for StaticArrays
         w = w[1:lvl]
         v = v[:, 1:lvl]
-        d_inds = find_degenerate(w, atol=atol, rtol=rtol)
+        d_inds = find_degenerate(w, digits=digits)
         if !isempty(d_inds)
             @warn "Degenerate energy levels detected at" _s_axis[1]
             @warn "With" d_inds
@@ -81,7 +80,7 @@ function project_to_lowlevel(
         # this is needed for StaticArrays
         w = w[1:lvl]
         v = v[:, 1:lvl]
-        d_inds = find_degenerate(w, atol=atol, rtol=rtol)
+        d_inds = find_degenerate(w, digits=digits)
         if !isempty(d_inds)
             @warn "Possible degenerate detected at" s
             @warn "With levels" d_inds
@@ -98,14 +97,13 @@ function project_to_lowlevel(
     coupling,
     dH;
     lvl=2,
-    atol::Real=1e-6,
-    rtol::Real=0,
+    digits::Integer=6,
     direction=:forward,
     refs=zeros(0, 0),
 ) where {T <: Complex,S <: Real}
     @warn "The projection method only works with real Hamitonians. Convert the complex Hamiltonian to real one."
     H_real = convert(Real, H)
-    project_to_lowlevel(H_real, s_axis, coupling, dH, lvl=lvl, atol=atol, rtol=rtol, direction=direction, refs=refs)
+    project_to_lowlevel(H_real, s_axis, coupling, dH, lvl=lvl, digits=digits, direction=direction, refs=refs)
 end
 
 function update_refs!(refs, v, lvl, d_inds)
