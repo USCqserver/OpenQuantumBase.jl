@@ -41,7 +41,7 @@ function ame_jump(D::DaviesGenerator, u, gap_idx::GapIndices, v, s)
 	for i in eachindex(σab)
 		L = sparse(a, b, σab[i][a + (b .- 1)*l], l, l)
         ϕ = L * ϕb
-        prob[idx] = g0 * (ϕ' * ϕ)
+        prob[idx] = real(g0 * (ϕ' * ϕ))
         tag[idx] = (i, a, b, sqrt(g0))
         idx += 1
 	end
