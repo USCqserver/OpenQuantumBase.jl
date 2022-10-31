@@ -38,7 +38,7 @@ $(TYPEDEF)
 
 Base for types defining quantum annealing process.
 """
-abstract type AbstractAnnealing{hType<:AbstractHamiltonian,uType<:Union{Vector,Matrix},} end
+abstract type AbstractAnnealing{constant_hamiltonian} end
 
 """
 $(TYPEDEF)
