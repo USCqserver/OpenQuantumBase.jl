@@ -1,16 +1,22 @@
+# # Constant Hamiltonian Interface
 using OpenQuantumBase, Test, LinearAlgebra
 
+# In HOQST a constant Hamiltonian can be constructed using the `ConstantHamiltonian` interface:
 H₁ = ConstantHamiltonian(σx, unit=:ħ)
 H₂ = ConstantHamiltonian(σx, static=false)
 H₃ = ConstantHamiltonian(spσx⊗spσx)
+
+# or `Hamiltonian` interface
+Hₛ₁ = Hamiltonian(σx, unit=:ħ)
+Hₛ₃ = Hamiltonian(spσx⊗spσx)
 
 cache₁ = H₁ |> get_cache |> similar
 cache₂ = H₂ |> get_cache |> similar
 cache₃ = H₃ |> get_cache |> similar
 
-@test H₁(2)==σx
-@test H₂(1) == 2π*σx
-@test H₃(0.2) == 2π*(σx⊗σx)
+@test H₁(2)==Hₛ₁(2)==σx
+@test H₂(1)==2π*σx
+@test H₃(0.2)==Hₛ₃(0.2)==2π*(σx⊗σx)
 
 
 update_cache!(cache₁, H₁, nothing, 0.2)

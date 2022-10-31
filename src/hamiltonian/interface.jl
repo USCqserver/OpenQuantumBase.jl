@@ -29,3 +29,5 @@ end
 Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static=true) where {T<:Union{SMatrix,MMatrix}} = StaticDenseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)
 
 Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static=true) where {T<:SparseMatrixCSC} = SparseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)
+
+Hamiltonian(mats; unit=:h, static=true) where {T<:Matrix} = ConstantHamiltonian(mats, unit=unit, static=static)
