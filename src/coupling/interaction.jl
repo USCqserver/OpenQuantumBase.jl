@@ -19,6 +19,8 @@ struct Interaction <: AbstractInteraction
     bath::AbstractBath
 end
 
+isconstant(x::Interaction) = isconstant(x.coupling)
+
 """
 $(TYPEDEF)
 
@@ -111,6 +113,25 @@ function davies_from_interactions(iset::InteractionSet, ω_range, lambshift::Boo
         end
     end
     davies_list
+end
+
+function davies_from_interactions(H::AbstractHamiltonian, iset::InteractionSet, digits::Integer, sigdigits::Integer, cutoff::Real)
+    l = size(H, 1)
+    w, v = eigen_decomp(H, lvl=l)
+    gap_idx = build_gap_indices(w, digits, sigdigits, cutoff)
+    for i in iset
+        coupling = i.coupling
+        bath = i.bath
+        if !(typeof(bath)<:StochasticBath)
+            if typeof(bath) <: CorrelatedBath
+            else
+                if isconstant(coupling)
+                    
+                else
+                end
+            end
+        end
+    end
 end
 
 function onesided_ame_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_S)
