@@ -97,14 +97,14 @@ function ule_from_interactions(iset::InteractionSet, U, Ta, atol, rtol)
     [ULELiouvillian(kernels, U, Ta, atol, rtol)]
 end
 
-function davies_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_S)
+function davies_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_kwargs)
     davies_list = []
     for i in iset
         coupling = i.coupling
         bath = i.bath
         if !(typeof(bath) <: StochasticBath)
             γfun = build_spectrum(bath)
-            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_S)
+            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_kwargs)
             if typeof(bath) <: CorrelatedBath
                 push!(davies_list, CorrelatedDaviesGenerator(coupling, γfun, Sfun, build_inds(bath)))
             else
@@ -134,14 +134,14 @@ function davies_from_interactions(H::AbstractHamiltonian, iset::InteractionSet, 
     end
 end
 
-function onesided_ame_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_S)
+function onesided_ame_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_kwargs)
     l_list = []
     for i in iset
         coupling = i.coupling
         bath = i.bath
         if !(typeof(bath) <: StochasticBath)
             γfun = build_spectrum(bath)
-            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_S)
+            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_kwargs)
             if typeof(i.bath) <: CorrelatedBath
                 inds = build_inds(bath)
             else
