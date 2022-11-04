@@ -143,7 +143,7 @@ ame_op(du, ρ, p, 0.4 * 2)
 coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)
 gfun = (w) -> w >= 0 ? 1.0 : exp(-0.5)
 cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w) -> 0 gfun; gfun (w) -> 0])
-D = OpenQuantumBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, nothing)[1]
+D = OpenQuantumBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, Dict())[1]
 @test typeof(D) <: OpenQuantumBase.CorrelatedDaviesGenerator
 du = zeros(ComplexF64, 2, 2)
 ρ = [0.5 0;0 0.5]
@@ -153,7 +153,7 @@ D(du, ρ, g_idx, 0.5)
 @test du ≈ zeros(2, 2)
 
 coupling = ConstantCouplings([σ₋, σ₋], unit=:ħ)
-D = OpenQuantumBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, nothing)[1]
+D = OpenQuantumBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, Dict())[1]
 @test typeof(D) <: OpenQuantumBase.CorrelatedDaviesGenerator
 du = zeros(ComplexF64, 2, 2)
 ρ = [0.5 0.5;0.5 0.5]
