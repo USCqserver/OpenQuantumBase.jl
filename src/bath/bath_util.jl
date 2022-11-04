@@ -37,8 +37,6 @@ function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::Abstract
     S_loc
 end
 
-build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, ::Nothing) = build_lambshift(ω_range, turn_on, bath, Dict())
-
 """
 $(SIGNATURES)
 

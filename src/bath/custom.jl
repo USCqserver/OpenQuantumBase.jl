@@ -81,8 +81,6 @@ function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::Correlat
     S_loc
 end
 
-build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::CorrelatedBath, ::Nothing) = build_lambshift(ω_range, turn_on, bath, Dict())
-
 """
 $(TYPEDEF)
 
