@@ -67,8 +67,8 @@ get_lvl(G::GapIndices) = length(G.w)
 get_gaps_num(G::GapIndices) = 2*length(G.uniq_w)+1
 
 # TODO: merge `build_correlation` function with `GapIndices`
-function build_gap_indices(w, digits::Integer, sigdigits::Integer, cutoff=Inf)
-    l = length(w)
+function build_gap_indices(w, digits::Integer, sigdigits::Integer, cutoff_freq::Real, truncate_lvl::Integer)
+    l = truncate_lvl
     gaps = Float64[]
     a_idx = Vector{Int}[]
     b_idx = Vector{Int}[]
@@ -82,7 +82,7 @@ function build_gap_indices(w, digits::Integer, sigdigits::Integer, cutoff=Inf)
                 push!(b0_idx, j)
                 push!(a0_idx, j)
                 push!(b0_idx, i)
-            elseif abs(gap) ≤ cutoff
+            elseif abs(gap) ≤ cutoff_freq
                 gap = round(gap, sigdigits=sigdigits)
                 idx = searchsortedfirst(gaps, gap)
                 if idx == length(gaps) + 1
