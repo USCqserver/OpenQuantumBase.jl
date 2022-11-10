@@ -113,37 +113,35 @@ function (D::ConstDaviesGenerator)(du, ρ)
     du .-= 1.0im * (D.Hₗₛ * ρ - ρ * D.Hₗₛ)
 end
 
-function build_const_davies(couplings, v, gap_idx, γfun, Sfun)
-    l = size(v, 2)
-    res = []
-    Hₗₛ = spzeros(ComplexF64, l, l)
-    # pre-rotate all the system bath coupling operators into the energy eigenbasis
-    cs = rotate(couplings, v)
+function build_const_davies(couplings, gap_idx, γfun, Sfun)
+    l = get_lvl(gap_idx)
+	res = []
+	Hₗₛ = spzeros(ComplexF64, l, l)
     for (w, a, b) in OpenQuantumBase.positive_gap_indices(gap_idx)
         g₊ = γfun(w) |> sqrt
         g₋ = γfun(-w) |> sqrt
         S₊ = Sfun(w)
         S₋ = Sfun(-w)
-        for c in cs(0)
-            L₊ = sparse(a, b, c[a+(b.-1)*l], l, l)
-            L₋ = sparse(b, a, c[b+(a.-1)*l], l, l)
-            LL₊ = L₊' * L₊
-            LL₋ = L₋' * L₋
-            push!(res, g₊ * L₊)
-            push!(res, g₋ * L₋)
-            Hₗₛ += S₊ * LL₊ + S₋ * LL₋
+        for c in couplings(0)
+            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+            LL₊ = L₊'*L₊
+            LL₋ = L₋'*L₋
+			push!(res, g₊*L₊)
+			push!(res, g₋*L₋)
+            Hₗₛ += S₊*LL₊ + S₋*LL₋
         end
     end
     g0 = γfun(0) |> sqrt
     S0 = Sfun(0)
     a, b = OpenQuantumBase.zero_gap_indices(gap_idx)
-    for c in cs(0)
-        L = sparse(a, b, c[a+(b.-1)*l], l, l)
-        LL = L' * L
-        push!(res, g0 * L)
-        Hₗₛ += S0 * LL
-    end
-    ConstDaviesGenerator(res, Hₗₛ)
+	for c in couplings(0)
+		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+        LL = L'*L
+		push!(res, g0*L)
+        Hₗₛ += S0*LL
+	end
+	ConstDaviesGenerator(res, Hₗₛ)
 end
 
 """
