@@ -126,11 +126,9 @@ function davies_from_interactions(gap_idx, iset::InteractionSet, ω_range, lambs
             Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_kwargs)
             if typeof(bath) <: CorrelatedBath
                 # TODO: optimize the performance of `CorrelatedDaviesGenerator`` if `coupling` is constant
-                push!(davies_list, CorrelatedDaviesGenerator(coupling, γfun, Sfun, build_inds(bath)))
+                push!(davies_list, build_const_correlated_davies(coupling, gap_idx, γfun, Sfun, build_inds(bath)))
             else
-                if isconstant(coupling)
-                    build_const_davies(coupling, gap_idx, γfun, Sfun)
-                end
+                push!(davies_list, build_const_davies(coupling, gap_idx, γfun, Sfun))
             end
         end
     end

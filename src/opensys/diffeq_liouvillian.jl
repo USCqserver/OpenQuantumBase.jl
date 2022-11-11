@@ -45,6 +45,9 @@ function DiffEqLiouvillian(H::AbstractHamiltonian, opensys_eig, opensys, lvl; di
     DiffEqLiouvillian{diagonalization,adiabatic_frame}(H, opensys_eig, opensys, lvl, digits, sigdigits, u_cache)
 end
 
+function build_diffeq_liouvillian()
+end
+
 function (Op::DiffEqLiouvillian{false,false})(du, u, p, t)
     s = p(t)
     Op.H(du, u, p, s)
@@ -115,4 +118,15 @@ function (Op::DiffEqLiouvillian{true,true})(du, u, p, t)
     for lv in Op.opensys_eig
         lv(du, u, gap_ind, s)
     end
+end
+
+function (Op::DiffEqLiouvillian{false,true})(du, u, p, t)
+    s = p(t)
+    H = Op.H(p.tf, s)
+    gap_ind = GapIndices(w, Op.digits, Op.sigdigits)
+    du .= -1.0im * (H * u - u * H)
+    for lv in Op.opensys
+        lv(du, u, gap_ind, s)
+    end
+
 end

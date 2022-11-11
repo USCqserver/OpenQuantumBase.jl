@@ -105,7 +105,7 @@ struct ConstDaviesGenerator <: AbstractLiouvillian
     Hₗₛ
 end
 
-function (D::ConstDaviesGenerator)(du, ρ)
+function (D::ConstDaviesGenerator)(du, ρ, ::Any, ::Any)
     for L in D.Linds
         LL = L' * L
         du .+= L * ρ * L' - 0.5 * (LL * ρ + ρ * LL)
@@ -113,35 +113,77 @@ function (D::ConstDaviesGenerator)(du, ρ)
     du .-= 1.0im * (D.Hₗₛ * ρ - ρ * D.Hₗₛ)
 end
 
-function build_const_davies(couplings, gap_idx, γfun, Sfun)
-    l = get_lvl(gap_idx)
-	res = []
-	Hₗₛ = spzeros(ComplexF64, l, l)
-    for (w, a, b) in OpenQuantumBase.positive_gap_indices(gap_idx)
-        g₊ = γfun(w) |> sqrt
-        g₋ = γfun(-w) |> sqrt
-        S₊ = Sfun(w)
-        S₋ = Sfun(-w)
-        for c in couplings(0)
-            L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
-            L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
-            LL₊ = L₊'*L₊
-            LL₋ = L₋'*L₋
-			push!(res, g₊*L₊)
-			push!(res, g₋*L₋)
-            Hₗₛ += S₊*LL₊ + S₋*LL₋
+struct ConstHDaviesGenerator <: AbstractLiouvillian
+    "GapIndices for AME"
+    gap_idx
+    "System bath coupling operators"
+    coupling::AbstractCouplings
+    "Spectrum density"
+    γ::Any
+    "Lambshift spectral density"
+    S::Any
+end
+
+function (D::ConstHDaviesGenerator)(du, ρ, ::Any, s::Real)
+    l = size(du, 1)
+    cs = [c for c in D.coupling(s)]
+    Hₗₛ = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(D.gap_idx)
+        g₊ = D.γ(w)
+        g₋ = D.γ(-w)
+        for c in cs
+            L₊ = sparse(a, b, c[a+(b.-1)*l], l, l)
+            L₋ = sparse(b, a, c[b+(a.-1)*l], l, l)
+            LL₊ = L₊' * L₊
+            LL₋ = L₋' * L₋
+            du .+= g₊ * (L₊ * ρ * L₊' - 0.5 * (LL₊ * ρ + ρ * LL₊)) + g₋ * (L₋ * ρ * L₋' - 0.5 * (LL₋ * ρ + ρ * LL₋))
+            Hₗₛ += D.S(w) * LL₊ + D.S(-w) * LL₋
         end
     end
-    g0 = γfun(0) |> sqrt
-    S0 = Sfun(0)
-    a, b = OpenQuantumBase.zero_gap_indices(gap_idx)
-	for c in couplings(0)
-		L = sparse(a, b, c[a + (b .- 1)*l], l, l)
-        LL = L'*L
-		push!(res, g0*L)
-        Hₗₛ += S0*LL
-	end
-	ConstDaviesGenerator(res, Hₗₛ)
+    g0 = D.γ(0)
+    a, b = zero_gap_indices(D.gap_idx)
+    for c in cs
+        L = sparse(a, b, c[a+(b.-1)*l], l, l)
+        LL = L' * L
+        du .+= g0 * (L * ρ * L' - 0.5 * (LL * ρ + ρ * LL))
+        Hₗₛ += D.S(0) * LL
+    end
+    du .-= 1.0im * (Hₗₛ * ρ - ρ * Hₗₛ)
+end
+
+function build_const_davies(couplings, gap_idx, γfun, Sfun)
+    if isconstant(couplings)
+        l = get_lvl(gap_idx)
+        res = []
+        Hₗₛ = spzeros(ComplexF64, l, l)
+        for (w, a, b) in OpenQuantumBase.positive_gap_indices(gap_idx)
+            g₊ = γfun(w) |> sqrt
+            g₋ = γfun(-w) |> sqrt
+            S₊ = Sfun(w)
+            S₋ = Sfun(-w)
+            for c in couplings(0)
+                L₊ = sparse(a, b, c[a + (b .- 1)*l], l, l)
+                L₋ = sparse(b, a, c[b + (a .- 1)*l], l, l)
+                LL₊ = L₊'*L₊
+                LL₋ = L₋'*L₋
+                push!(res, g₊*L₊)
+                push!(res, g₋*L₋)
+                Hₗₛ += S₊*LL₊ + S₋*LL₋
+            end
+        end
+        g0 = γfun(0) |> sqrt
+        S0 = Sfun(0)
+        a, b = OpenQuantumBase.zero_gap_indices(gap_idx)
+        for c in couplings(0)
+            L = sparse(a, b, c[a + (b .- 1)*l], l, l)
+            LL = L'*L
+            push!(res, g0*L)
+            Hₗₛ += S0*LL
+        end
+        return ConstDaviesGenerator(res, Hₗₛ)
+    else
+        return ConstHDaviesGenerator(gap_idx, couplings, γfun, Sfun)
+    end
 end
 
 """
@@ -228,6 +270,56 @@ function (D::CorrelatedDaviesGenerator)(du, ρ, gap_idx::GapIndices, v, s::Real)
         Hₗₛ += D.S[α, β](0) * LL
     end
     du .-= 1.0im * (Hₗₛ * ρ - ρ * Hₗₛ)
+end
+
+struct ConstHCorrelatedDaviesGenerator <:AbstractLiouvillian
+    "GapIndices for AME"
+    gap_idx
+    "System bath coupling operators"
+    coupling::AbstractCouplings
+    "Spectrum density"
+    γ::Any
+    "Lambshift spectral density"
+    S::Any
+    "Indices to iterate"
+    inds::Any
+end
+
+function (D::ConstHCorrelatedDaviesGenerator)(du, ρ, ::Any, s::Real)
+    l = size(du, 1)
+    Hₗₛ = spzeros(ComplexF64, l, l)
+    for (w, a, b) in positive_gap_indices(D.gap_idx)
+        for (α, β) in D.inds
+            g₊ = D.γ[α, β](w)
+            g₋ = D.γ[α, β](-w)
+            Aα = D.coupling[α](s)
+            Aβ = D.coupling[β](s)
+            L₊ = sparse(a, b, Aβ[a+(b.-1)*l], l, l)
+            L₊d = sparse(a, b, Aα[a+(b.-1)*l], l, l)'
+            L₋ = sparse(b, a, Aβ[b+(a.-1)*l], l, l)
+            L₋d = sparse(b, a, Aα[b+(a.-1)*l], l, l)'
+            LL₊ = L₊d * L₊
+            LL₋ = L₋d * L₋
+            du .+= g₊ * (L₊ * ρ * L₊d - 0.5 * (LL₊ * ρ + ρ * LL₊)) + g₋ * (L₋ * ρ * L₋d - 0.5 * (LL₋ * ρ + ρ * LL₋))
+            Hₗₛ += D.S[α, β](w) * LL₊ + D.S[α, β](-w) * LL₋
+        end
+    end
+    a, b = zero_gap_indices(D.gap_idx)
+    for (α, β) in D.inds
+        g0 = D.γ[α, β](0)
+        Aα = D.coupling[α](s)
+        Aβ = D.coupling[β](s)
+        L = sparse(a, b, Aβ[a+(b.-1)*l], l, l)
+        Ld = sparse(a, b, Aα[a+(b.-1)*l], l, l)'
+        LL = Ld * L
+        du .+= g0 * (L * ρ * Ld - 0.5 * (LL * ρ + ρ * LL))
+        Hₗₛ += D.S[α, β](0) * LL
+    end
+    du .-= 1.0im * (Hₗₛ * ρ - ρ * Hₗₛ)
+end
+
+function build_const_correlated_davies(couplings, gap_idx, γfun, Sfun, inds)
+    ConstHCorrelatedDaviesGenerator(gap_idx, couplings, γfun, Sfun, inds)
 end
 
 """
