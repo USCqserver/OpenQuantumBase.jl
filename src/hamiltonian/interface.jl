@@ -30,4 +30,4 @@ Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static
 
 Hamiltonian(f, mats::AbstractVector{T}; unit=:h, dimensionless_time=true, static=true) where {T<:SparseMatrixCSC} = SparseHamiltonian(f, mats, unit=unit, dimensionless_time=dimensionless_time)
 
-Hamiltonian(mats; unit=:h, static=true) where {T<:Matrix} = ConstantHamiltonian(mats, unit=unit, static=static)
+Hamiltonian(mats::AbstractMatrix; unit=:h, static=true) = ConstantHamiltonian(mats, unit=unit, static=static)

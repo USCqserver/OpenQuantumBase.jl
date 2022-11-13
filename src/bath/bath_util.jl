@@ -37,6 +37,9 @@ function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::Abstract
     S_loc
 end
 
+# This function is for compatibility purpose
+build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, ::Nothing) = build_lambshift(ω_range, turn_on, bath, Dict())
+
 """
 $(SIGNATURES)
 
@@ -95,7 +98,7 @@ function coarse_grain_timescale(
     bath::AbstractBath,
     lim;
     rtol=sqrt(eps()),
-    atol=0,
+    atol=0
 )
     τsb, err_sb = τ_SB(bath, rtol=rtol, atol=atol)
     τb, err_b = τ_B(bath, lim, τsb, rtol=rtol, atol=atol)
