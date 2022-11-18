@@ -51,6 +51,11 @@ function ame_jump(D::DaviesGenerator, u, gap_idx::GapIndices, v, s)
     v * L * v'
 end
 
+function ame_jump(D::ConstDaviesGenerator, u, ::Any, ::Any)
+    prob = [real(u' * L' * L * u) for L in D.Linds]
+    sample(D.Linds, Weights(prob))
+end
+
 # TODO: Better implemention of ame_jump function
 """
 $(SIGNATURES)
@@ -66,7 +71,12 @@ end
 
 function lindblad_jump(Op::DiffEqLiouvillian{false,false}, u, p, t::Real)
     s = p(t)
-    jump_ops = resample([lind_jump(x, u, p, s) for x in Op.opensys], u)
+    resample([lind_jump(x, u, p, s) for x in Op.opensys], u)
+end
+
+function lindblad_jump(Op::DiffEqLiouvillian{false, true}, u, p, t)
+    s = p(t)
+    resample([ame_jump(x, u, p, s) for x in Op.opensys], u)
 end
 
 function resample(Ls, u)

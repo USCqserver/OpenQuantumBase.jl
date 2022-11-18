@@ -134,3 +134,12 @@ function (Op::DiffEqLiouvillian{false,true})(du, u, p, t)
         lv(du, u, nothing, s)
     end
 end
+
+function update_cache!(cache, Op::DiffEqLiouvillian{false,true}, p, t::Real)
+    s = p(t)
+    H = Op.H(p.tf, s)
+    cache .= -1.0im * H
+    for lv in Op.opensys
+        update_cache!(cache, lv, p, t)
+    end
+end

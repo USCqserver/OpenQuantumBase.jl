@@ -100,9 +100,11 @@ end
 
 struct ConstDaviesGenerator <: AbstractLiouvillian
     "Precomputed Lindblad operators"
-    Linds
+    Linds::Vector
     "Precomputed Lambshift Hamiltonian"
-    Hₗₛ
+    Hₗₛ::AbstractMatrix
+    "Precomputed DiffEq operator"
+    A::AbstractMatrix
 end
 
 function (D::ConstDaviesGenerator)(du, ρ, ::Any, ::Any)
@@ -112,6 +114,8 @@ function (D::ConstDaviesGenerator)(du, ρ, ::Any, ::Any)
     end
     du .-= 1.0im * (D.Hₗₛ * ρ - ρ * D.Hₗₛ)
 end
+
+update_cache!(cache, D::ConstDaviesGenerator, ::Any, ::Real) = cache .+= D.A
 
 struct ConstHDaviesGenerator <: AbstractLiouvillian
     "GapIndices for AME"
@@ -156,6 +160,7 @@ function build_const_davies(couplings, gap_idx, γfun, Sfun)
         l = get_lvl(gap_idx)
         res = []
         Hₗₛ = spzeros(ComplexF64, l, l)
+        A = spzeros(ComplexF64, l, l)
         for (w, a, b) in OpenQuantumBase.positive_gap_indices(gap_idx)
             g₊ = γfun(w) |> sqrt
             g₋ = γfun(-w) |> sqrt
@@ -167,8 +172,9 @@ function build_const_davies(couplings, gap_idx, γfun, Sfun)
                 LL₊ = L₊'*L₊
                 LL₋ = L₋'*L₋
                 push!(res, g₊*L₊)
-                push!(res, g₋*L₋)
+                push!(res, g₋*L₋) 
                 Hₗₛ += S₊*LL₊ + S₋*LL₋
+                A -= 0.5 * g₊^2 * LL₊ + 0.5 * g₋^2 * LL₋
             end
         end
         g0 = γfun(0) |> sqrt
@@ -179,8 +185,10 @@ function build_const_davies(couplings, gap_idx, γfun, Sfun)
             LL = L'*L
             push!(res, g0*L)
             Hₗₛ += S0*LL
+            A -= 0.5 * g0^2 * LL
         end
-        return ConstDaviesGenerator(res, Hₗₛ)
+        A -= 1.0im * Hₗₛ
+        return ConstDaviesGenerator(res, Hₗₛ, A)
     else
         return ConstHDaviesGenerator(gap_idx, couplings, γfun, Sfun)
     end
