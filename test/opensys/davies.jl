@@ -1,11 +1,13 @@
 using OpenQuantumBase, Test, Random
 import LinearAlgebra: Diagonal, diag
 
-#= ================ Dense Hamiltonian AME tests ================= =#
-#= ================ Set up problems ================= =#
+# # Dense Hamiltonian AME tests
+# ## Set up problems
+# Set up mock functions for the bath spectrum and corresponding lambshift
 gamma(x) = x >= 0 ? x + 1 : (1 - x) * exp(x)
 lamb(x) = x + 0.1
 
+# Set up a two-qubit problem
 H = DenseHamiltonian(
     [(s) -> 1 - s, (s) -> s],
     [-standard_driver(2), (0.1 * σz ⊗ σi + 0.5 * σz ⊗ σz)]
@@ -22,21 +24,22 @@ w = 2π * w
 u = v' * ρ * v
 g_idx = OpenQuantumBase.GapIndices(w, 8, 8)
 
-#= ================ Tests ================= =#
+# ## Tests
+# Test density matrix update function for `DaviesGenerator` type
 dρ = OpenQuantumBase.ame_update_test(ops, ρ, w, v, gamma, lamb)
 du = zeros(ComplexF64, (4, 4))
 davies(du, u, g_idx, v, 0.5)
 @test v * du * v' ≈ dρ atol = 1e-6 rtol = 1e-6
 
-onesided_dρ = OpenQuantumBase.onesided_ame_update_test(ops, ρ, w, v, gamma, lamb) 
+onesided_dρ = OpenQuantumBase.onesided_ame_update_test(ops, ρ, w, v, gamma, lamb)
 du = zeros(ComplexF64, (4, 4))
 onesided(du, u, g_idx, v, 0.5)
 @test v * du * v' ≈ onesided_dρ atol = 1e-6 rtol = 1e-6
 
-onesided_dρ = OpenQuantumBase.onesided_ame_update_test([v*op*v' for op in ops], ρ, w, v, gamma, lamb) 
+onesided_dρ = OpenQuantumBase.onesided_ame_update_test([v * op * v' for op in ops], ρ, w, v, gamma, lamb)
 du = zeros(ComplexF64, (4, 4))
 onesided(du, u, g_idx, 0.5)
-@test  du ≈ v' * onesided_dρ * v atol = 1e-6 rtol = 1e-6
+@test du ≈ v' * onesided_dρ * v atol = 1e-6 rtol = 1e-6
 
 cache = zeros(ComplexF64, (4, 4))
 exp_effective_H = OpenQuantumBase.ame_trajectory_Heff_test(ops, w, v, gamma, lamb)
@@ -116,7 +119,7 @@ update_cache!(cache, ame_op, p, 1)
 #= ===== Tests for adiabatc frame Hamiltonians ===== =#
 #= ===== Problem set up ===== =#
 H = AdiabaticFrameHamiltonian((s) -> [0, s, 1 - s, 1], nothing)
-hmat =  H(2.0, 0.4)
+hmat = H(2.0, 0.4)
 w = diag(hmat)
 v = collect(Diagonal(ones(4)))
 coupling = CustomCouplings([(s) -> s * (σx ⊗ σi + σi ⊗ σx) + (1 - s) * (σz ⊗ σi + σi ⊗ σz)])
@@ -142,11 +145,11 @@ ame_op(du, ρ, p, 0.4 * 2)
 # test suite for CorrelatedDaviesGenerator
 coupling = ConstantCouplings([σ₊, σ₋], unit=:ħ)
 gfun = (w) -> w >= 0 ? 1.0 : exp(-0.5)
-cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w) -> 0 gfun; gfun (w) -> 0])
+cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w)->0 gfun; gfun (w)->0])
 D = OpenQuantumBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, Dict())[1]
 @test typeof(D) <: OpenQuantumBase.CorrelatedDaviesGenerator
 du = zeros(ComplexF64, 2, 2)
-ρ = [0.5 0;0 0.5]
+ρ = [0.5 0; 0 0.5]
 ω = [1, 2]
 g_idx = OpenQuantumBase.GapIndices(ω, 8, 8)
 D(du, ρ, g_idx, 0.5)
@@ -156,7 +159,7 @@ coupling = ConstantCouplings([σ₋, σ₋], unit=:ħ)
 D = OpenQuantumBase.davies_from_interactions(InteractionSet(Interaction(coupling, cbath)), 1:10, false, Dict())[1]
 @test typeof(D) <: OpenQuantumBase.CorrelatedDaviesGenerator
 du = zeros(ComplexF64, 2, 2)
-ρ = [0.5 0.5;0.5 0.5]
+ρ = [0.5 0.5; 0.5 0.5]
 ω = [1, 2]
 g_idx = OpenQuantumBase.GapIndices(ω, 8, 8)
 D(du, ρ, g_idx, 0.5)
