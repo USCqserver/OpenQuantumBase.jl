@@ -67,7 +67,21 @@ get_lvl(G::GapIndices) = length(G.w)
 get_gaps_num(G::GapIndices) = 2*length(G.uniq_w)+1
 
 # TODO: merge `build_correlation` function with `GapIndices`
-function build_gap_indices(w, digits::Integer, sigdigits::Integer, cutoff_freq::Real, truncate_lvl::Integer)
+"""
+$(SIGNATURES)
+
+Build `GapIndices` type from a list of energies.
+
+...
+# Arguments
+- `w::AbstractVector`: energies of the Hamiltonian.
+- `digits::Integer`: the number of digits to keep when checking if a gap is zero.
+- `sigdigits::Interger`: the number of significant digits when rounding non-zero gaps for comparison.
+- `cutoff_freq::Real`: gaps that are larger than the cutoff frequency (in the 2π frequency unit) are neglected.
+- `truncate_lvl::Integer`: energy levels that are higher than the `truncate_lvl` are neglected.
+...
+"""
+function build_gap_indices(w::AbstractVector, digits::Integer, sigdigits::Integer, cutoff_freq::Real, truncate_lvl::Integer)
     l = truncate_lvl
     gaps = Float64[]
     a_idx = Vector{Int}[]

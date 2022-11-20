@@ -102,8 +102,8 @@ include("opensys/trajectory_jump.jl")
 include("projection/projection.jl")
 
 export SparseHamiltonian, DenseHamiltonian, AdiabaticFrameHamiltonian,
-    InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian, Hamiltonian
-export rotate, isconstant, isdimensionlesstime, ConstantHamiltonian
+    InterpDenseHamiltonian, InterpSparseHamiltonian, CustomDenseHamiltonian, Hamiltonian, ConstantHamiltonian
+export rotate, isconstant, isdimensionlesstime
 export eigen_decomp, haml_eigs
 
 export temperature_2_β, temperature_2_freq, β_2_temperature, freq_2_temperature

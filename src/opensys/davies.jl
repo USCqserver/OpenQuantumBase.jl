@@ -98,6 +98,7 @@ function update_cache!(cache, D::DaviesGenerator, gap_idx::GapIndices, v, s::Rea
     cache .+= H_eff
 end
 
+# Constant Davies Generator types
 struct ConstDaviesGenerator <: AbstractLiouvillian
     "Precomputed Lindblad operators"
     Linds::Vector
@@ -155,7 +156,20 @@ function (D::ConstHDaviesGenerator)(du, ρ, ::Any, s::Real)
     du .-= 1.0im * (Hₗₛ * ρ - ρ * Hₗₛ)
 end
 
-function build_const_davies(couplings, gap_idx, γfun, Sfun)
+"""
+$(SIGNATURES)
+
+Build the constant Davies generator types if the corresponding Hamiltonian is constant.
+
+...
+# Arguments
+- `coupling::AbstractCouplings`: system bath coupling operators.
+- `gap_idx::GapIndices`: `GapIndices` object generated from the constant Hamiltonian.
+- `γfun`: bath spectral function.
+- `Sfun`: function for the lambshift.
+...
+"""
+function build_const_davies(couplings::AbstractCouplings, gap_idx::GapIndices, γfun, Sfun)
     if isconstant(couplings)
         l = get_lvl(gap_idx)
         res = []
