@@ -48,7 +48,8 @@ end
 # TODO: merge `build_diffeq_liouvillian` with `DiffEqLiouvillian`
 function build_diffeq_liouvillian(H, opensys_eig, opensys, lvl; digits::Integer=8, sigdigits::Integer=8)
     if isconstant(H)
-        DiffEqLiouvillian{false,true}(H, opensys_eig, opensys, lvl, digits, sigdigits, spzeros(size(H)))
+        # spzeros((a, b)) is not supported in Julia 1.6
+        DiffEqLiouvillian{false,true}(H, opensys_eig, opensys, lvl, digits, sigdigits, spzeros(size(H, 1), size(H, 2)))
     else
         DiffEqLiouvillian(H, opensys_eig, opensys, lvl, digits=digits, sigdigits=sigdigits)
     end
