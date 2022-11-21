@@ -19,6 +19,9 @@ struct Interaction <: AbstractInteraction
     bath::AbstractBath
 end
 
+isconstant(x::Interaction) = isconstant(x.coupling)
+rotate(i::Interaction, v) = Interaction(rotate(i.coupling, v), i.bath)
+
 """
 $(TYPEDEF)
 
@@ -58,18 +61,18 @@ An container for different system-bath interactions.
 
 $(FIELDS)
 """
-struct InteractionSet{T <: Tuple}
+struct InteractionSet{T<:Tuple}
     "A tuple of Interaction"
     interactions::T
 end
 
 InteractionSet(inters::AbstractInteraction...) = InteractionSet(inters)
+rotate(inters::InteractionSet, v) = InteractionSet([rotate(i, v) for i in inters]...)
 Base.length(inters::InteractionSet) = Base.length(inters.interactions)
 Base.getindex(inters::InteractionSet, key...) =
     Base.getindex(inters.interactions, key...)
 Base.iterate(iters::InteractionSet, state=1) =
     Base.iterate(iters.interactions, state)
-
 # The following functions are used to build different Liouvillians from
 # the `InteractionSet`. They are not publicly available in the current
 # release.
@@ -95,14 +98,14 @@ function ule_from_interactions(iset::InteractionSet, U, Ta, atol, rtol)
     [ULELiouvillian(kernels, U, Ta, atol, rtol)]
 end
 
-function davies_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_S)
+function davies_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_kwargs)
     davies_list = []
     for i in iset
         coupling = i.coupling
         bath = i.bath
         if !(typeof(bath) <: StochasticBath)
             γfun = build_spectrum(bath)
-            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_S)
+            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_kwargs)
             if typeof(bath) <: CorrelatedBath
                 push!(davies_list, CorrelatedDaviesGenerator(coupling, γfun, Sfun, build_inds(bath)))
             else
@@ -113,14 +116,33 @@ function davies_from_interactions(iset::InteractionSet, ω_range, lambshift::Boo
     davies_list
 end
 
-function onesided_ame_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_S)
+function davies_from_interactions(gap_idx, iset::InteractionSet, ω_range, lambshift::Bool, lambshift_kwargs::Dict)
+    davies_list = []
+    for i in iset
+        coupling = i.coupling
+        bath = i.bath
+        if !(typeof(bath) <: StochasticBath)
+            γfun = build_spectrum(bath)
+            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_kwargs)
+            if typeof(bath) <: CorrelatedBath
+                # TODO: optimize the performance of `CorrelatedDaviesGenerator`` if `coupling` is constant
+                push!(davies_list, build_const_correlated_davies(coupling, gap_idx, γfun, Sfun, build_inds(bath)))
+            else
+                push!(davies_list, build_const_davies(coupling, gap_idx, γfun, Sfun))
+            end
+        end
+    end
+    davies_list
+end
+
+function onesided_ame_from_interactions(iset::InteractionSet, ω_range, lambshift::Bool, lambshift_kwargs)
     l_list = []
     for i in iset
         coupling = i.coupling
         bath = i.bath
         if !(typeof(bath) <: StochasticBath)
             γfun = build_spectrum(bath)
-            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_S)
+            Sfun = build_lambshift(ω_range, lambshift, bath, lambshift_kwargs)
             if typeof(i.bath) <: CorrelatedBath
                 inds = build_inds(bath)
             else
@@ -150,7 +172,7 @@ function fluctuator_from_interactions(iset::InteractionSet)
     f_list
 end
 
-lindblad_from_interactions(iset::InteractionSet) = 
+lindblad_from_interactions(iset::InteractionSet) =
     [LindbladLiouvillian([i for i in iset if typeof(i) <: Lindblad])]
 
 function build_redfield_kernel(i::Interaction)
@@ -158,7 +180,7 @@ function build_redfield_kernel(i::Interaction)
     bath = i.bath
     cfun = build_correlation(bath)
     rinds = typeof(cfun) == SingleFunctionMatrix ?
-        ((i, i) for i = 1:length(coupling)) : build_inds(bath)
+            ((i, i) for i = 1:length(coupling)) : build_inds(bath)
     # the kernels is current set as a tuple
     (rinds, coupling, cfun)
 end
@@ -168,7 +190,7 @@ function build_cg_kernel(i::Interaction, tf, Ta)
     cfun = build_correlation(i.bath)
     Ta = Ta === nothing ? coarse_grain_timescale(i.bath, tf)[1] : Ta
     rinds = typeof(cfun) == SingleFunctionMatrix ?
-        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
+            ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
     # the kernels is current set as a tuple
     (rinds, coupling, cfun, Ta)
 end
@@ -177,7 +199,7 @@ function build_ule_kernel(i::Interaction)
     coupling = i.coupling
     cfun = build_jump_correlation(i.bath)
     rinds = typeof(cfun) == SingleFunctionMatrix ?
-        ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
+            ((i, i) for i = 1:length(coupling)) : build_inds(i.bath)
     # the kernels is current set as a tuple
     (rinds, coupling, cfun)
 end

@@ -135,6 +135,7 @@ Base.size(c::TimeDependentCoupling) = size(c.mats[1])
 Base.size(c::TimeDependentCoupling, d) = size(c.mats[1], d)
 
 abstract type AbstractTimeDependentCouplings <: AbstractCouplings end
+isconstant(::AbstractTimeDependentCouplings) = false
 
 """
 $(TYPEDEF)

@@ -23,12 +23,12 @@ Calculate spectral density ``γ(ω)`` of `bath`.
 """
 γ(ω, bath::AbstractBath) = spectrum(ω, bath)
 
-function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, ::Nothing)
+function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, lambshift_kwargs::Dict)
     if turn_on == true
         if isempty(ω_range)
-            S_loc = (ω) -> S(ω, bath)
+            S_loc = (ω) -> S(ω, bath; lambshift_kwargs...)
         else
-            s_list = [S(ω, bath) for ω in ω_range]
+            s_list = [S(ω, bath; lambshift_kwargs...) for ω in ω_range]
             S_loc = construct_interpolations(ω_range, s_list)
         end
     else
@@ -37,16 +37,8 @@ function build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::Abstract
     S_loc
 end
 
-function build_lambshift(ω_range::AbstractVector, ::Bool, bath::AbstractBath, lambshift_S::Dict)
-    if isempty(ω_range)
-        S_loc = (ω) -> S(ω, bath)
-    else
-        s_list = [S(ω, bath; lambshift_S...) for ω in ω_range]
-        S_loc = construct_interpolations(ω_range, s_list)
-    end
-end
-
-build_lambshift(::AbstractVector, ::Bool, ::AbstractBath, lambshift_S) = lambshift_S
+# This function is for compatibility purpose
+build_lambshift(ω_range::AbstractVector, turn_on::Bool, bath::AbstractBath, ::Nothing) = build_lambshift(ω_range, turn_on, bath, Dict())
 
 """
 $(SIGNATURES)
@@ -106,7 +98,7 @@ function coarse_grain_timescale(
     bath::AbstractBath,
     lim;
     rtol=sqrt(eps()),
-    atol=0,
+    atol=0
 )
     τsb, err_sb = τ_SB(bath, rtol=rtol, atol=atol)
     τb, err_b = τ_B(bath, lim, τsb, rtol=rtol, atol=atol)

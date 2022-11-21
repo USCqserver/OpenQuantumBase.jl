@@ -97,6 +97,8 @@ function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int=2)
     real(w)[1:lvl] / 2 / π, v[:, 1:lvl]
 end
 
+eigen_decomp(H::AbstractHamiltonian; lvl::Int=2) = isconstant(H) ? eigen_decomp(H, 0, lvl=lvl) : throw(ArgumentError("H must be a constant Hamiltonian"))
+
 """
 $(SIGNATURES)
 

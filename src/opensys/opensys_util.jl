@@ -65,3 +65,56 @@ zero_gap_indices(G::GapIndices) = G.a0, G.b0
 gap_matrix(G::GapIndices) = G.w' .- G.w
 get_lvl(G::GapIndices) = length(G.w)
 get_gaps_num(G::GapIndices) = 2*length(G.uniq_w)+1
+
+# TODO: merge `build_correlation` function with `GapIndices`
+"""
+$(SIGNATURES)
+
+Build `GapIndices` type from a list of energies.
+
+...
+# Arguments
+- `w::AbstractVector`: energies of the Hamiltonian.
+- `digits::Integer`: the number of digits to keep when checking if a gap is zero.
+- `sigdigits::Interger`: the number of significant digits when rounding non-zero gaps for comparison.
+- `cutoff_freq::Real`: gaps that are larger than the cutoff frequency (in the 2π frequency unit) are neglected.
+- `truncate_lvl::Integer`: energy levels that are higher than the `truncate_lvl` are neglected.
+...
+"""
+function build_gap_indices(w::AbstractVector, digits::Integer, sigdigits::Integer, cutoff_freq::Real, truncate_lvl::Integer)
+    l = truncate_lvl
+    gaps = Float64[]
+    a_idx = Vector{Int}[]
+    b_idx = Vector{Int}[]
+    a0_idx = Int[]
+	b0_idx = Int[]
+    for i in 1:l-1
+        for j in i+1:l
+            gap = w[j] - w[i]
+            if abs(gap) ≤ 10.0^(-digits)
+                push!(a0_idx, i)
+                push!(b0_idx, j)
+                push!(a0_idx, j)
+                push!(b0_idx, i)
+            elseif abs(gap) ≤ cutoff_freq
+                gap = round(gap, sigdigits=sigdigits)
+                idx = searchsortedfirst(gaps, gap)
+                if idx == length(gaps) + 1
+                    push!(gaps, gap)
+					push!(a_idx, [i])
+					push!(b_idx, [j])
+                elseif gaps[idx] == gap
+                    push!(a_idx[idx], i)
+                    push!(b_idx[idx], j)
+                else
+                    insert!(gaps, idx, gap)
+                    insert!(a_idx, idx, [i])
+                    insert!(b_idx, idx, [j])
+                end
+            end
+        end
+    end
+    append!(a0_idx, 1:l)
+	append!(b0_idx, 1:l)
+    GapIndices(w, gaps, a_idx, b_idx, a0_idx, b0_idx)
+end

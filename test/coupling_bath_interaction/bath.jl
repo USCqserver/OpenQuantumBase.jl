@@ -63,14 +63,14 @@ cbath = CorrelatedBath(((1, 2), (2, 1)), spectrum=[(w) -> 0 γfun; γfun (w) -> 
 @test γm[2, 1](-0.5) == exp(-0.5*0.8)
 
 @test_throws ArgumentError OpenQuantumBase.build_correlation(cbath)
-lambfun_1 = OpenQuantumBase.build_lambshift([0.0], false, cbath, nothing)
+lambfun_1 = OpenQuantumBase.build_lambshift([0.0], false, cbath, Dict())
 @test lambfun_1[1,1](0.0) == 0
 @test lambfun_1[2,2](0.1) == 0
 @test lambfun_1[1,2](0.5) == 0
 @test lambfun_1[2,2](1.0) == 0
 
-lambfun_2 = OpenQuantumBase.build_lambshift([], true, cbath, nothing)
-lambfun_3 = OpenQuantumBase.build_lambshift(range(-5,5,length=1000), true, cbath, nothing)
+lambfun_2 = OpenQuantumBase.build_lambshift([], true, cbath, Dict())
+lambfun_3 = OpenQuantumBase.build_lambshift(range(-5,5,length=1000), true, cbath, Dict())
 lambfun_4 = OpenQuantumBase.build_lambshift([], true, cbath, Dict(:order=>1))
 lambfun_5 = OpenQuantumBase.build_lambshift([0.0, 0.01], true, cbath, Dict(:order=>1))
 @test isapprox(lambfun_2[1,2](0.0), 0.03551, atol=1e-4)

@@ -29,7 +29,7 @@ $(SIGNATURES)
 
 The constructor of the `DiffEqLiouvillian` type. `opensys_eig` is a list of open-system Liouvillians that which require diagonalization of the Hamiltonian. `opensys` is a list of open-system Liouvillians which does not require diagonalization of the Hamiltonian. `lvl` is the truncation levels of the energy eigenbasis if the method supports the truncation.
 """
-function DiffEqLiouvillian(H, opensys_eig, opensys, lvl; digits::Integer=8, sigdigits::Integer=8)
+function DiffEqLiouvillian(H::AbstractHamiltonian, opensys_eig, opensys, lvl; digits::Integer=8, sigdigits::Integer=8)
     # for DenseHamiltonian smaller than 10×10, do not truncate
     if !(typeof(H) <: AbstractSparseHamiltonian) && (size(H, 1) <= 10)
         lvl = size(H, 1)
@@ -43,6 +43,16 @@ function DiffEqLiouvillian(H, opensys_eig, opensys, lvl; digits::Integer=8, sigd
     diagonalization = isempty(opensys_eig) ? false : true
     adiabatic_frame = typeof(H) <: AdiabaticFrameHamiltonian
     DiffEqLiouvillian{diagonalization,adiabatic_frame}(H, opensys_eig, opensys, lvl, digits, sigdigits, u_cache)
+end
+
+# TODO: merge `build_diffeq_liouvillian` with `DiffEqLiouvillian`
+function build_diffeq_liouvillian(H, opensys_eig, opensys, lvl; digits::Integer=8, sigdigits::Integer=8)
+    if isconstant(H)
+        # spzeros((a, b)) is not supported in Julia 1.6
+        DiffEqLiouvillian{false,true}(H, opensys_eig, opensys, lvl, digits, sigdigits, spzeros(size(H, 1), size(H, 2)))
+    else
+        DiffEqLiouvillian(H, opensys_eig, opensys, lvl, digits=digits, sigdigits=sigdigits)
+    end
 end
 
 function (Op::DiffEqLiouvillian{false,false})(du, u, p, t)
@@ -114,5 +124,23 @@ function (Op::DiffEqLiouvillian{true,true})(du, u, p, t)
     du .= -1.0im * (H * u - u * H)
     for lv in Op.opensys_eig
         lv(du, u, gap_ind, s)
+    end
+end
+
+function (Op::DiffEqLiouvillian{false,true})(du, u, p, t)
+    s = p(t)
+    H = Op.H(p.tf, s)
+    du .= -1.0im * (H * u - u * H)
+    for lv in Op.opensys
+        lv(du, u, nothing, s)
+    end
+end
+
+function update_cache!(cache, Op::DiffEqLiouvillian{false,true}, p, t::Real)
+    s = p(t)
+    H = Op.H(p.tf, s)
+    cache .= -1.0im * H
+    for lv in Op.opensys
+        update_cache!(cache, lv, p, t)
     end
 end

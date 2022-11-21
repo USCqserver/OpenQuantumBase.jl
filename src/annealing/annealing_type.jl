@@ -5,11 +5,11 @@ $(TYPEDEF)
 # Fields
 $(FIELDS)
 """
-mutable struct Annealing{hType,uType} <: AbstractAnnealing{hType,uType}
+mutable struct Annealing{constant_hamiltonian} <: AbstractAnnealing{constant_hamiltonian}
     "Hamiltonian for the annealing."
-    H::hType
+    H
     "Initial state for the annealing."
-    u0::uType
+    u0
     "Function of annealing parameter s wrt to t"
     annealing_parameter::Any
     "A system bath interaction set."
@@ -21,10 +21,10 @@ Evolution = Annealing
 function Annealing(
     H::AbstractHamiltonian{T},
     u0;
-    coupling = nothing,
-    bath = nothing,
-    interactions = nothing,
-    annealing_parameter = (tf, t) -> t / tf,
+    coupling=nothing,
+    bath=nothing,
+    interactions=nothing,
+    annealing_parameter=(tf, t) -> t / tf
 ) where {T}
     if !isnothing(coupling) && !isnothing(bath)
         if !isnothing(interactions)
@@ -32,9 +32,8 @@ function Annealing(
         end
         interactions = InteractionSet(Interaction(coupling, bath))
     end
-    if !(T<:Complex)
-    end
-    Annealing(H, u0, annealing_parameter, interactions)
+    H = (T <: Complex) ? H : convert(Complex, H)
+    Annealing{isconstant(H)}(H, u0, annealing_parameter, interactions)
 end
 
 set_u0!(A::Annealing, u0) = A.u0 = u0
@@ -58,6 +57,6 @@ struct ODEParams
     control::Any
 end
 
-ODEParams(L, tf::Real, annealing_param; control = nothing) =
+ODEParams(L, tf::Real, annealing_param; control=nothing) =
     ODEParams(L, tf, annealing_param, control)
 (P::ODEParams)(t::Real) = P.annealing_parameter(P.tf, t)
