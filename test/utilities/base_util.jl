@@ -16,3 +16,16 @@ using OpenQuantumBase, Test
 @test creation_operator(3) ≈ [0 0 0; 1 0 0; 0 sqrt(2) 0]
 @test annihilation_operator(3) ≈ [0 1 0; 0 0 sqrt(2); 0 0 0]
 @test number_operator(3) ≈ [0 0 0; 0 1 0; 0 0 2]
+
+pauli_exp = "-0.1X1X2 + Z2"
+res = OpenQuantumBase.split_pauli_expression(pauli_exp)
+@test res[1] == ["-", "0.1", "X1X2"]
+@test res[2] == ["+", "", "Z2"]
+pauli_exp = "Y2X1-2Z1"
+res = OpenQuantumBase.split_pauli_expression(pauli_exp)
+@test res[1] == ["", "", "Y2X1"]
+@test res[2] == ["-", "2", "Z1"]
+pauli_exp = "X1X2 + 1.0imZ1"
+res = OpenQuantumBase.split_pauli_expression(pauli_exp)
+@test res[2] == ["+", "1.0im", "Z1"]
+

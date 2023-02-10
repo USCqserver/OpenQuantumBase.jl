@@ -104,3 +104,28 @@ function bloch_to_state(θ::Real, ϕ::Real)
     end
     cos(θ / 2) * PauliVec[3][1] + exp(1.0im * ϕ) * sin(θ / 2) * PauliVec[3][2]
 end
+
+"""
+$(SIGNATURES)
+
+Split a Pauli expression (a string like "-0.1X1X2+Z1") into a list of substrings
+that represent each Pauli clause. Each substring contains three parts: the sign;
+the prefix; and the Pauli string.
+
+# Example
+```julia-repl
+julia> split_pauli_expression("-0.1X1X2+Z2")
+2-element Vector{Any}:
+SubString{String}["-", "0.1", "X1X2"]
+SubString{String}["+", "", "Z2"]
+```
+"""
+function split_pauli_expression(p_str)
+    p_str = filter((x)->!isspace(x), p_str)
+    re_str = r"(\+|-|^)([0-9im.]*|^)([XYZ0-9]+)"
+    res = []
+    for m in eachmatch(re_str, p_str)
+        push!(res, [m[1], m[2], m[3]])
+    end
+    res
+end
