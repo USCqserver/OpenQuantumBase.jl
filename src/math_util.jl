@@ -316,3 +316,16 @@ Check whether the input `ρ` is a pure state: ``tr(ρ²)≈1``. This function wi
 function check_pure_state(ρ; atol::Real=0, rtol::Real=atol>0 ? 0 : √eps())
     check_density_matrix(ρ) && isapprox(purity(ρ), 1, atol=atol, rtol=rtol)
 end
+
+"""
+$(SIGNATURES)
+
+Generate a Haar random matrix of dimension `(dim, dim)`.
+"""
+function haar_unitary(dim)
+   M = randn(dim,dim)+im*randn(dim, dim)
+   q,r = qr(M)
+   L = diag(r)
+   L=L./abs.(L)
+   q*diagm(0=>L)
+end
