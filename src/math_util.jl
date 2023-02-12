@@ -199,7 +199,9 @@ end
 """
 $(SIGNATURES)
 
-Calculate the partial trace of the density matrix `ρ`. Assume `ρ` is in the tensor space of ``ℋ₁⊗ℋ₂⊗…``, `sys_dim` is an array of the corresponding sub-system dimensions. `dim_2_keep` is an array of the indices whose corresponding subsystems are not traced out.
+Calculate the partial trace of the density matrix `ρ`. Assume `ρ` is in the tensor space of ``ℋ₁⊗ℋ₂⊗…``,
+`sys_dim` is an array of the corresponding sub-system dimensions. `dim_2_keep` is an array of the indices
+whose corresponding subsystems are not traced out.
 
 # Examples
 ```julia-repl
@@ -214,14 +216,24 @@ function partial_trace(ρ::Matrix, sys_dim::AbstractVector{Int}, dim_2_keep::Abs
     size(ρ, 1) != size(ρ, 2) && throw(ArgumentError("ρ is not a square matrix."))
     prod(sys_dim) != size(ρ, 1) && throw(ArgumentError("System dimensions do not multiply to density matrix dimension."))
 
-    N = length(sys_dim)
-    sys_dim = reverse(sys_dim)
-    ρ = reshape(ρ, sys_dim..., sys_dim...)
-    dim_2_keep = N .+ 1 .- dim_2_keep
-    dim_2_trace = [i for i in 1:N if !(i in dim_2_keep)]
-    traction_idx = collect(1:2*N)
-    traction_idx[dim_2_trace .+ N] .= traction_idx[dim_2_trace]
-    tensortrace(ρ, traction_idx)
+	N = length(sys_dim)
+	iden = CartesianIndex(ones(Int, 2*N)...)
+	sys_dim = reverse(sys_dim)
+	ρ = reshape(ρ, sys_dim..., sys_dim...)
+	dim_2_keep = N .+ 1 .- dim_2_keep
+	dim_2_trace = [i for i in 1:N if !(i in dim_2_keep)]
+	re_dim = copy(sys_dim)
+	re_dim[dim_2_trace] .= 1
+	tr_dim = copy(sys_dim)
+	tr_dim[dim_2_keep] .= 1
+	res = zeros(ComplexF64, re_dim..., re_dim...)
+	for I in CartesianIndices(size(res))
+		for k in CartesianIndices((tr_dim...,))
+			delta = CartesianIndex(k, k)
+			res[I] += ρ[I + delta - iden]
+		end
+	end
+	reshape(res, sys_dim[dim_2_keep]..., sys_dim[dim_2_keep]...)
 end
 
 """
