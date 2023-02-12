@@ -3,12 +3,11 @@ module OpenQuantumBase
 using DocStringExtensions
 
 import LinearAlgebra: mul!, lmul!, axpy!, ishermitian, Hermitian, eigen, eigen!,
-    tr, diag, Diagonal, norm, I, Bidiagonal
+    tr, diag, Diagonal, norm, I, Bidiagonal, qr, diagm
 import StaticArrays: SMatrix, MMatrix
 import SparseArrays: sparse, issparse, spzeros, SparseMatrixCSC
 import LinearAlgebra.BLAS: her!, gemm!
 import QuadGK: quadgk!, quadgk
-import TensorOperations: tensortrace
 
 """
 $(TYPEDEF)
@@ -115,6 +114,8 @@ export q_translate, standard_driver, local_field_term, two_local_term,
 
 export check_positivity, check_unitary, check_density_matrix, partial_trace,
     matrix_decompose, low_level_matrix, fidelity, inst_population, gibbs_state, purity, check_pure_state, find_degenerate
+
+export haar_unitary
 
 export construct_interpolations, gradient, log_uniform
 

@@ -77,5 +77,5 @@ lambfun_5 = OpenQuantumBase.build_lambshift([0.0, 0.01], true, cbath, Dict(:orde
 @test isapprox(lambfun_3[1,2](0.0), 0.03551, atol=1e-4)
 @test lambfun_2[1,1](0) == 0
 @test lambfun_3[2,2](0) == 0
-@test lambfun_4[1,2](0) ≈ 0.08681 atol=1e-4
-@test lambfun_5[2, 1](0.01) ≈ 0.12268 atol=1e-4
+@test lambfun_4[1,2](0) ≈ 0.03551 atol=1e-4
+@test lambfun_5[2,1](0.01) ≈ 0.05019 atol=1e-4

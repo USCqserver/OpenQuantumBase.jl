@@ -1,4 +1,4 @@
-using OpenQuantumBase, Test
+using OpenQuantumBase, LinearAlgebra, Test
 
 # === matrix decomposition
 v = 1.0 * σx + 2.0 * σy + 3.0 * σz
@@ -91,3 +91,6 @@ gibbs = gibbs_state(σz, 12)
     0.0+0.0im 0.0+0.0im -1.1+0.0im 0.0+0.0im
     0.0+0.0im 0.0+0.0im 0.0+0.0im 0.0+0.0im]
 @test_logs (:warn, "Subspace dimension bigger than total dimension.") low_level_matrix(σz ⊗ σz + 0.1σz ⊗ σi, 5)
+
+u = haar_unitary(2)
+@test u'*u ≈ I
