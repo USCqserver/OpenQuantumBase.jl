@@ -69,6 +69,7 @@ $(TYPEDEF)
 """
 abstract type AbstractLiouvillian end
 
+include("lobpcg.jl")
 include("base_util.jl")
 include("unit_util.jl")
 include("math_util.jl")
