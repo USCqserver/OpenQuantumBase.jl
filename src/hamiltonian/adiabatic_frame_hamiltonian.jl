@@ -95,6 +95,8 @@ function AdiabaticFrameHamiltonian(D::AbstractDiagonalOperator{T}, G::AbstractGe
     AdiabaticFrameHamiltonian{complex(T)}(G, D, (l, l))
 end
 
+issparse(::AdiabaticFrameHamiltonian) = false
+
 """
     function AdiabaticFrameHamiltonian(ωfuns, geofuns)
 

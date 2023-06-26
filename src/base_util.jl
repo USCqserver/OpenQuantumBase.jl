@@ -4,7 +4,7 @@ end
 
 const TYPE_COLOR = CSI"36"
 const NO_COLOR = CSI"0"
-issparse(H::AbstractHamiltonian) = typeof(H) <: AbstractSparseHamiltonian
+
 
 """
     function unit_scale(u)

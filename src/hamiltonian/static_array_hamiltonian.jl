@@ -28,8 +28,10 @@ function StaticDenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     hsize = size(mats[1])
     mats = unit_scale(unit) * mats
     cache = similar(mats[1])
-    StaticDenseHamiltonian{eltype(mats[1]), dimensionless_time}(funcs, mats, cache, hsize)
+    StaticDenseHamiltonian{eltype(mats[1]),dimensionless_time}(funcs, mats, cache, hsize)
 end
+
+issparse(::StaticDenseHamiltonian) = false
 
 """
     function (h::StaticDenseHamiltonian)(s::Real)
@@ -90,14 +92,14 @@ end
 
 function rotate(H::StaticDenseHamiltonian, v)
     hsize = size(H)
-    mats = [SMatrix{hsize[1], hsize[2]}(v' * m * v) for m in H.m]
+    mats = [SMatrix{hsize[1],hsize[2]}(v' * m * v) for m in H.m]
     StaticDenseHamiltonian(H.f, mats, unit=:ħ, dimensionless_time=isdimensionlesstime(H))
 end
 
-isdimensionlesstime(H::StaticDenseHamiltonian{T, true}) where T = true
-isdimensionlesstime(H::StaticDenseHamiltonian{T, false}) where T = false
+isdimensionlesstime(::StaticDenseHamiltonian{T,B}) where {T,B} = B
+issparse(::StaticDenseHamiltonian) = false
 
-function haml_eigs_default(H::StaticDenseHamiltonian, t, lvl::Integer) 
+function haml_eigs_default(H::StaticDenseHamiltonian, t, lvl::Integer)
     w, v = eigen(Hermitian(H(t)))
     w[1:lvl], v[:, 1:lvl]
 end
@@ -124,6 +126,7 @@ function ConstantStaticDenseHamiltonian(mat; unit=:h)
 end
 
 isconstant(::ConstantStaticDenseHamiltonian) = true
+issparse(::ConstantDenseHamiltonian) = false
 
 function (h::ConstantStaticDenseHamiltonian)(::Real)
     h.u_cache
@@ -157,11 +160,11 @@ end
 
 function rotate(H::ConstantStaticDenseHamiltonian, v)
     hsize = size(H)
-    mat = SMatrix{hsize[1], hsize[2]}(v' * H.u_cache * v)
+    mat = SMatrix{hsize[1],hsize[2]}(v' * H.u_cache * v)
     ConstantStaticDenseHamiltonian(mat, hsize)
 end
 
-function haml_eigs_default(H::ConstantStaticDenseHamiltonian, t, lvl::Integer) 
+function haml_eigs_default(H::ConstantStaticDenseHamiltonian, t, lvl::Integer)
     w, v = eigen(Hermitian(H(t)))
     w[1:lvl], v[:, 1:lvl]
 end

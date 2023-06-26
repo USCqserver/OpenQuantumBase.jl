@@ -107,8 +107,8 @@ isdimensionlesstime(H)
 
 Check whether the argument of a time dependent Hamiltonian is the dimensionless time.
 """
-isdimensionlesstime(::DenseHamiltonian{T,true}) where {T} = true
-isdimensionlesstime(::DenseHamiltonian{T,false}) where {T} = false
+isdimensionlesstime(::DenseHamiltonian{T,B}) where {T,B} = B
+issparse(::DenseHamiltonian) = false
 
 """
 $(TYPEDEF)
@@ -132,6 +132,7 @@ function ConstantDenseHamiltonian(mat; unit=:h)
 end
 
 isconstant(::ConstantDenseHamiltonian) = true
+issparse(::ConstantDenseHamiltonian) = false
 
 function (h::ConstantDenseHamiltonian)(::Real)
     h.u_cache
