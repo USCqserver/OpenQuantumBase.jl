@@ -31,6 +31,7 @@ function StaticDenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     StaticDenseHamiltonian{eltype(mats[1]),dimensionless_time}(funcs, mats, cache, hsize)
 end
 
+isdimensionlesstime(::StaticDenseHamiltonian{T,B}) where {T,B} = B
 issparse(::StaticDenseHamiltonian) = false
 
 """
@@ -96,9 +97,6 @@ function rotate(H::StaticDenseHamiltonian, v)
     StaticDenseHamiltonian(H.f, mats, unit=:ħ, dimensionless_time=isdimensionlesstime(H))
 end
 
-isdimensionlesstime(::StaticDenseHamiltonian{T,B}) where {T,B} = B
-issparse(::StaticDenseHamiltonian) = false
-
 function haml_eigs_default(H::StaticDenseHamiltonian, t, lvl::Integer)
     w, v = eigen(Hermitian(H(t)))
     w[1:lvl], v[:, 1:lvl]
@@ -126,7 +124,7 @@ function ConstantStaticDenseHamiltonian(mat; unit=:h)
 end
 
 isconstant(::ConstantStaticDenseHamiltonian) = true
-issparse(::ConstantDenseHamiltonian) = false
+issparse(::ConstantStaticDenseHamiltonian) = false
 
 function (h::ConstantStaticDenseHamiltonian)(::Real)
     h.u_cache
