@@ -38,9 +38,9 @@ struct Lindblad <: AbstractInteraction
     size::Tuple
 end
 
-Lindblad(γ::Number, L::Matrix) = Lindblad((s) -> γ, (s) -> L, size(L))
+Lindblad(γ::Number, L::AbstractMatrix) = Lindblad((s) -> γ, (s) -> L, size(L))
 Lindblad(γ::Number, L) = Lindblad((s) -> γ, L, size(L(0)))
-Lindblad(γ, L::Matrix) = Lindblad(γ, (s) -> L, size(L))
+Lindblad(γ, L::AbstractMatrix) = Lindblad(γ, (s) -> L, size(L))
 
 function Lindblad(γ, L)
     if !(typeof(γ(0)) <: Number)
