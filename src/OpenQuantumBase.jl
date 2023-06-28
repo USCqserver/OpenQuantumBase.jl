@@ -12,7 +12,18 @@ import QuadGK: quadgk!, quadgk
 """
 $(TYPEDEF)
 
-Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object should implement two interfaces: `H(t)` and `H(du, u, p, t)`.
+This is a supertype for Hamiltonians with elements of type `T`. Any object of a
+subtype of `AbstractHamiltonian` should implement two methods corresponding to 
+the call signatures `H(t)` and `H(du, u, p, t)`.
+
+`H(t)`: This method, when called with a single argument `t`, should return the 
+value of the Hamiltonian at time `t`.
+
+`H(du, u, p, t)`: This method should update the du object in-place according to 
+the evolution equation `du += -i H(t) u` when `u` is a vector, or 
+`du += -i [H(t), u]` when `u` is a matrix. Here, `u` is the state vector or 
+density matrix, `p` contains parameters for the ODE solver, and `t` is the 
+current time.
 """
 abstract type AbstractHamiltonian{T<:Number} end
 
@@ -58,6 +69,7 @@ $(TYPEDEF)
 """
 abstract type AbstractLiouvillian end
 
+include("lobpcg.jl")
 include("base_util.jl")
 include("unit_util.jl")
 include("math_util.jl")

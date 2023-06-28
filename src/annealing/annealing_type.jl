@@ -41,22 +41,27 @@ set_annealing_parameter!(A::Annealing, param) = A.annealing_parameter = param
 
 """
 $(TYPEDEF)
-Defines a complete set of ODE parameters, which includes Hamiltonian, total annealing time, open system and control objects.
+
+The `ODEParams` struct represents a complete set of parameters for an Ordinary 
+Differential Equation (ODE), including the Liouville operator, total evolution 
+time, an annealing parameter function, and an object storing accepted keyword 
+arguments for subroutines.
+
 # Fields
 $(FIELDS)
 """
 struct ODEParams
-    # H and opensys may be move to dedicated OpenSysOp in the future
-    "Hamiltonian"
+    "Liouville operator"
     L::Any
-    "Total annealing time"
+    "Total evolution time"
     tf::Real
     "Function to convert physical time to annealing parameter"
     annealing_parameter::Function
-    "Annealing control object"
-    control::Any
+    "Keyword arguments for subroutines"
+    accepted_kwargs::Any
 end
 
-ODEParams(L, tf::Real, annealing_param; control=nothing) =
-    ODEParams(L, tf, annealing_param, control)
+# TODO: filter the keyword argument
+ODEParams(L, tf::Real, annealing_param; kwargs...) =
+    ODEParams(L, tf, annealing_param, kwargs)
 (P::ODEParams)(t::Real) = P.annealing_parameter(P.tf, t)

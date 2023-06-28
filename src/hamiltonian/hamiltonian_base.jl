@@ -70,17 +70,22 @@ end
 """
 $(SIGNATURES)
 
-    Default eigenvalue decomposition method for an abstract Hamiltonian `H` at time `s`. Requires the Hamiltonian to be callable and have a `u_cache` field. Keyword argument `lvl` specifies the number of levels to keep in the output. 
-    The function returns (w, v), where `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. 
-    (The `k`th eigenvector can be obtained from the slice `v[:, k]`.)
+    Default eigenvalue decomposition method for an abstract Hamiltonian `H` at
+    time `t`. Keyword argument `lvl` specifies the number of levels to keep in 
+    the output. 
+
+    The function returns a tuple (w, v), where `w` is a vector of eigenvalues, 
+    and `v` is a matrix where each column represents an eigenvector. (The `k`th 
+    eigenvector can be extracted using the slice `v[:, k]`.)
 """
-haml_eigs_default(H::AbstractHamiltonian, t, lvl::Integer) = eigen!(Hermitian(H(t)), 1:lvl)
-haml_eigs_default(H::AbstractHamiltonian, t, ::Nothing) = eigen(Hermitian(H(t)))
-haml_eigs(H::AbstractHamiltonian, t, lvl) = haml_eigs_default(H, t, lvl)
-# Default eigendecomposition routine for AbstractSparseHamiltonian Hamiltonian
-# It converts all sparse matrices into dense ones and use `LAPACK` routine for eigendecomposition
-haml_eigs_default(H::AbstractSparseHamiltonian, t, ::Nothing) = eigen!(Hermitian(Array(H(t))))
-haml_eigs_default(H::AbstractSparseHamiltonian, t, lvl::Integer) = eigen!(Hermitian(Array(H(t))), 1:lvl)
+# If H(t) returns an array, the `Array` function will not allocate a new 
+# variable
+haml_eigs_default(H::AbstractHamiltonian, t, lvl::Integer) = eigen!(
+    H(t) |> Array |> Hermitian, 1:lvl)
+haml_eigs_default(H::AbstractHamiltonian, t, ::Nothing) = eigen(
+    H(t) |> Array |> Hermitian)
+haml_eigs(H::AbstractHamiltonian, t, lvl; kwargs...) = haml_eigs_default(H, t,
+    lvl; kwargs...)
 
 #function eigen!(M::Hermitian{T, S}, lvl::UnitRange) where T<:Number where S<:Union{SMatrix, MMatrix}
 #    w, v = eigen(Hermitian(M))
@@ -155,3 +160,5 @@ function is_complex(f_list, m_list)
         typeof(f(0)) <: Complex
     end
 end
+
+issparse(H::AbstractHamiltonian) = typeof(H) <: AbstractSparseHamiltonian
