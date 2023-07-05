@@ -117,7 +117,7 @@ H = SparseHamiltonian([(s) -> 1 - s, (s) -> s], [Hd, Hp])
 ops = [2π * q_translate("ZIII+IZII+IIZI+IIIZ")]
 coupling = ConstantCouplings(["ZIII+IZII+IIZI+IIIZ"])
 davies = OpenQuantumBase.DaviesGenerator(coupling, gamma, lamb)
-w, v = eigen_decomp(H, 0.5, lvl=4)
+w, v = eigen_decomp(H, 0.5, lvl=4, lobpcg=false)
 w = 2π * real(w)
 g_idx = OpenQuantumBase.GapIndices(w, 8, 8)
 

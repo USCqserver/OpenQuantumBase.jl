@@ -16,12 +16,20 @@ types behave consistently with methods designed for `AdiabaticFrameHamiltonian`.
 evaluate(H::AbstractHamiltonian, ::Any, s::Real) = H.(s) / 2 / π
 
 """
-isconstant(H)
+    isconstant(H)
 
 Verifies if a Hamiltonian is constant. By default, it returns false for a generic
 Hamiltonian.
 """
 isconstant(::AbstractHamiltonian) = false
+
+"""
+    issparse(H)
+
+Verifies if a Hamiltonian is sparse. By default, it returns false for a generic
+Hamiltonian.
+"""
+issparse(::AbstractHamiltonian) = false 
 
 Base.eltype(::AbstractHamiltonian{T}) where {T} = T
 Base.size(H::AbstractHamiltonian) = H.size
@@ -134,13 +142,13 @@ end
 """
 $(SIGNATURES)
 
-    Default eigenvalue decomposition method for an abstract Hamiltonian `H` at
-    time `t`. Keyword argument `lvl` specifies the number of levels to keep in 
-    the output. 
+Default eigenvalue decomposition method for an abstract Hamiltonian `H` at
+time `t`. Keyword argument `lvl` specifies the number of levels to keep in 
+the output. 
 
-    The function returns a tuple (w, v), where `w` is a vector of eigenvalues, 
-    and `v` is a matrix where each column represents an eigenvector. (The `k`th 
-    eigenvector can be extracted using the slice `v[:, k]`.)
+The function returns a tuple (w, v), where `w` is a vector of eigenvalues, 
+and `v` is a matrix where each column represents an eigenvector. (The `k`th 
+eigenvector can be extracted using the slice `v[:, k]`.)
 """
 # If H(t) returns an array, the `Array` function will not allocate a new 
 # variable
@@ -159,30 +167,39 @@ haml_eigs(H::AbstractHamiltonian, t, lvl; kwargs...) = haml_eigs_default(H, t,
 """
 $(SIGNATURES)
 
-Calculate the eigen value decomposition of the Hamiltonian `H` at time `s`. Keyword argument `lvl` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`.
+Calculate the eigen value decomposition of the Hamiltonian `H` at time `t`. 
+Keyword argument `lvl` specifies the number of levels to keep in the output. 
+`w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the 
+columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` 
+will be in unit of `GHz`.
 """
-function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int=2)
-    w, v = haml_eigs(H, s, lvl)
+function eigen_decomp(H::AbstractHamiltonian, t::Real; lvl::Int=2, kwargs...)
+    w, v = haml_eigs(H, t, lvl; kwargs...)
     real(w)[1:lvl] / 2 / π, v[:, 1:lvl]
 end
 
-eigen_decomp(H::AbstractHamiltonian; lvl::Int=2) = isconstant(H) ? eigen_decomp(H, 0, lvl=lvl) : throw(ArgumentError("H must be a constant Hamiltonian"))
+eigen_decomp(H::AbstractHamiltonian; lvl::Int=2, kwargs...) = isconstant(H) ? 
+    eigen_decomp(H, 0, lvl=lvl, kwargs...) : throw(ArgumentError("H must be a constant Hamiltonian"))
 
 """
 $(SIGNATURES)
 
-Calculate the eigen value decomposition of the Hamiltonian `H` at an array of time points `s`. The output keeps the lowest `lvl` eigenstates and their corresponding eigenvalues. Output `(vals, vecs)` have the dimensions of `(lvl, length(s))` and `(size(H, 1), lvl, length(s))` respectively.
+Calculate the eigen value decomposition of the Hamiltonian `H` at an array of 
+time points `s`. The output keeps the lowest `lvl` eigenstates and their 
+corresponding eigenvalues. Output `(vals, vecs)` have the dimensions of 
+`(lvl, length(s))` and `(size(H, 1), lvl, length(s))` respectively.
 """
 function eigen_decomp(
     H::AbstractHamiltonian,
     s::AbstractArray{Float64,1};
-    lvl::Int=2
+    lvl::Int=2,
+    kwargs...
 )
     s_dim = length(s)
     res_val = Array{eltype(H),2}(undef, (lvl, s_dim))
     res_vec = Array{eltype(H),3}(undef, (size(H, 1), lvl, s_dim))
     for (i, s_val) in enumerate(s)
-        val, vec = haml_eigs(H, s_val, lvl)
+        val, vec = haml_eigs(H, s_val, lvl; kwargs...)
         res_val[:, i] = val[1:lvl]
         res_vec[:, :, i] = vec[:, 1:lvl]
     end
@@ -192,7 +209,9 @@ end
 """
 $(SIGNATURES)
 
-For a time series quantum states given by `states`, whose time points are given by `s`, calculate the population of instantaneous eigenstates of `H`. The levels of the instantaneous eigenstates are specified by `lvl`, which can be any slice index.
+For a time series quantum states given by `states`, whose time points are given
+by `s`, calculate the population of instantaneous eigenstates of `H`. The levels
+of the instantaneous eigenstates are specified by `lvl`, which can be any slice index.
 """
 function inst_population(s, states, H::AbstractHamiltonian; lvl=1:1)
     if typeof(lvl) <: Int
@@ -225,4 +244,3 @@ function is_complex(f_list, m_list)
     end
 end
 
-issparse(H::AbstractHamiltonian) = typeof(H) <: AbstractSparseHamiltonian
