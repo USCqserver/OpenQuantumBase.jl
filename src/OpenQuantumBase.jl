@@ -12,7 +12,8 @@ import QuadGK: quadgk!, quadgk
 """
 $(TYPEDEF)
 
-Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object should implement two interfaces: `H(t)` and `H(du, u, p, t)`.
+Suptertype for Hamiltonians with elements of type `T`. Any Hamiltonian object 
+should implement two interfaces: `H(t)` and `H(du, u, p, t)`.
 """
 abstract type AbstractHamiltonian{T<:Number} end
 

@@ -1,22 +1,28 @@
 """
 $(SIGNATURES)
 
-Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`. 
-
-Fallback to `H.(s)/2/π` for generic `AbstractHamiltonian` type.
+Evaluates a time-dependent Hamiltonian at time `s`, expressed in units of `GHz`.
+For generic `AbstractHamiltonian` types, it defaults to `H.(s)/2/π`.
 """
 evaluate(H::AbstractHamiltonian, s::Real) = H.(s) / 2 / π
 
-function (H::AbstractHamiltonian, ::Any, s::Real)
-    H.(s) / 2 / π
-end
+"""
+$(SIGNATURES)
+
+This function provides a generic interface for `AbstractHamiltonian` types that
+accepts two arguments. It ensures that other concrete Hamiltonian types behave
+consistently with methods designed for `AdiabaticFrameHamiltonian`.
+"""
+H::AbstractHamiltonian, ::Any, s::Real = H.(s) / 2 / π
 
 """
 isconstant(H)
 
-Check whether a Hamiltonian is constant.
+Verifies if a Hamiltonian is constant. By default, it returns false for a generic
+Hamiltonian.
 """
 isconstant(::AbstractHamiltonian) = false
+
 Base.eltype(::AbstractHamiltonian{T}) where {T} = T
 Base.size(H::AbstractHamiltonian) = H.size
 Base.size(H::AbstractHamiltonian, dim::T) where {T<:Integer} = H.size[dim]
