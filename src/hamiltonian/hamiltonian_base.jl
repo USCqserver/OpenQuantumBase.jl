@@ -9,11 +9,11 @@ evaluate(H::AbstractHamiltonian, s::Real) = H.(s) / 2 / π
 """
 $(SIGNATURES)
 
-This function provides a generic interface for `AbstractHamiltonian` types that
-accepts two arguments. It ensures that other concrete Hamiltonian types behave
-consistently with methods designed for `AdiabaticFrameHamiltonian`.
+This function provides a generic `evaluate` interface for `AbstractHamiltonian`
+types that accepts two arguments. It ensures that other concrete Hamiltonian 
+types behave consistently with methods designed for `AdiabaticFrameHamiltonian`.
 """
-H::AbstractHamiltonian, ::Any, s::Real = H.(s) / 2 / π
+evaluate(H::AbstractHamiltonian, ::Any, s::Real) = H.(s) / 2 / π
 
 """
 isconstant(H)
@@ -31,31 +31,89 @@ get_cache(H::AbstractHamiltonian) = H.u_cache
 """
 $(SIGNATURES)
 
-Update the internal cache `cache` according to the value of the Hamiltonian `H` at given dimensionless time `s`: ``cache = -iH(p, s)``. The third argument, `p` is reserved for passing additional info to the `AbstractHamiltonian` object. Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total evolution time `tf`. To keep the interface consistent across all `AbstractHamiltonian` types, the `update_cache!` method for all subtypes of `AbstractHamiltonian` should keep the argument `p`.
+Update the internal cache `cache` according to the value of the Hamiltonian `H` 
+at given time `t`: ``cache = -iH(p, t)``. The third argument, `p` 
+is reserved for passing additional info to the `AbstractHamiltonian` object. 
+Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total 
+evolution time `tf`. To keep the interface consistent across all 
+`AbstractHamiltonian` types, the `update_cache!` method for all subtypes of 
+`AbstractHamiltonian` should keep the argument `p`.
 
-Fallback to `cache .= -1.0im * H(p, s)` for generic `AbstractHamiltonian` type.
+Fallback to `cache .= -1.0im * H(p, t)` for generic `AbstractHamiltonian` type.
 """
-update_cache!(cache, H::AbstractHamiltonian, p, s::Real) = cache .= -1.0im * H(p, s)
+update_cache!(cache, H::AbstractHamiltonian, p, t::Real) = cache .= -1.0im * H(p, t)
 
-function update_vectorized_cache!(cache, H::AbstractHamiltonian, p, s::Real)
-    hmat = H(s)
+"""
+$(SIGNATURES)
+
+This function calculates the vectorized version of the commutation relation 
+between the Hamiltonian `H` at time `t` and the density matrix ``ρ``, and then 
+updates the cache in-place.
+
+The commutation relation is given by ``[H, ρ] = Hρ - ρH``. The vectorized 
+commutator is given by ``I⊗H-H^T⊗I``. 
+
+...
+# Arguments
+- `cache`: the variable to be updated in-place, storing the vectorized commutator.
+- `H::AbstractHamiltonian`: an instance of AbstractHamiltonian, representing the Hamiltonian of the system.
+- `p`: unused parameter, kept for function signature consistency with other methods.
+- `t`: a real number representing the time at which the Hamiltonian is evaluated.
+
+# Returns
+The function does not return anything as the update is performed in-place on cache.
+...
+"""
+function update_vectorized_cache!(cache, H::AbstractHamiltonian, p, t::Real)
+    hmat = H(t)
     iden = one(hmat)
     cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
 end
 
-function (h::AbstractHamiltonian)(du, u::AbstractMatrix, p, s::Real)
-    H = h(s)
+"""
+$(SIGNATURES)
+
+This function implements the Liouville-von Neumann equation, describing the time
+evolution of a quantum system governed by the Hamiltonian `h`.
+
+The Liouville-von Neumann equation is given by ``du/dt = -i[H, ρ]``, where ``H``
+is the Hamiltonian of the system, ``ρ`` is the density matrix (`u` in this 
+context), and ``[H, ρ]`` is the commutation relation between ``H`` and ``ρ``, 
+defined as ``Hρ - ρH``.
+
+The function is written in such a way that it can be directly passed to 
+differential equation solvers in Julia, such as those in 
+`DifferentialEquations.jl`, as the system function representing the ODE to be solved.
+
+...
+# Arguments
+- `du`: the derivative of the density matrix with respect to time. The result 
+        of the calculation will be stored here.
+- `u`: an instance of `AbstractMatrix`, representing the density matrix of the system.
+- `p`: unused parameter, kept for function signature consistency with other methods.
+- `t`: a real number representing the time at which the Hamiltonian is evaluated.
+
+# Returns
+The function does not return anything as the update is performed in-place on `du`.
+...
+"""
+function (h::AbstractHamiltonian)(du, u::AbstractMatrix, p, t::Real)
+    H = h(t)
     Hρ = -1.0im * H * u
     du .= Hρ - transpose(Hρ)
 end
 
 """
 $(SIGNATURES)
-The `AbstractHamiltonian` type can be called with two arguments. The first argument is reserved to pass additional info to the `AbstractHamiltonian` object. Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total evolution time `tf`.
 
-Fallback to `H(s)` for generic `AbstractHamiltonian` type.
+The `AbstractHamiltonian` type can be called with two arguments. The first 
+argument is reserved to pass additional info to the `AbstractHamiltonian` object. 
+Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total 
+evolution time `tf`.
+
+Fallback to `H(t)` for generic `AbstractHamiltonian` type.
 """
-(H::AbstractHamiltonian)(::Any, s::Real) = H(s)
+(H::AbstractHamiltonian)(::Any, t::Real) = H(t)
 
 Base.summary(H::AbstractHamiltonian) = string(
     TYPE_COLOR,
