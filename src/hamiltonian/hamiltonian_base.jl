@@ -1,22 +1,36 @@
 """
 $(SIGNATURES)
 
-Evaluate the time dependent Hamiltonian at time s with the unit of `GHz`. 
-
-Fallback to `H.(s)/2/π` for generic `AbstractHamiltonian` type.
+Evaluates a time-dependent Hamiltonian at time `s`, expressed in units of `GHz`.
+For generic `AbstractHamiltonian` types, it defaults to `H.(s)/2/π`.
 """
 evaluate(H::AbstractHamiltonian, s::Real) = H.(s) / 2 / π
 
-function (H::AbstractHamiltonian, ::Any, s::Real)
-    H.(s) / 2 / π
-end
+"""
+$(SIGNATURES)
+
+This function provides a generic `evaluate` interface for `AbstractHamiltonian`
+types that accepts two arguments. It ensures that other concrete Hamiltonian 
+types behave consistently with methods designed for `AdiabaticFrameHamiltonian`.
+"""
+evaluate(H::AbstractHamiltonian, ::Any, s::Real) = H.(s) / 2 / π
 
 """
-isconstant(H)
+    isconstant(H)
 
-Check whether a Hamiltonian is constant.
+Verifies if a Hamiltonian is constant. By default, it returns false for a generic
+Hamiltonian.
 """
 isconstant(::AbstractHamiltonian) = false
+
+"""
+    issparse(H)
+
+Verifies if a Hamiltonian is sparse. By default, it returns false for a generic
+Hamiltonian.
+"""
+issparse(::AbstractHamiltonian) = false 
+
 Base.eltype(::AbstractHamiltonian{T}) where {T} = T
 Base.size(H::AbstractHamiltonian) = H.size
 Base.size(H::AbstractHamiltonian, dim::T) where {T<:Integer} = H.size[dim]
@@ -25,31 +39,89 @@ get_cache(H::AbstractHamiltonian) = H.u_cache
 """
 $(SIGNATURES)
 
-Update the internal cache `cache` according to the value of the Hamiltonian `H` at given dimensionless time `s`: ``cache = -iH(p, s)``. The third argument, `p` is reserved for passing additional info to the `AbstractHamiltonian` object. Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total evolution time `tf`. To keep the interface consistent across all `AbstractHamiltonian` types, the `update_cache!` method for all subtypes of `AbstractHamiltonian` should keep the argument `p`.
+Update the internal cache `cache` according to the value of the Hamiltonian `H` 
+at given time `t`: ``cache = -iH(p, t)``. The third argument, `p` 
+is reserved for passing additional info to the `AbstractHamiltonian` object. 
+Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total 
+evolution time `tf`. To keep the interface consistent across all 
+`AbstractHamiltonian` types, the `update_cache!` method for all subtypes of 
+`AbstractHamiltonian` should keep the argument `p`.
 
-Fallback to `cache .= -1.0im * H(p, s)` for generic `AbstractHamiltonian` type.
+Fallback to `cache .= -1.0im * H(p, t)` for generic `AbstractHamiltonian` type.
 """
-update_cache!(cache, H::AbstractHamiltonian, p, s::Real) = cache .= -1.0im * H(p, s)
+update_cache!(cache, H::AbstractHamiltonian, p, t::Real) = cache .= -1.0im * H(p, t)
 
-function update_vectorized_cache!(cache, H::AbstractHamiltonian, p, s::Real)
-    hmat = H(s)
+"""
+$(SIGNATURES)
+
+This function calculates the vectorized version of the commutation relation 
+between the Hamiltonian `H` at time `t` and the density matrix ``ρ``, and then 
+updates the cache in-place.
+
+The commutation relation is given by ``[H, ρ] = Hρ - ρH``. The vectorized 
+commutator is given by ``I⊗H-H^T⊗I``. 
+
+...
+# Arguments
+- `cache`: the variable to be updated in-place, storing the vectorized commutator.
+- `H::AbstractHamiltonian`: an instance of AbstractHamiltonian, representing the Hamiltonian of the system.
+- `p`: unused parameter, kept for function signature consistency with other methods.
+- `t`: a real number representing the time at which the Hamiltonian is evaluated.
+
+# Returns
+The function does not return anything as the update is performed in-place on cache.
+...
+"""
+function update_vectorized_cache!(cache, H::AbstractHamiltonian, p, t::Real)
+    hmat = H(t)
     iden = one(hmat)
     cache .= 1.0im * (transpose(hmat) ⊗ iden - iden ⊗ hmat)
 end
 
-function (h::AbstractHamiltonian)(du, u::AbstractMatrix, p, s::Real)
-    H = h(s)
+"""
+$(SIGNATURES)
+
+This function implements the Liouville-von Neumann equation, describing the time
+evolution of a quantum system governed by the Hamiltonian `h`.
+
+The Liouville-von Neumann equation is given by ``du/dt = -i[H, ρ]``, where ``H``
+is the Hamiltonian of the system, ``ρ`` is the density matrix (`u` in this 
+context), and ``[H, ρ]`` is the commutation relation between ``H`` and ``ρ``, 
+defined as ``Hρ - ρH``.
+
+The function is written in such a way that it can be directly passed to 
+differential equation solvers in Julia, such as those in 
+`DifferentialEquations.jl`, as the system function representing the ODE to be solved.
+
+...
+# Arguments
+- `du`: the derivative of the density matrix with respect to time. The result 
+        of the calculation will be stored here.
+- `u`: an instance of `AbstractMatrix`, representing the density matrix of the system.
+- `p`: unused parameter, kept for function signature consistency with other methods.
+- `t`: a real number representing the time at which the Hamiltonian is evaluated.
+
+# Returns
+The function does not return anything as the update is performed in-place on `du`.
+...
+"""
+function (h::AbstractHamiltonian)(du, u::AbstractMatrix, p, t::Real)
+    H = h(t)
     Hρ = -1.0im * H * u
     du .= Hρ - transpose(Hρ)
 end
 
 """
 $(SIGNATURES)
-The `AbstractHamiltonian` type can be called with two arguments. The first argument is reserved to pass additional info to the `AbstractHamiltonian` object. Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total evolution time `tf`.
 
-Fallback to `H(s)` for generic `AbstractHamiltonian` type.
+The `AbstractHamiltonian` type can be called with two arguments. The first 
+argument is reserved to pass additional info to the `AbstractHamiltonian` object. 
+Currently, it is only used by `AdiabaticFrameHamiltonian` to pass the total 
+evolution time `tf`.
+
+Fallback to `H(t)` for generic `AbstractHamiltonian` type.
 """
-(H::AbstractHamiltonian)(::Any, s::Real) = H(s)
+(H::AbstractHamiltonian)(::Any, t::Real) = H(t)
 
 Base.summary(H::AbstractHamiltonian) = string(
     TYPE_COLOR,
@@ -70,13 +142,13 @@ end
 """
 $(SIGNATURES)
 
-    Default eigenvalue decomposition method for an abstract Hamiltonian `H` at
-    time `t`. Keyword argument `lvl` specifies the number of levels to keep in 
-    the output. 
+Default eigenvalue decomposition method for an abstract Hamiltonian `H` at
+time `t`. Keyword argument `lvl` specifies the number of levels to keep in 
+the output. 
 
-    The function returns a tuple (w, v), where `w` is a vector of eigenvalues, 
-    and `v` is a matrix where each column represents an eigenvector. (The `k`th 
-    eigenvector can be extracted using the slice `v[:, k]`.)
+The function returns a tuple (w, v), where `w` is a vector of eigenvalues, 
+and `v` is a matrix where each column represents an eigenvector. (The `k`th 
+eigenvector can be extracted using the slice `v[:, k]`.)
 """
 # If H(t) returns an array, the `Array` function will not allocate a new 
 # variable
@@ -95,30 +167,39 @@ haml_eigs(H::AbstractHamiltonian, t, lvl; kwargs...) = haml_eigs_default(H, t,
 """
 $(SIGNATURES)
 
-Calculate the eigen value decomposition of the Hamiltonian `H` at time `s`. Keyword argument `lvl` specifies the number of levels to keep in the output. `w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` will be in unit of `GHz`.
+Calculate the eigen value decomposition of the Hamiltonian `H` at time `t`. 
+Keyword argument `lvl` specifies the number of levels to keep in the output. 
+`w` is a vector of eigenvalues and `v` is a matrix of the eigenvectors in the 
+columns. (The `k`th eigenvector can be obtained from the slice `v[:, k]`.) `w` 
+will be in unit of `GHz`.
 """
-function eigen_decomp(H::AbstractHamiltonian, s; lvl::Int=2)
-    w, v = haml_eigs(H, s, lvl)
+function eigen_decomp(H::AbstractHamiltonian, t::Real; lvl::Int=2, kwargs...)
+    w, v = haml_eigs(H, t, lvl; kwargs...)
     real(w)[1:lvl] / 2 / π, v[:, 1:lvl]
 end
 
-eigen_decomp(H::AbstractHamiltonian; lvl::Int=2) = isconstant(H) ? eigen_decomp(H, 0, lvl=lvl) : throw(ArgumentError("H must be a constant Hamiltonian"))
+eigen_decomp(H::AbstractHamiltonian; lvl::Int=2, kwargs...) = isconstant(H) ? 
+    eigen_decomp(H, 0, lvl=lvl, kwargs...) : throw(ArgumentError("H must be a constant Hamiltonian"))
 
 """
 $(SIGNATURES)
 
-Calculate the eigen value decomposition of the Hamiltonian `H` at an array of time points `s`. The output keeps the lowest `lvl` eigenstates and their corresponding eigenvalues. Output `(vals, vecs)` have the dimensions of `(lvl, length(s))` and `(size(H, 1), lvl, length(s))` respectively.
+Calculate the eigen value decomposition of the Hamiltonian `H` at an array of 
+time points `s`. The output keeps the lowest `lvl` eigenstates and their 
+corresponding eigenvalues. Output `(vals, vecs)` have the dimensions of 
+`(lvl, length(s))` and `(size(H, 1), lvl, length(s))` respectively.
 """
 function eigen_decomp(
     H::AbstractHamiltonian,
     s::AbstractArray{Float64,1};
-    lvl::Int=2
+    lvl::Int=2,
+    kwargs...
 )
     s_dim = length(s)
     res_val = Array{eltype(H),2}(undef, (lvl, s_dim))
     res_vec = Array{eltype(H),3}(undef, (size(H, 1), lvl, s_dim))
     for (i, s_val) in enumerate(s)
-        val, vec = haml_eigs(H, s_val, lvl)
+        val, vec = haml_eigs(H, s_val, lvl; kwargs...)
         res_val[:, i] = val[1:lvl]
         res_vec[:, :, i] = vec[:, 1:lvl]
     end
@@ -128,7 +209,9 @@ end
 """
 $(SIGNATURES)
 
-For a time series quantum states given by `states`, whose time points are given by `s`, calculate the population of instantaneous eigenstates of `H`. The levels of the instantaneous eigenstates are specified by `lvl`, which can be any slice index.
+For a time series quantum states given by `states`, whose time points are given
+by `s`, calculate the population of instantaneous eigenstates of `H`. The levels
+of the instantaneous eigenstates are specified by `lvl`, which can be any slice index.
 """
 function inst_population(s, states, H::AbstractHamiltonian; lvl=1:1)
     if typeof(lvl) <: Int
@@ -161,4 +244,3 @@ function is_complex(f_list, m_list)
     end
 end
 
-issparse(H::AbstractHamiltonian) = typeof(H) <: AbstractSparseHamiltonian

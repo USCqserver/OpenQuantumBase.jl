@@ -19,9 +19,9 @@ the call signatures `H(t)` and `H(du, u, p, t)`.
 `H(t)`: This method, when called with a single argument `t`, should return the 
 value of the Hamiltonian at time `t`.
 
-`H(du, u, p, t)`: This method should update the du object in-place according to 
-the evolution equation `du += -i H(t) u` when `u` is a vector, or 
-`du += -i [H(t), u]` when `u` is a matrix. Here, `u` is the state vector or 
+`H(du, u, p, t)`: This method should update the `du` object in-place according to 
+the evolution equation ``du += -i H(t) u`` when ``u`` is a vector, or 
+``du += -i [H(t), u]`` when ``u`` is a matrix. Here, `u` is the state vector or 
 density matrix, `p` contains parameters for the ODE solver, and `t` is the 
 current time.
 """

@@ -1,7 +1,8 @@
 """
 $(TYPEDEF)
 
-Defines a total Liouvillian to feed to the solver using the `DiffEqOperator` interface. It contains both closed-system and open-system Liouvillians.
+Defines a total Liouvillian to feed to the solver using the `DiffEqOperator` 
+interface. It contains both closed-system and open-system Liouvillians.
 
 # Fields
 
@@ -27,9 +28,20 @@ end
 """
 $(SIGNATURES)
 
-The constructor of the `DiffEqLiouvillian` type. `opensys_eig` is a list of open-system Liouvillians that which require diagonalization of the Hamiltonian. `opensys` is a list of open-system Liouvillians which does not require diagonalization of the Hamiltonian. `lvl` is the truncation levels of the energy eigenbasis if the method supports the truncation.
+The constructor of the `DiffEqLiouvillian` type. `opensys_eig` is a list of 
+open-system Liouvillians that which require diagonalization of the Hamiltonian.
+`opensys` is a list of open-system Liouvillians which does not require 
+diagonalization of the Hamiltonian. `lvl` is the truncation levels of the energy
+eigenbasis if the method supports the truncation.
 """
-function DiffEqLiouvillian(H::AbstractHamiltonian, opensys_eig, opensys, lvl; digits::Integer=8, sigdigits::Integer=8)
+function DiffEqLiouvillian(
+    H::AbstractHamiltonian, 
+    opensys_eig, 
+    opensys, 
+    lvl; 
+    digits::Integer=8, 
+    sigdigits::Integer=8
+)
     # for DenseHamiltonian smaller than 10×10, do not truncate
     if !(typeof(H) <: AbstractSparseHamiltonian) && (size(H, 1) <= 10)
         lvl = size(H, 1)
