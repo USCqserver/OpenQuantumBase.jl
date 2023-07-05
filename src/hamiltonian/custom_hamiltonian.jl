@@ -14,6 +14,7 @@ struct CustomDenseHamiltonian{T<:Number,dimensionless_time,in_place} <: Abstract
     size::Tuple
 end
 
+issparse(::CustomDenseHamiltonian) = false
 
 function hamiltonian_from_function(func; in_place=false, dimensionless_time=true)
     hmat = func(0.0)

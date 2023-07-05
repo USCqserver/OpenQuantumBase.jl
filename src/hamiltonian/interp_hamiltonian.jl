@@ -24,17 +24,17 @@ Defines interpolating SparseHamiltonian object.
 
 $(FIELDS)
 """
-struct InterpSparseHamiltonian{T,dimensionless_time} <: AbstractSparseHamiltonian{T}
+struct InterpSparseHamiltonian{T,dimensionless_time} <: AbstractHamiltonian{T}
     "Interpolating object"
     interp_obj::Any
     "Size"
     size::Any
 end
 
-isdimensionlesstime(H::InterpDenseHamiltonian{T,true}) where {T} = true
-isdimensionlesstime(H::InterpDenseHamiltonian{T,false}) where {T} = false
-isdimensionlesstime(H::InterpSparseHamiltonian{T,true}) where {T} = true
-isdimensionlesstime(H::InterpSparseHamiltonian{T,false}) where {T} = false
+isdimensionlesstime(::InterpDenseHamiltonian{T,B}) where {T,B} = B
+isdimensionlesstime(::InterpSparseHamiltonian{T,B}) where {T,B} = B
+issparse(::InterpDenseHamiltonian) = false
+issparse(::InterpSparseHamiltonian) = true
 
 function InterpDenseHamiltonian(
     s,
@@ -121,7 +121,7 @@ function InterpSparseHamiltonian(
         method="gridded",
         order=1,
     )
-    InterpSparseHamiltonian{T, dimensionless_time}(interp_obj, size(H_list[1]))
+    InterpSparseHamiltonian{T,dimensionless_time}(interp_obj, size(H_list[1]))
 end
 
 
