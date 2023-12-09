@@ -228,7 +228,7 @@ function partial_trace(ρ::AbstractMatrix, sys_dim::AbstractVector{<:Integer}, d
 	re_dim[dim_2_trace] .= 1
 	tr_dim = copy(sys_dim)
 	tr_dim[dim_2_keep] .= 1
-	res = zeros(typeof(first(ρ)), re_dim..., re_dim...)
+	res = zeros(eltype(ρ), re_dim..., re_dim...)
 	for I in CartesianIndices(size(res))
 		for k in CartesianIndices((tr_dim...,))
 			delta = CartesianIndex(k, k)
