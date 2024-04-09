@@ -36,6 +36,18 @@ function SparseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     SparseHamiltonian{eltype(mats[1]),dimensionless_time}(funcs, mats, cache, size(mats[1]))
 end
 
+function Base.:+(h1::SparseHamiltonian, h2::SparseHamiltonian)
+    @assert size(h1) == size(h2) "The two Hamiltonians need to have the same size."
+    @assert isdimensionlesstime(h1) == isdimensionlesstime(h2) "The two Hamiltonians need to have the time arguments."
+
+    (m1, m2) = promote(h1.m, h2.m)
+    mats = [m1; m2]
+    cache = similar(sum(mats))
+    funcs = [h1.f; h2.f]
+    hsize = size(h1)
+    SparseHamiltonian{eltype(m1[1]),isdimensionlesstime(h1)}(funcs, mats, cache, hsize)
+end
+
 isdimensionlesstime(::SparseHamiltonian{T,B}) where {T,B} = B
 issparse(::SparseHamiltonian) = true
 
