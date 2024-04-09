@@ -40,6 +40,18 @@ function DenseHamiltonian(funcs, mats; unit=:h, dimensionless_time=true)
     DenseHamiltonian{eltype(mats[1]),dimensionless_time}(funcs, mats, cache, hsize)
 end
 
+function Base.:+(h1::DenseHamiltonian, h2::DenseHamiltonian)
+    @assert size(h1) == size(h2) "The two Hamiltonians need to have the same size."
+    @assert isdimensionlesstime(h1) == isdimensionlesstime(h2) "The two Hamiltonians need to have the time arguments."
+
+    (m1, m2) = promote(h1.m, h2.m)
+    cache = similar(m1[1])
+    mats = [m1; m2]
+    funcs = [h1.f; h2.f]
+    hsize = size(h1)
+    DenseHamiltonian{eltype(m1[1]),isdimensionlesstime(h1)}(funcs, mats, cache, hsize)
+end
+
 """
     function (h::DenseHamiltonian)(s::Real)
 
