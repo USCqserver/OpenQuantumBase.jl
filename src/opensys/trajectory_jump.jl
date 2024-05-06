@@ -1,12 +1,11 @@
 
 function lind_jump(lind::LindbladLiouvillian, u, p, s::Real)
-    l = length(lind)
     prob = Float64[]
     ops = Vector{Matrix{ComplexF64}}()
     for (γfun, Lfun) in zip(lind.γ, lind.L)
         L = Lfun(s)
         γ = γfun(s)
-        push!(prob, γ * norm(L * u))
+        push!(prob, γ * norm(L * u)^2)
         push!(ops, L)
     end
     sample(ops, Weights(prob))
@@ -24,8 +23,8 @@ function ame_jump(D::DaviesGenerator, u, gap_idx::GapIndices, v, s)
         g₊ = D.γ(w)
         g₋ = D.γ(-w)
         for i in eachindex(σab)
-            L₊ = sparse(a, b, σab[i][a + (b .- 1)*l], l, l)
-            L₋ = sparse(b, a, σab[i][b + (a .- 1)*l], l, l)
+            L₊ = sparse(a, b, σab[i][a+(b.-1)*l], l, l)
+            L₋ = sparse(b, a, σab[i][b+(a.-1)*l], l, l)
             ϕ₊ = L₊ * ϕb
             prob[idx] = g₊ * real(ϕ₊' * ϕ₊)
             tag[idx] = (i, a, b, sqrt(g₊))
@@ -34,19 +33,19 @@ function ame_jump(D::DaviesGenerator, u, gap_idx::GapIndices, v, s)
             prob[idx] = g₋ * real(ϕ₋' * ϕ₋)
             tag[idx] = (i, b, a, sqrt(g₋))
             idx += 1
-        end 
+        end
     end
     g0 = D.γ(0)
     a, b = zero_gap_indices(gap_idx)
-	for i in eachindex(σab)
-		L = sparse(a, b, σab[i][a + (b .- 1)*l], l, l)
+    for i in eachindex(σab)
+        L = sparse(a, b, σab[i][a+(b.-1)*l], l, l)
         ϕ = L * ϕb
         prob[idx] = real(g0 * (ϕ' * ϕ))
         tag[idx] = (i, a, b, sqrt(g0))
         idx += 1
-	end
+    end
     choice = sample(tag, Weights(prob))
-    L = choice[4] * sparse(choice[2], choice[3], σab[choice[1]][choice[2] + (choice[3] .- 1)*l] , l, l)
+    L = choice[4] * sparse(choice[2], choice[3], σab[choice[1]][choice[2]+(choice[3].-1)*l], l, l)
 
     v * L * v'
 end
@@ -74,7 +73,7 @@ function lindblad_jump(Op::DiffEqLiouvillian{false,false}, u, p, t::Real)
     resample([lind_jump(x, u, p, s) for x in Op.opensys], u)
 end
 
-function lindblad_jump(Op::DiffEqLiouvillian{false, true}, u, p, t)
+function lindblad_jump(Op::DiffEqLiouvillian{false,true}, u, p, t)
     s = p(t)
     resample([ame_jump(x, u, p, s) for x in Op.opensys], u)
 end
